@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" type="image/png" href="/favicon.png">
+
+	<title>EMOJI INPUT</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		} 
+		html, body {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			/* Outer gradient for flanks outside portrait area */
+			/* background: linear-gradient(to bottom, #b0dbe8, #acc4f5); */
+			background: linear-gradient(to bottom, #d3e8eeff, #ABE0F0);
+		}
+		#game-container {
+			width: 100%;
+			height: 100%;
+		}
+		canvas {
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<div id="game-container"></div>
+	<div id="loading-indicator" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-family: Arial; font-size: 18px; z-index: 1000;">
+		Checking battery assets...
+	</div>
+	<script src="phaser.min.js"></script>
+	<script src="config.js"></script>
+	<script type="module" src="game.js"></script>
+</body>
+</html>

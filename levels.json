@@ -1,0 +1,298 @@
+{
+  "levels": [
+    {
+  "grid": {
+    "cols": 6,
+    "rows": 6,
+    "cellSize": 64
+  },
+  "parking": {
+    "color": 15658734,
+    "alpha": 1,
+    "borderColor": 6710886,
+    "borderWidth": 3
+  },
+  "road": {
+    "width": 80,
+    "color": 5592405,
+    "fillColor": 7829367,
+    "fillAlpha": 0.7,
+    "outerRadius": 80,
+    "innerRadius": 20,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "car",
+      "gridRow": 5,
+      "gridCol": 5,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 1,
+      "gridCol": 3,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 5,
+      "gridCol": 0,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    }
+  ]
+},
+    {
+  "grid": {
+    "cols": 6,
+    "rows": 6,
+    "cellSize": 64
+  },
+  "parking": {
+    "color": 15658734,
+    "alpha": 1,
+    "borderColor": 6710886,
+    "borderWidth": 3
+  },
+  "road": {
+    "width": 80,
+    "color": 5592405,
+    "fillColor": 7829367,
+    "fillAlpha": 0.7,
+    "outerRadius": 80,
+    "innerRadius": 20,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "car",
+      "gridRow": 2,
+      "gridCol": 1,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 2,
+      "gridCol": 5,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 4,
+      "gridCol": 1,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 1,
+      "gridCol": 3,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 5,
+      "gridCol": 4,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    }
+  ]
+},
+    {
+  "grid": {
+    "cols": 6,
+    "rows": 6,
+    "cellSize": 64
+  },
+  "parking": {
+    "color": 15658734,
+    "alpha": 1,
+    "borderColor": 6710886,
+    "borderWidth": 3
+  },
+  "road": {
+    "width": 40,
+    "color": 5592405,
+    "fillColor": 7829367,
+    "fillAlpha": 0.7,
+    "outerRadius": 80,
+    "innerRadius": 20,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "car",
+      "gridRow": 1,
+      "gridCol": 1,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 3,
+      "gridCol": 1,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 3,
+      "gridCol": 3,
+      "orientation": "left",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    }
+  ]
+},
+    
+    {
+  "grid": {
+    "cols": 6,
+    "rows": 6,
+    "cellSize": 64
+  },
+  "parking": {
+    "color": 15658734,
+    "alpha": 1,
+    "borderColor": 6710886,
+    "borderWidth": 3
+  },
+  "road": {
+    "width": 80,
+    "color": 5592405,
+    "fillColor": 7829367,
+    "fillAlpha": 0.7,
+    "outerRadius": 40,
+    "innerRadius": 40,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "car",
+      "gridRow": 1,
+      "gridCol": 2,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 1,
+      "gridCol": 4,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 4,
+      "gridCol": 1,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 3,
+      "gridCol": 3,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 1,
+      "gridCol": 1,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car",
+      "gridRow": 2,
+      "gridCol": 0,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    }
+  ]
+},
+    {
+      "id": 1,
+      "name": "Level 1",
+      "grid": {
+        "cols": 6,
+        "rows": 6,
+        "cellSize": 80
+      },
+      "parking": {
+        "color": 13158600,
+        "alpha": 0.1,
+        "borderColor": 13158600,
+        "borderWidth": 2
+      },
+      "road": {
+        "width": 80,
+        "color": 16777215,
+        "fillColor": 7829367,
+        "fillAlpha": 1
+      },
+      "cars": [
+        {
+          "type": "car",
+          "gridRow": 2,
+          "gridCol": 1,
+          "isHorizontal": true,
+          "chargeRequired": 50
+        },
+        {
+          "type": "car",
+          "gridRow": 1,
+          "gridCol": 3,
+          "isHorizontal": false,
+          "chargeRequired": 70
+        },
+        {
+          "type": "car",
+          "gridRow": 3,
+          "gridCol": 2,
+          "isHorizontal": true,
+          "chargeRequired": 60
+        }
+      ]
+    }
+  ]
+}

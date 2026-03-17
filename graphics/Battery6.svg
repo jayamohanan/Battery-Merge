@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="2" y="23.875" width="59.75" height="32" fill="black"/>
+<rect x="2.75" y="24.5" width="58.25" height="30.625" fill="#7EDB62"/>
+<rect x="0.5" y="19.5" width="63" height="4" fill="black"/>
+<rect x="3.375" y="18.125" width="7.875" height="1" fill="black"/>
+<rect x="4.875" y="12.625" width="5" height="5.125" fill="black"/>
+<rect x="54.25" y="12.625" width="5" height="5.125" fill="black"/>
+<path d="M19.25 15.5626V8.36523" stroke="black" stroke-width="1.5"/>
+<path d="M18.5 9.25H45.5M44.625 8.375V15.5625" stroke="black" stroke-width="1.5"/>
+<rect x="13.125" y="16.25" width="37.75" height="2.875" fill="black"/>
+<rect x="52.75" y="18.125" width="7.875" height="1" fill="black"/>
+<circle cx="7.25" cy="29.5" r="2.875" stroke="black" stroke-width="0.5"/>
+<circle cx="56.75" cy="29.5" r="2.875" stroke="black" stroke-width="0.5"/>
+<rect x="5.875" y="29.25" width="2.875" height="0.75" fill="black"/>
+<rect x="56.375" y="28.125" width="0.625" height="2.875" fill="black"/>
+<rect x="55.25" y="29.25" width="2.875" height="0.75" fill="black"/>
+</svg>
