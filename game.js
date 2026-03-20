@@ -666,12 +666,12 @@
             );
             path.add(bottomLeftCurve);
             
-            // LEFT EDGE - straight line going UP past the top corner
-            // Instead of stopping at top + radius, continue upward to create exit path
-            // Exit should be 4x cell length beyond the screen boundary for safe exit
+            // LEFT EDGE - straight line going UP past the top corner and off-screen
+            // Calculate exit distance to ensure car fully exits beyond screen top
+            // Exit should go well beyond the top of the screen (at y=0)
             const cellSize = this.gridConfig.cellSize;
-            const exitDistance = cellSize * 4;
-            const exitY = top + radius - exitDistance; // Go up beyond the top
+            const exitExtraDistance = cellSize * 8; // Extra distance beyond screen edge for smooth exit
+            const exitY = Math.min(top + radius, 0) - exitExtraDistance; // Ensure it goes above screen top (y=0)
             
             path.lineTo(left, exitY);
             
@@ -1189,14 +1189,8 @@
         // Smoothly curve from parking exit onto the road with a natural right turn
         curveOntoRoad(car) {
     if (!this.roadPath) {
-        const sceneWidth = this.cameras.main.width;
-        this.tweens.add({
-            targets: car.sprite,
-            x: sceneWidth + 100,
-            duration: 1000,
-            ease: 'Power1',
-            onComplete: () => { this.removeCar(car); }
-        });
+        // No road path - just remove the car immediately
+        this.removeCar(car);
         return;
     }
 
@@ -1352,14 +1346,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                     }
                 },
                 onComplete: () => {
-                    const sceneWidth = this.cameras.main.width;
-                    this.tweens.add({
-                        targets: car.sprite,
-                        x: sceneWidth + 100,
-                        duration: 1000,
-                        ease: 'Power1',
-                        onComplete: () => { this.removeCar(car); }
-                    });
+                    // Car has completed road traversal - remove it immediately
+                    this.removeCar(car);
                 }
             });
         }
