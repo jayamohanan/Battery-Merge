@@ -46,6 +46,16 @@ var CONFIG = {
     // Grid Layout Configuration
     GRID: {
         PADDING_FROM_BUTTON_TOP: 40,   // Padding between top of spawn button and bottom of grid (pixels)
+        
+        // Responsive sizing for PARKING JAM GRID ONLY (top section with cars)
+        // Battery merge grid (bottom section) uses hardcoded CELL.SIZE values
+        WIDTH_PERCENTAGE: 0.6,         // Parking grid width as percentage of screen width (0.6 = 60%)
+        SIZE_FACTOR: 1.0,              // Global size multiplier for parking grid (1.0 = normal, 1.5 = 150%, etc.)
+        ROAD_WIDTH_FACTOR: 4 / 3,      // Road width as a factor of parking cell size (4/3 means road width = cellSize * 1.33)
+        
+        // Grid dimensions
+        PARKING_COLS: 6,               // Number of columns in parking jam grid (can be overridden by level data)
+        PARKING_ROWS: 6,               // Number of rows in parking jam grid (can be overridden by level data)
     },
     
     // Coin Counter Display (above grid, top-right)
@@ -59,11 +69,13 @@ var CONFIG = {
         TEXT_ICON_SPACING: 10,         // Spacing between text and coin icon (pixels)
     },
     
-    // Grid Cell Configuration
+    // Grid Cell Configuration (For Battery Merge Grid - Bottom Section)
+    // These values are used directly for the merge game grid (3x3) and charging slots
+    // The parking jam grid uses responsive sizing based on GRID.WIDTH_PERCENTAGE
     CELL: {
-        SIZE: 100,                      // Cell width and height in pixels
-        GAP: 15,                        // Gap between cells
-        RADIUS: 15,                     // Rounded corner radius
+        SIZE: 100,                      // Cell width and height in pixels (used for merge game grid)
+        GAP: 15,                        // Gap between cells (used for merge game grid)
+        RADIUS: 15,                     // Rounded corner radius (used for merge game grid)
         BORDER_COLOR: 0xBBDDEE,        // Empty cell border color
         BORDER_WIDTH: 3,                // Border width
         FILLED_BG_COLOR: 0xFFFFFF,     // Background color when cell has a battery

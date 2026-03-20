@@ -42,6 +42,33 @@
             this.GRID_COLS = 3;
             this.GRID_ROWS = 3;
         }
+        
+        // Calculate dynamic sizes for parking jam grid only (top section)
+        calculateParkingGridSizes() {
+            const sceneWidth = this.cameras.main.width;
+            
+            // Calculate parking jam grid dimensions (top section)
+            // Grid width is a percentage of screen width, with size factor applied
+            const baseGridWidth = sceneWidth * CONFIG.GRID.WIDTH_PERCENTAGE;
+            const parkingGridWidth = baseGridWidth * CONFIG.GRID.SIZE_FACTOR;
+            
+            // Default parking cell size (can be overridden by level data)
+            const defaultParkingCols = CONFIG.GRID.PARKING_COLS;
+            const defaultParkingRows = CONFIG.GRID.PARKING_ROWS;
+            
+            // Calculate cell size for parking grid (cells must be square)
+            this.defaultParkingCellSize = parkingGridWidth / defaultParkingCols;
+            
+            // Road width is proportional to cell size
+            this.roadWidthFactor = CONFIG.GRID.ROAD_WIDTH_FACTOR;
+            
+            console.log('Parking grid sizes calculated:', {
+                screenWidth: sceneWidth,
+                parkingGridWidth: parkingGridWidth.toFixed(2),
+                defaultParkingCellSize: this.defaultParkingCellSize.toFixed(2),
+                roadWidthFactor: this.roadWidthFactor
+            });
+        }
 
         preload() {
             // Load battery images with extension fallback (from pre-initialized cache)
@@ -61,6 +88,9 @@
         }
 
         create() {
+            // Calculate dynamic sizes for parking grid only
+            this.calculateParkingGridSizes();
+            
             // Get scene dimensions
             const sceneWidth = this.cameras.main.width;
             const sceneHeight = this.cameras.main.height;
@@ -383,8 +413,39 @@
         loadLevel(levelData) {
             console.log('Loading level:', levelData);
             
-            // Store grid configuration
-            this.gridConfig = levelData.grid || { cols: 6, rows: 6, cellSize: 80 };
+            // Store grid configuration (from level or defaults)
+            // Get size_factor (per-level zoom) from level data, default to 1.0
+            const levelSizeFactor = levelData.grid?.size_factor || 1.0;
+            
+            this.gridConfig = levelData.grid || { 
+                cols: CONFIG.GRID.PARKING_COLS, 
+                rows: CONFIG.GRID.PARKING_ROWS
+            };
+            
+            // Always set cols and rows from level or defaults
+            this.gridConfig.cols = this.gridConfig.cols || CONFIG.GRID.PARKING_COLS;
+            this.gridConfig.rows = this.gridConfig.rows || CONFIG.GRID.PARKING_ROWS;
+            
+            // Calculate dynamic cell size based on screen width and level's size_factor
+            const sceneWidth = this.cameras.main.width;
+            const baseGridWidth = sceneWidth * CONFIG.GRID.WIDTH_PERCENTAGE;
+            
+            // Apply both the global SIZE_FACTOR and the level's size_factor
+            const parkingGridWidth = baseGridWidth * CONFIG.GRID.SIZE_FACTOR * levelSizeFactor;
+            
+            // Calculate cell size from grid width and number of columns (cells must be square)
+            const calculatedCellSize = parkingGridWidth / this.gridConfig.cols;
+            
+            // Set calculated cellSize
+            this.gridConfig.cellSize = calculatedCellSize;
+            
+            console.log('Parking grid config:', {
+                cols: this.gridConfig.cols,
+                rows: this.gridConfig.rows,
+                levelSizeFactor: levelSizeFactor,
+                cellSize: this.gridConfig.cellSize.toFixed(2),
+                parkingGridWidth: parkingGridWidth.toFixed(2)
+            });
             
             // Initialize grid occupancy tracking (null = empty, car reference = occupied)
             this.gridOccupancy = Array(this.gridConfig.rows).fill(null).map(() => 
@@ -442,10 +503,22 @@
             this.parkingLeft = centerX - parkingWidth / 2;
             this.parkingTop = centerY - parkingHeight / 2;
             
+            // Calculate road width dynamically based on cell size (ignore level data)
+            const calculatedRoadWidth = this.gridConfig.cellSize * this.roadWidthFactor;
+            
+            // Set road width to calculated value (not from level data)
+            const roadWidth = calculatedRoadWidth;
+            
+            console.log('Road width calculated:', {
+                cellSize: this.gridConfig.cellSize.toFixed(2),
+                roadWidthFactor: this.roadWidthFactor,
+                calculatedRoadWidth: calculatedRoadWidth.toFixed(2)
+            });
+            
             // Create curved road path
             const halfW = parkingWidth / 2;
             const halfH = parkingHeight / 2;
-            const offset = roadData.width / 2;
+            const offset = roadWidth / 2;
             
             this.roadPath = this.createRoadPath(
                 centerX, centerY, halfW, halfH, offset

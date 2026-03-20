@@ -1029,7 +1029,7 @@ class LevelEditorScene extends Phaser.Scene {
             grid: {
                 cols: this.gridCols,
                 rows: this.gridRows,
-                cellSize: this.cellSize
+                size_factor: 1.0  // Default size factor (can be adjusted per level)
             },
             parking: {
                 color: this.parkingColor,
@@ -1038,7 +1038,8 @@ class LevelEditorScene extends Phaser.Scene {
                 borderWidth: CONFIG.EDITOR.PARKING_BORDER_WIDTH
             },
             road: {
-                width: this.roadWidth,
+                // Road width is calculated dynamically based on cellSize and ROAD_WIDTH_FACTOR
+                // No need to export it
                 color: this.roadColor,
                 fillColor: this.roadFillColor,
                 fillAlpha: this.roadFillAlpha,
