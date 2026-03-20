@@ -261,10 +261,15 @@ var CONFIG = {
     
     // Level Editor settings
     EDITOR: {
+        // Responsive sizing configuration
+        GRID_WIDTH_PERCENT: 0.6,       // Grid width as percentage of screen width (0.6 = 60%)
+        ZOOM_FACTOR: 1.0,              // Global zoom multiplier (0.5 = half size, 1.0 = normal, 2.0 = double size)
+        ROAD_WIDTH_CELL_PERCENT: 1.33, // Road width as percentage of cell size (1.33 = 133%)
+        
         // Grid configuration (like Parking Jam 3D)
         GRID_COLS: 6,                  // Number of columns in parking grid
         GRID_ROWS: 6,                  // Number of rows in parking grid
-        CELL_SIZE: 64,                 // Size of each grid cell (pixels) - STANDARD SIZE
+        // NOTE: CELL_SIZE is calculated dynamically as (screenWidth * GRID_WIDTH_PERCENT * ZOOM_FACTOR) / GRID_COLS
         GRID_LINE_COLOR: 0xCCCCCC,     // Grid line color
         GRID_LINE_WIDTH: 2,            // Grid line thickness
         GRID_LINE_ALPHA: 0.5,          // Grid line transparency
@@ -275,8 +280,8 @@ var CONFIG = {
         PARKING_BORDER_COLOR: 0x666666, // Dark grey border
         PARKING_BORDER_WIDTH: 3,       // Border thickness
         
-        // Road rectangle (outer rectangle)
-        ROAD_WIDTH: 40,                // Width/thickness of road (extends outward from parking edge)
+        // Road (automatically calculated from cell size)
+        // NOTE: ROAD_WIDTH is calculated as cellSize * ROAD_WIDTH_CELL_PERCENT * ZOOM_FACTOR
         ROAD_COLOR: 0x555555,          // Dark grey color for road center line
         ROAD_FILL_COLOR: 0x777777,     // Road surface color
         ROAD_FILL_ALPHA: 0.7,          // Road transparency

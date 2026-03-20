@@ -11,18 +11,38 @@ class LevelEditorScene extends Phaser.Scene {
         this.isDragging = false;
         this.editorBounds = null;     // Top half area bounds
         
-        // Grid configuration
+        // Get screen dimensions for responsive sizing
+        const screenWidth = 720; // From editor config scale.width
+        
+        // Grid configuration from CONFIG
         this.gridCols = CONFIG.EDITOR.GRID_COLS;
         this.gridRows = CONFIG.EDITOR.GRID_ROWS;
-        this.cellSize = CONFIG.EDITOR.CELL_SIZE;
+        
+        // Calculate dimensions based on screen width and config percentages
+        const gridWidthPercent = CONFIG.EDITOR.GRID_WIDTH_PERCENT;
+        const zoomFactor = CONFIG.EDITOR.ZOOM_FACTOR;
+        const roadWidthCellPercent = CONFIG.EDITOR.ROAD_WIDTH_CELL_PERCENT;
+        
+        // Calculate grid width from screen width percentage and zoom
+        const baseGridWidth = screenWidth * gridWidthPercent;
+        const gridWidth = baseGridWidth * zoomFactor;
+        
+        // Calculate cell size (square cells, determined by columns)
+        this.cellSize = gridWidth / this.gridCols;
+        
+        // Car length in cells
         this.carLength = CONFIG.EDITOR.CAR_LENGTH; // Car occupies 2 cells
         
         // Calculate parking dimensions from grid
         this.parkingWidth = this.gridCols * this.cellSize;
         this.parkingHeight = this.gridRows * this.cellSize;
-        this.roadWidth = CONFIG.EDITOR.ROAD_WIDTH;
-        this.roadOuterRadius = CONFIG.EDITOR.ROAD_OUTER_RADIUS;
-        this.roadInnerRadius = CONFIG.EDITOR.ROAD_INNER_RADIUS;
+        
+        // Calculate road width as percentage of cell size, with zoom applied
+        this.roadWidth = this.cellSize * roadWidthCellPercent;
+        
+        // Road corner radii (with zoom applied)
+        this.roadOuterRadius = CONFIG.EDITOR.ROAD_OUTER_RADIUS * zoomFactor;
+        this.roadInnerRadius = CONFIG.EDITOR.ROAD_INNER_RADIUS * zoomFactor;
         this.roadSegmentsPerCorner = CONFIG.EDITOR.ROAD_SEGMENTS_PER_CORNER;
         
         // Grid to track occupied cells (true = occupied, false = empty)
@@ -34,6 +54,17 @@ class LevelEditorScene extends Phaser.Scene {
         this.roadColor = CONFIG.EDITOR.ROAD_COLOR;
         this.roadFillColor = CONFIG.EDITOR.ROAD_FILL_COLOR;
         this.roadFillAlpha = CONFIG.EDITOR.ROAD_FILL_ALPHA;
+        
+        // Debug log
+        console.log('=== EDITOR INIT ===');
+        console.log('Screen width:', screenWidth);
+        console.log('Grid width percent:', gridWidthPercent);
+        console.log('Zoom factor:', zoomFactor);
+        console.log('Calculated grid width:', gridWidth);
+        console.log('Cell size:', this.cellSize);
+        console.log('Road width cell percent:', roadWidthCellPercent);
+        console.log('Calculated road width:', this.roadWidth);
+        console.log('===================');
     }
 
     preload() {
@@ -464,8 +495,22 @@ class LevelEditorScene extends Phaser.Scene {
         });
         
         const gridColsInput = this.createInput(inputX, startY, this.gridCols, (value) => {
-            this.gridCols = Math.max(3, Math.min(10, value));
+            this.gridCols = Math.max(3, Math.min(100, value));
+            
+            // Recalculate all dimensions when columns change
+            const screenWidth = 720;
+            const gridWidthPercent = CONFIG.EDITOR.GRID_WIDTH_PERCENT;
+            const zoomFactor = CONFIG.EDITOR.ZOOM_FACTOR;
+            const roadWidthCellPercent = CONFIG.EDITOR.ROAD_WIDTH_CELL_PERCENT;
+            
+            const baseGridWidth = screenWidth * gridWidthPercent;
+            const gridWidth = baseGridWidth * zoomFactor;
+            this.cellSize = gridWidth / this.gridCols;
+            
             this.parkingWidth = this.gridCols * this.cellSize;
+            this.parkingHeight = this.gridRows * this.cellSize;
+            this.roadWidth = this.cellSize * roadWidthCellPercent;
+            
             this.gridOccupied = Array(this.gridRows).fill(null).map(() => Array(this.gridCols).fill(false));
             this.redrawParkingAndRoad();
         });
@@ -478,41 +523,30 @@ class LevelEditorScene extends Phaser.Scene {
         });
         
         const gridRowsInput = this.createInput(inputX, startY + lineHeight, this.gridRows, (value) => {
-            this.gridRows = Math.max(3, Math.min(10, value));
+            this.gridRows = Math.max(3, Math.min(100, value));
             this.parkingHeight = this.gridRows * this.cellSize;
             this.gridOccupied = Array(this.gridRows).fill(null).map(() => Array(this.gridCols).fill(false));
             this.redrawParkingAndRoad();
         });
         
-        // Cell Size is fixed at 64px (defined in CONFIG.EDITOR.CELL_SIZE)
-        // No UI control needed - it's the standard size
-        
-        // Road Width control
-        this.add.text(labelX, startY + lineHeight * 2, 'Road Width:', {
-            fontSize: '14px',
-            fontFamily: CONFIG.FONT_FAMILY,
-            color: '#000000'
-        });
-        
-        const roadWidthInput = this.createInput(inputX, startY + lineHeight * 2, this.roadWidth, (value) => {
-            this.roadWidth = Math.max(5, Math.min(100, value));
-            this.redrawParkingAndRoad();
-        });
+        // Cell Size is calculated dynamically from grid width and columns
+        // Road Width is calculated as a percentage of cell size
+        // No UI controls needed - they're automatically calculated
         
         // Road Outer Radius control
-        this.add.text(labelX, startY + lineHeight * 3, 'Outer Radius:', {
+        this.add.text(labelX, startY + lineHeight * 2, 'Outer Radius:', {
             fontSize: '14px',
             fontFamily: CONFIG.FONT_FAMILY,
             color: '#000000'
         });
         
-        const outerRadiusInput = this.createInput(inputX, startY + lineHeight * 3, this.roadOuterRadius, (value) => {
+        const outerRadiusInput = this.createInput(inputX, startY + lineHeight * 2, this.roadOuterRadius, (value) => {
             this.roadOuterRadius = Math.max(10, Math.min(200, value));
             this.redrawParkingAndRoad();
         });
         
         // Road Inner Radius control
-        this.add.text(labelX, startY + lineHeight * 4, 'Inner Radius:', {
+        this.add.text(labelX, startY + lineHeight * 3, 'Inner Radius:', {
             fontSize: '14px',
             fontFamily: CONFIG.FONT_FAMILY,
             color: '#000000'
@@ -529,7 +563,7 @@ class LevelEditorScene extends Phaser.Scene {
         const input = document.createElement('input');
         input.type = 'number';
         input.value = defaultValue;
-        input.style.position = 'absolute';
+        input.style.position = 'absolute';3
         input.style.left = '0px';
         input.style.top = '0px';
         input.style.width = '80px';
