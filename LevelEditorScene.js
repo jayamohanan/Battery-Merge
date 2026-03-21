@@ -310,6 +310,16 @@ class LevelEditorScene extends Phaser.Scene {
         this.roadRope = this.add.rope(ropeOriginX, ropeOriginY, 'road', null, relativePoints);
         console.log('>>> Rope created: this.add.rope(' + ropeOriginX.toFixed(2) + ', ' + ropeOriginY.toFixed(2) + ', "road", null, relativePoints)');
         
+        // Scale texture to match road width (road_80.png is 80x80 pixels)
+        const roadTextureSize = 80; // Size of road_80.png texture
+        const textureScale = this.roadWidth / roadTextureSize;
+        this.roadRope.setScale(textureScale);
+        console.log('Road texture scaled:', {
+            textureSize: roadTextureSize,
+            roadWidth: this.roadWidth.toFixed(2),
+            scale: textureScale.toFixed(3)
+        });
+        
         // Apply alpha from config (Rope doesn't support tint)
         if (this.roadFillAlpha !== undefined) {
             this.roadRope.setAlpha(this.roadFillAlpha);

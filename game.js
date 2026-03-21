@@ -524,8 +524,8 @@
                 centerX, centerY, halfW, halfH, offset
             );
             
-            // Draw road using Rope (same as editor)
-            // Sample points along the center path - using same method as editor
+            // Draw road using Rope with texture - simple approach
+            // Sample points along the center path
             const numPoints = 150;
             const worldPoints = [];
             
@@ -557,39 +557,27 @@
                 y: p.y - ropeOriginY
             }));
             
-            // Create rope with road texture at the rope origin with relative points
-            console.log('=== ROAD ROPE CREATION DEBUG ===');
-            console.log('Road texture exists:', this.textures.exists('road'));
-            console.log('Road texture key:', 'road');
-            console.log('Rope origin:', ropeOriginX.toFixed(2), ropeOriginY.toFixed(2));
-            console.log('Points count:', relativePoints.length);
-            console.log('First 5 relative points:', relativePoints.slice(0, 5));
-            
+            // Create rope with road texture - texture is already the right size (road_80.png)
             this.roadRope = this.add.rope(ropeOriginX, ropeOriginY, 'road', null, relativePoints);
             
-            console.log('Rope created:', this.roadRope);
-            console.log('Rope visible:', this.roadRope.visible);
-            console.log('Rope alpha before set:', this.roadRope.alpha);
-            console.log('Rope depth before set:', this.roadRope.depth);
-            console.log('Rope scale:', this.roadRope.scaleX, this.roadRope.scaleY);
+            // Scale to match road width (texture is 80px, we want roadWidth)
+            const roadTextureSize = 80;
+            const textureScale = roadWidth / roadTextureSize;
+            this.roadRope.setScale(textureScale);
             
-            // Apply alpha from level data (Rope doesn't support tint)
+            // Apply alpha from level data
             if (roadData.fillAlpha !== undefined) {
                 this.roadRope.setAlpha(roadData.fillAlpha);
-                console.log('Rope alpha set to:', roadData.fillAlpha);
             }
             
-            // Set depth above parking area so road is visible
+            // Set depth above parking area
             this.roadRope.setDepth(5);
-            console.log('Rope depth set to: 5');
-            console.log('=== END ROAD ROPE DEBUG ===');
             
-            console.log('Road created:', {
-                position: { x: ropeOriginX, y: ropeOriginY },
+            console.log('Road rope created:', {
                 points: relativePoints.length,
-                roadWidth: roadData.width,
-                depth: 5,
-                alpha: roadData.fillAlpha
+                roadWidth: roadWidth.toFixed(2),
+                textureScale: textureScale.toFixed(3),
+                depth: 5
             });
             
             // Draw parking area rectangle
