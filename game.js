@@ -1267,18 +1267,21 @@ for (let t = 0; t <= 1; t += 0.002) {
         new Phaser.Math.Vector2(p2x, p2y)
     );
 
-    // Debug visualization
-    const curveGraphics = this.add.graphics();
-    curveGraphics.lineStyle(4, 0xFF0000, 0.8);
-    const curvePath = new Phaser.Curves.Path();
-    curvePath.add(turnCurve);
-    curvePath.draw(curveGraphics);
-    curveGraphics.fillStyle(0x00FF00, 1);
-    curveGraphics.fillCircle(p1x, p1y, 8);
-    curveGraphics.fillStyle(0x0000FF, 1);
-    curveGraphics.fillCircle(startX, startY, 8);
-    curveGraphics.fillCircle(p2x, p2y, 8);
-    curveGraphics.setDepth(1000);
+    // Debug visualization (only if enabled in config)
+    let curveGraphics;
+    if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE) {
+        curveGraphics = this.add.graphics();
+        curveGraphics.lineStyle(4, 0xFF0000, 0.8);
+        const curvePath = new Phaser.Curves.Path();
+        curvePath.add(turnCurve);
+        curvePath.draw(curveGraphics);
+        curveGraphics.fillStyle(0x00FF00, 1);
+        curveGraphics.fillCircle(p1x, p1y, 8);
+        curveGraphics.fillStyle(0x0000FF, 1);
+        curveGraphics.fillCircle(startX, startY, 8);
+        curveGraphics.fillCircle(p2x, p2y, 8);
+        curveGraphics.setDepth(1000);
+    }
 
     const curveLength = turnCurve.getLength();
     const turnDuration = (curveLength / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
@@ -1299,7 +1302,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             car.sprite.rotation = Math.atan2(tangent.y, tangent.x) + Math.PI / 2;
         },
         onComplete: () => {
-            curveGraphics.destroy();
+            if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
+                curveGraphics.destroy();
+            }
 
             const pathLength = this.roadPath.getLength();
             const spacedPoints = this.roadPath.getSpacedPoints(500);
