@@ -293,7 +293,18 @@ var CONFIG = {
         
         // Car properties
         CAR_LENGTH: 2,                 // Car occupies 2 cells
-    }
+    },
+    
+    // Available Vehicle Types
+    // To add a new vehicle:
+    // 1. Add the PNG file to graphics/vehicles/ folder
+    // 2. Add an entry here with the key (filename without .png), label (display name), width, and length
+    // 3. The vehicle will automatically appear in both the editor and game!
+    VEHICLES: [
+        { key: 'car_1x2',    label: 'Car (1×2)',    width: 1, length: 2 },
+        { key: 'long_1x3',   label: 'Long (1×3)',   width: 1, length: 3 },
+        { key: 'truck_1x3',  label: 'Truck (1×3)',  width: 1, length: 3 }
+    ]
 };
 
 // Battery image path cache (populated before game starts)

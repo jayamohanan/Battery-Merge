@@ -7,7 +7,7 @@ class LevelEditorScene extends Phaser.Scene {
     init() {
         this.cars = [];               // Array of placed cars {sprite, type, gridRow, gridCol, orientation, width, length}
         this.selectedCar = null;      // Currently selected car
-        this.selectedCarType = 'car'; // Current car type from dropdown
+        this.selectedCarType = CONFIG.VEHICLES[0].key; // Current car type from dropdown (uses first vehicle from config)
         this.isDragging = false;
         this.editorBounds = null;     // Top half area bounds
         
@@ -68,13 +68,13 @@ class LevelEditorScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load all vehicle sprites from graphics/vehicles folder
-        this.load.image('car', 'graphics/vehicles/car_1x2.png');
+        // Load all vehicle sprites dynamically from CONFIG.VEHICLES
+        CONFIG.VEHICLES.forEach(vehicle => {
+            this.load.image(vehicle.key, `graphics/vehicles/${vehicle.key}.png`);
+        });
         
         // Load road sprite
         this.load.image('road', 'graphics/road_80.png');
-        
-        // Add more vehicle types as they become available
     }
 
     create() {
@@ -379,23 +379,60 @@ class LevelEditorScene extends Phaser.Scene {
         const sceneHeight = this.cameras.main.height;
         const controlY = sceneHeight * 0.5 + 50; // Just below the editor area
         
-        // Create dropdown area for car selection
-        const dropdownBg = this.add.rectangle(100, controlY, 180, 50, 0x4CAF50);
-        dropdownBg.setStrokeStyle(3, 0x2E7D32);
-        dropdownBg.setInteractive({ useHandCursor: true });
+        // Create HTML dropdown for vehicle selection
+        const dropdown = document.createElement('select');
+        dropdown.style.position = 'absolute';
+        dropdown.style.width = '180px';
+        dropdown.style.height = '50px';
+        dropdown.style.fontSize = '16px';
+        dropdown.style.fontFamily = CONFIG.FONT_FAMILY;
+        dropdown.style.fontWeight = 'bold';
+        dropdown.style.padding = '10px';
+        dropdown.style.border = '3px solid #2E7D32';
+        dropdown.style.borderRadius = '5px';
+        dropdown.style.backgroundColor = '#4CAF50';
+        dropdown.style.color = '#FFFFFF';
+        dropdown.style.cursor = 'pointer';
         
-        this.carTypeText = this.add.text(100, controlY, 'Car: car', {
-            fontSize: '18px',
-            fontFamily: CONFIG.FONT_FAMILY,
-            color: '#FFFFFF',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
+        // Add vehicle options dynamically from CONFIG.VEHICLES
+        CONFIG.VEHICLES.forEach(vehicle => {
+            const option = document.createElement('option');
+            option.value = vehicle.key;
+            option.textContent = vehicle.label;
+            dropdown.appendChild(option);
+        });
         
-        // Note: In a full implementation, this would open actual dropdown
-        // For now, it's a simple label showing the selected car type
+        // Set default selection to first vehicle
+        dropdown.value = CONFIG.VEHICLES[0].key;
+        
+        // Handle selection changes
+        dropdown.addEventListener('change', (e) => {
+            this.selectedCarType = e.target.value;
+            console.log('Selected vehicle:', this.selectedCarType);
+        });
+        
+        // Add to DOM
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            gameContainer.appendChild(dropdown);
+            
+            // Position the dropdown
+            const updateDropdownPosition = () => {
+                const canvas = this.game.canvas;
+                const rect = canvas.getBoundingClientRect();
+                dropdown.style.left = (rect.left + 10 * rect.width / sceneWidth) + 'px';
+                dropdown.style.top = (rect.top + controlY * rect.height / sceneHeight) + 'px';
+            };
+            updateDropdownPosition();
+            window.addEventListener('resize', updateDropdownPosition);
+            
+            // Store reference for cleanup
+            if (!this.inputElements) this.inputElements = [];
+            this.inputElements.push(dropdown);
+        }
         
         // Spawn Car button
-        const spawnButton = this.add.rectangle(300, controlY, 150, 50, 0x2196F3);
+        const spawnButton = this.add.rectangle(280, controlY, 150, 50, 0x2196F3);
         spawnButton.setStrokeStyle(3, 0x1565C0);
         spawnButton.setInteractive({ useHandCursor: true });
         
@@ -745,11 +782,19 @@ class LevelEditorScene extends Phaser.Scene {
     // Width = perpendicular width, Length = how many cells it extends in the direction it faces
     // Sprite is always provided in vertical (up) orientation
     getVehicleDimensions(vehicleType) {
-        // Default dimensions (backward compatibility)
+        // First try to find vehicle in CONFIG.VEHICLES
+        const vehicleConfig = CONFIG.VEHICLES.find(v => v.key === vehicleType);
+        if (vehicleConfig) {
+            return {
+                width: vehicleConfig.width,
+                length: vehicleConfig.length
+            };
+        }
+        
+        // Fallback: parse format vehicleName_WxL (e.g., car_1x2 means 1 wide, 2 long) for backward compatibility
         let width = 1;   // Perpendicular width
         let length = 2;  // Extends this many cells in facing direction
         
-        // Parse format: vehicleName_WxL (e.g., car_1x2 means 1 wide, 2 long)
         const match = vehicleType.match(/_(\d+)x(\d+)$/);
         if (match) {
             width = parseInt(match[1]);   // Perpendicular width

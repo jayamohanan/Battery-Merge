@@ -78,8 +78,10 @@
             this.load.image('point', 'graphics/point.png');
             this.load.image('button', 'graphics/Button.png');
             
-            // Load parking jam assets
-            this.load.image('car', 'graphics/vehicles/car_1x2.png');
+            // Load parking jam assets - dynamically load all vehicles from CONFIG.VEHICLES
+            CONFIG.VEHICLES.forEach(vehicle => {
+                this.load.image(vehicle.key, `graphics/vehicles/${vehicle.key}.png`);
+            });
             this.load.image('bolt', 'graphics/bolt_64.png');
             this.load.image('road', 'graphics/road_80.png');
             
@@ -723,15 +725,23 @@
                 length = carData.height || 2;
                 orientation = carData.isHorizontal ? 'right' : 'up';
             }
-            // Fallback: parse from type name
+            // Fallback: lookup in CONFIG.VEHICLES or parse from type name
             else {
-                const match = carData.type.match(/_(\d+)x(\d+)$/);
-                if (match) {
-                    width = parseInt(match[1]);
-                    length = parseInt(match[2]);
+                // Try to find in CONFIG.VEHICLES first
+                const vehicleConfig = CONFIG.VEHICLES.find(v => v.key === carData.type);
+                if (vehicleConfig) {
+                    width = vehicleConfig.width;
+                    length = vehicleConfig.length;
                 } else {
-                    width = 1;
-                    length = 2;
+                    // Parse from type name as last resort
+                    const match = carData.type.match(/_(\d+)x(\d+)$/);
+                    if (match) {
+                        width = parseInt(match[1]);
+                        length = parseInt(match[2]);
+                    } else {
+                        width = 1;
+                        length = 2;
+                    }
                 }
                 orientation = 'up';
             }
