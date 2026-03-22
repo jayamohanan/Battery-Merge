@@ -560,10 +560,8 @@
             // Create rope with road texture - texture is already the right size (road_80.png)
             this.roadRope = this.add.rope(ropeOriginX, ropeOriginY, 'road', null, relativePoints);
             
-            // Scale to match road width (texture is 80px, we want roadWidth)
-            const roadTextureSize = 80;
-            const textureScale = roadWidth / roadTextureSize;
-            this.roadRope.setScale(textureScale);
+            // DON'T scale the rope - scaling moves the points!
+            // The texture width (80px) determines the rope width naturally
             
             // Apply alpha from level data
             if (roadData.fillAlpha !== undefined) {
@@ -576,8 +574,9 @@
             console.log('Road rope created:', {
                 points: relativePoints.length,
                 roadWidth: roadWidth.toFixed(2),
-                textureScale: textureScale.toFixed(3),
-                depth: 5
+                textureWidth: 80,
+                depth: 5,
+                message: 'Using natural texture size without scaling'
             });
             
             // Draw parking area rectangle
