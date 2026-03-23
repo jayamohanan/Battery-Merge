@@ -1126,15 +1126,21 @@ class LevelEditorScene extends Phaser.Scene {
                 innerRadius: this.roadInnerRadius,
                 segmentsPerCorner: this.roadSegmentsPerCorner
             },
-            cars: this.cars.map(carData => ({
-                type: carData.type,
-                gridRow: carData.gridRow,
-                gridCol: carData.gridCol,
-                orientation: carData.orientation,
-                width: carData.width,
-                length: carData.length,
-                chargeRequired: 100 // Default charge required
-            }))
+            cars: this.cars.map(carData => {
+                // Find the vehicle definition to get its maxCharge
+                const vehicleDef = CONFIG.VEHICLES.find(v => v.key === carData.type);
+                const defaultCharge = vehicleDef ? vehicleDef.maxCharge : 100;
+                
+                return {
+                    type: carData.type,
+                    gridRow: carData.gridRow,
+                    gridCol: carData.gridCol,
+                    orientation: carData.orientation,
+                    width: carData.width,
+                    length: carData.length,
+                    chargeRequired: defaultCharge // Use vehicle-specific charge
+                };
+            })
         };
         
         const jsonString = JSON.stringify(levelData, null, 2);
