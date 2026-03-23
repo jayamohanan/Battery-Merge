@@ -122,8 +122,8 @@ class LevelEditorScene extends Phaser.Scene {
         const editorHeight = sceneHeight * 0.5;
         
         // Center position for parking area (in editor area)
-        const centerX = sceneWidth / 2;
-        const centerY = editorHeight / 2 + 30; // Slightly below center to account for title
+        this.centerX = sceneWidth / 2;
+        this.centerY = editorHeight / 2 + 30; // Slightly below center to account for title
         
         // Calculate road path center line (middle of road)
         const halfParkingW = this.parkingWidth / 2;
@@ -140,15 +140,15 @@ class LevelEditorScene extends Phaser.Scene {
         console.log('===============================');
         
         // Create curved path for road center line
-        this.roadPath = this.createRoadPath(centerX, centerY, halfParkingW, halfParkingH, roadOffset);
+        this.roadPath = this.createRoadPath(this.centerX, this.centerY, halfParkingW, halfParkingH, roadOffset);
         
         // Draw road using the path
         this.drawRoadWithTexture();
         
         // Draw parking area rectangle
         this.parkingRect = this.add.rectangle(
-            centerX,
-            centerY,
+            this.centerX,
+            this.centerY,
             this.parkingWidth,
             this.parkingHeight,
             this.parkingColor,
@@ -162,8 +162,8 @@ class LevelEditorScene extends Phaser.Scene {
         this.gridGraphics.lineStyle(CONFIG.EDITOR.GRID_LINE_WIDTH, CONFIG.EDITOR.GRID_LINE_COLOR, CONFIG.EDITOR.GRID_LINE_ALPHA);
         this.gridGraphics.setDepth(4);
         
-        const gridStartX = centerX - this.parkingWidth / 2;
-        const gridStartY = centerY - this.parkingHeight / 2;
+        const gridStartX = this.centerX - this.parkingWidth / 2;
+        const gridStartY = this.centerY - this.parkingHeight / 2;
         
         // Draw vertical lines
         for (let col = 0; col <= this.gridCols; col++) {
@@ -178,8 +178,8 @@ class LevelEditorScene extends Phaser.Scene {
         }
         
         this.gridGraphics.setDepth(4); // Above parking area
-        this.parkingCenterX = centerX;
-        this.parkingCenterY = centerY;
+        this.parkingCenterX = this.centerX;
+        this.parkingCenterY = this.centerY;
         this.gridStartX = gridStartX;
         this.gridStartY = gridStartY;
     }
@@ -271,54 +271,46 @@ class LevelEditorScene extends Phaser.Scene {
             worldPoints.push(point);
         }
         
-        // Calculate bounding box to find rope origin
-        let minX = Infinity, minY = Infinity;
-        let maxX = -Infinity, maxY = -Infinity;
+        // Pre-scale the texture to match desired road width
+        const roadTextureSize = 80; // Original road_80.png size
+        const scaledSize = this.roadWidth; // Target size
+        const textureScale = scaledSize / roadTextureSize;
         
-        for (let point of worldPoints) {
-            minX = Math.min(minX, point.x);
-            minY = Math.min(minY, point.y);
-            maxX = Math.max(maxX, point.x);
-            maxY = Math.max(maxY, point.y);
+        // Create a scaled version of the road texture using RenderTexture
+        const scaledTextureName = `road_scaled_${Math.round(scaledSize)}`;
+        
+        // Check if we already created this scaled texture
+        if (!this.textures.exists(scaledTextureName)) {
+            // Create render texture with the scaled size
+            const rt = this.add.renderTexture(0, 0, scaledSize, scaledSize);
+            
+            // Draw the original texture scaled to fit
+            const tempSprite = this.add.sprite(0, 0, 'road').setOrigin(0, 0);
+            tempSprite.setScale(textureScale);
+            rt.draw(tempSprite, 0, 0);
+            
+            // Save as a new texture
+            rt.saveTexture(scaledTextureName);
+            
+            // Clean up
+            tempSprite.destroy();
+            rt.destroy();
+            
+            console.log('Created scaled texture:', scaledTextureName, `(${scaledSize}x${scaledSize})`);
         }
         
-        // Use center of bounding box as rope origin
-        const ropeOriginX = (minX + maxX) / 2;
-        const ropeOriginY = (minY + maxY) / 2;
+        // Create rope at origin with world coordinates using the scaled texture
+        this.roadRope = this.add.rope(0, 0, scaledTextureName, null, worldPoints);
         
-        // Convert world points to relative points (relative to rope origin)
-        const relativePoints = worldPoints.map(p => ({
-            x: p.x - ropeOriginX,
-            y: p.y - ropeOriginY
-        }));
-        
-        // DEBUG: Show first 10 points and last 10 points
         console.log('=== ROAD ROPE DEBUG ===');
-        console.log('Total points:', worldPoints.length);
-        console.log('Rope origin (world):', ropeOriginX.toFixed(2), ropeOriginY.toFixed(2));
-        console.log('First 10 world points:');
-        for (let i = 0; i < Math.min(10, worldPoints.length); i++) {
-            console.log(`  Point ${i}: world(${worldPoints[i].x.toFixed(2)}, ${worldPoints[i].y.toFixed(2)}) -> relative(${relativePoints[i].x.toFixed(2)}, ${relativePoints[i].y.toFixed(2)})`);
-        }
-        console.log('Last 10 world points:');
-        for (let i = Math.max(0, worldPoints.length - 10); i < worldPoints.length; i++) {
-            console.log(`  Point ${i}: world(${worldPoints[i].x.toFixed(2)}, ${worldPoints[i].y.toFixed(2)}) -> relative(${relativePoints[i].x.toFixed(2)}, ${relativePoints[i].y.toFixed(2)})`);
-        }
-        
-        // Create rope with road texture at the rope origin with relative points
-        // Rope points are relative to the rope's x,y position
-        this.roadRope = this.add.rope(ropeOriginX, ropeOriginY, 'road', null, relativePoints);
-        console.log('>>> Rope created: this.add.rope(' + ropeOriginX.toFixed(2) + ', ' + ropeOriginY.toFixed(2) + ', "road", null, relativePoints)');
-        
-        // Scale texture to match road width (road_80.png is 80x80 pixels)
-        const roadTextureSize = 80; // Size of road_80.png texture
-        const textureScale = this.roadWidth / roadTextureSize;
-        this.roadRope.setScale(textureScale);
-        console.log('Road texture scaled:', {
-            textureSize: roadTextureSize,
+        console.log('Road created with pre-scaled texture:', {
+            originalTextureSize: roadTextureSize,
+            scaledTextureSize: scaledSize.toFixed(2),
             roadWidth: this.roadWidth.toFixed(2),
-            scale: textureScale.toFixed(3)
+            points: worldPoints.length,
+            textureName: scaledTextureName
         });
+        console.log('First 3 world points:', worldPoints.slice(0, 3));
         
         // Apply alpha from config (Rope doesn't support tint)
         if (this.roadFillAlpha !== undefined) {
@@ -328,9 +320,7 @@ class LevelEditorScene extends Phaser.Scene {
         // Set depth above parking area so road is visible
         this.roadRope.setDepth(5);
         
-        console.log('Road rope created with', relativePoints.length, 'points, width:', this.roadWidth);
-        console.log('Rope position:', ropeOriginX, ropeOriginY);
-        console.log('Rope object:', this.roadRope);
+        console.log('Rope created with pre-scaled texture - no rope scaling needed');
         console.log('======================');
         
         // Draw debug points to visualize the road curve (all 150+ points)

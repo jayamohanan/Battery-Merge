@@ -539,31 +539,44 @@
             
             console.log('********numPoints for road rope:', numPoints);
             
-            // Find bounding box to determine rope origin
-            let minX = Infinity, maxX = -Infinity;
-            let minY = Infinity, maxY = -Infinity;
-            for (let p of worldPoints) {
-                if (p.x < minX) minX = p.x;
-                if (p.x > maxX) maxX = p.x;
-                if (p.y < minY) minY = p.y;
-                if (p.y > maxY) maxY = p.y;
+            // Pre-scale the texture to match desired road width
+            const roadTextureSize = 80; // Original road_80.png size
+            const scaledSize = roadWidth; // Target size
+            const textureScale = scaledSize / roadTextureSize;
+            
+            // Create a scaled version of the road texture using RenderTexture
+            const scaledTextureName = `road_scaled_${Math.round(scaledSize)}`;
+            
+            // Check if we already created this scaled texture
+            if (!this.textures.exists(scaledTextureName)) {
+                // Create render texture with the scaled size
+                const rt = this.add.renderTexture(0, 0, scaledSize, scaledSize);
+                
+                // Draw the original texture scaled to fit
+                const tempSprite = this.add.sprite(0, 0, 'road').setOrigin(0, 0);
+                tempSprite.setScale(textureScale);
+                rt.draw(tempSprite, 0, 0);
+                
+                // Save as a new texture
+                rt.saveTexture(scaledTextureName);
+                
+                // Clean up
+                tempSprite.destroy();
+                rt.destroy();
+                
+                console.log('Created scaled texture:', scaledTextureName, `(${scaledSize}x${scaledSize})`);
             }
             
-            // Use center of bounding box as rope origin
-            const ropeOriginX = (minX + maxX) / 2;
-            const ropeOriginY = (minY + maxY) / 2;
+            // Create rope at origin with world coordinates using the scaled texture
+            this.roadRope = this.add.rope(0, 0, scaledTextureName, null, worldPoints);
             
-            // Convert world points to relative points (relative to rope origin)
-            const relativePoints = worldPoints.map(p => ({
-                x: p.x - ropeOriginX,
-                y: p.y - ropeOriginY
-            }));
-            
-            // Create rope with road texture - texture is already the right size (road_80.png)
-            this.roadRope = this.add.rope(ropeOriginX, ropeOriginY, 'road', null, relativePoints);
-            
-            // DON'T scale the rope - scaling moves the points!
-            // The texture width (80px) determines the rope width naturally
+            console.log('Road created with pre-scaled texture:', {
+                originalTextureSize: roadTextureSize,
+                scaledTextureSize: scaledSize.toFixed(2),
+                roadWidth: roadWidth.toFixed(2),
+                points: worldPoints.length,
+                textureName: scaledTextureName
+            });
             
             // Apply alpha from level data
             if (roadData.fillAlpha !== undefined) {
@@ -573,13 +586,7 @@
             // Set depth above parking area
             this.roadRope.setDepth(5);
             
-            console.log('Road rope created:', {
-                points: relativePoints.length,
-                roadWidth: roadWidth.toFixed(2),
-                textureWidth: 80,
-                depth: 5,
-                message: 'Using natural texture size without scaling'
-            });
+            console.log('Road rope created with pre-scaled texture - no rope scaling needed');
             
             // Draw parking area rectangle
             const parkingRect = this.add.rectangle(
