@@ -13,6 +13,9 @@
             this.levelData = null;              // Current level data
             this.currentLevelIndex = 0;         // Track which level we're on
             this.allLevelsData = null;          // Store all levels data
+            this.totalChargeRequired = 0;       // Total charge needed for all cars in level
+            this.remainingCharge = 0;           // Remaining charge to complete level
+            this.levelChargeText = null;        // Text display for remaining charge
             
             // Charging system properties (for parking jam)
             this.chargingSlots = [null, null, null]; // 3 slots for batteries
@@ -102,13 +105,14 @@
             const parkingBg = this.add.rectangle(sceneWidth / 2, parkingHeight / 2, sceneWidth, parkingHeight, 0xE8F4F8);
             parkingBg.setDepth(0); // Background layer
             
-            // Title for parking area
-            this.add.text(sceneWidth / 2, 20, 'PARKING JAM', {
-                fontSize: '24px',
+            // Title for parking area - showing remaining charge
+            this.levelChargeText = this.add.text(sceneWidth / 2, 20, '⚡ 0', {
+                fontSize: '32px',
                 fontFamily: CONFIG.FONT_FAMILY,
-                color: '#333333',
+                color: '#2C5F8D',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
+            this.levelChargeText.setDepth(100);
             
             // Bottom half: Merge section background (50% to 100%)
             const mergeBg = this.add.rectangle(sceneWidth / 2, sceneHeight * 0.75, sceneWidth, sceneHeight * 0.5, 0xEEF5F8);
@@ -473,6 +477,13 @@
             for (let carData of levelData.cars) {
                 this.spawnCar(carData);
             }
+            
+            // Calculate total charge required for all cars
+            this.totalChargeRequired = this.cars.reduce((sum, car) => sum + car.chargeRequired, 0);
+            this.remainingCharge = this.totalChargeRequired;
+            
+            // Update charge display
+            this.updateLevelChargeDisplay();
             
             // Determine which cars can move initially
             this.updateMovableCars();
@@ -862,6 +873,20 @@
             car.chargeBar.width = barWidth * progress;
         }
 
+        updateLevelChargeDisplay() {
+            if (!this.levelChargeText) return;
+            
+            // Update text to show remaining charge
+            this.levelChargeText.setText(`⚡ ${Math.round(this.remainingCharge)}`);
+            
+            // Change color based on remaining charge
+            if (this.remainingCharge === 0) {
+                this.levelChargeText.setColor('#4CAF50'); // Green when complete
+            } else {
+                this.levelChargeText.setColor('#2C5F8D'); // Blue when in progress
+            }
+        }
+
         updateMovableCars() {
             // Simple logic: determine which cars can move based on collision detection
             // For now, we'll assume the first uncharged car can move
@@ -903,13 +928,17 @@
             carToCharge.currentCharge += this.chargingRate;
             carToCharge.isCharging = true;
             
-            // Update charge bar
+            // Decrease remaining charge for the level
+            this.remainingCharge = Math.max(0, this.remainingCharge - this.chargingRate);
+            
+            // Update charge displays
             this.updateCarChargeBar(carToCharge);
+            this.updateLevelChargeDisplay();
             
             // Show charging effect
             this.showChargingEffect(carToCharge);
             
-            console.log(`Charging car: ${carToCharge.currentCharge}/${carToCharge.chargeRequired}`);
+            console.log(`Charging car: ${carToCharge.currentCharge}/${carToCharge.chargeRequired} | Level remaining: ${this.remainingCharge}/${this.totalChargeRequired}`);
             
             // Check if car is fully charged
             if (carToCharge.currentCharge >= carToCharge.chargeRequired) {
