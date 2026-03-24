@@ -1,5 +1,73 @@
 {
   "levels": [
+    {
+  "grid": {
+    "cols": 12,
+    "rows": 12,
+    "size_factor": 1
+  },
+  "parking": {
+    "color": 15658734,
+    "alpha": 1,
+    "borderColor": 6710886,
+    "borderWidth": 3
+  },
+  "road": {
+    "color": 5592405,
+    "fillColor": 7829367,
+    "fillAlpha": 0.7,
+    "outerRadius": 80,
+    "innerRadius": 20,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "car_1x2",
+      "gridRow": 8,
+      "gridCol": 5,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car_1x2",
+      "gridRow": 5,
+      "gridCol": 2,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car_1x2",
+      "gridRow": 4,
+      "gridCol": 5,
+      "orientation": "down",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "car_1x2",
+      "gridRow": 2,
+      "gridCol": 5,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 100
+    },
+    {
+      "type": "long_1x3",
+      "gridRow": 2,
+      "gridCol": 10,
+      "orientation": "left",
+      "width": 1,
+      "length": 3,
+      "chargeRequired": 150
+    }
+  ]
+},
     
 {
   "grid": {

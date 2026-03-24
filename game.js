@@ -979,6 +979,17 @@
             return directions[orientation] || { row: 0, col: 0 };
         }
 
+        // Get direction delta for reverse movement (opposite of forward)
+        getReverseDirection(orientation) {
+            const directions = {
+                'up': { row: 1, col: 0 },
+                'down': { row: -1, col: 0 },
+                'left': { row: 0, col: 1 },
+                'right': { row: 0, col: -1 }
+            };
+            return directions[orientation] || { row: 0, col: 0 };
+        }
+
         // Check if car can move forward by steps in grid
         canMoveForward(car, steps = 1) {
             const direction = this.getForwardDirection(car.orientation);
@@ -1109,14 +1120,29 @@
             if (car.chargeBar) car.chargeBar.setVisible(false);
             if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
             
-            // Calculate how many cells car needs to move to exit parking area
-            const stepsToExit = this.calculateStepsToExit(car);
+            // Calculate exit options in both directions BEFORE making any move
+            const stepsToExitForward = this.calculateStepsToExit(car);
+            const stepsToExitReverse = this.calculateStepsToReverseExit(car);
             
-            console.log(`Car needs ${stepsToExit} cells to exit parking`);
+            console.log(`Car exit options - Forward: ${stepsToExitForward} cells, Reverse: ${stepsToExitReverse} cells`);
             
-            // If can't move at all, show collision and give up
-            if (stepsToExit === 0) {
-                console.log('Car is blocked! Showing collision...');
+            // Determine best exit direction (prefer forward, use reverse if forward blocked)
+            let exitDirection = null;
+            let stepsToExit = 0;
+            
+            if (stepsToExitForward > 0) {
+                // Forward exit is clear - use it
+                exitDirection = 'forward';
+                stepsToExit = stepsToExitForward;
+                console.log('Using forward exit');
+            } else if (stepsToExitReverse > 0) {
+                // Forward blocked but reverse is clear - use reverse
+                exitDirection = 'reverse';
+                stepsToExit = stepsToExitReverse;
+                console.log('Forward blocked! Using reverse exit');
+            } else {
+                // Both directions blocked - show collision and give up
+                console.log('Car is blocked in both directions! Showing collision...');
                 this.showCollisionAndReturn(car, () => {
                     car.isMovingOut = false;
                     car.isCharging = false;
@@ -1129,7 +1155,7 @@
             }
             
             // Move continuously to parking exit, then smoothly transition to road
-            this.moveCarToExitAndTransition(car, stepsToExit);
+            this.moveCarToExitAndTransition(car, stepsToExit, exitDirection);
         }
 
         // Calculate steps needed to reach parking boundary in forward direction
@@ -1183,9 +1209,64 @@
             return 0; // Shouldn't reach here
         }
 
+        // Calculate steps needed to reach parking boundary in reverse direction
+        calculateStepsToReverseExit(car) {
+            const direction = this.getReverseDirection(car.orientation);
+            let steps = 0;
+            
+            // Keep checking reverse until we hit boundary or obstacle
+            while (steps < 20) {
+                steps++;
+                const newAnchorRow = car.gridRow + direction.row * steps;
+                const newAnchorCol = car.gridCol + direction.col * steps;
+                
+                // Get cells at this position
+                const newCells = this.getOccupiedCellsForGame(
+                    newAnchorRow, 
+                    newAnchorCol, 
+                    car.orientation, 
+                    car.width, 
+                    car.length
+                );
+                
+                // Check if any cell is outside grid (exit point found)
+                let hasExitCell = false;
+                for (let cell of newCells) {
+                    if (cell.row < 0 || cell.row >= this.gridConfig.rows ||
+                        cell.col < 0 || cell.col >= this.gridConfig.cols) {
+                        hasExitCell = true;
+                        break;
+                    }
+                }
+                
+                if (hasExitCell) {
+                    // Found exit point - return steps to just before exit
+                    return Math.max(1, steps - 1);
+                }
+                
+                // Check if path is blocked by another car
+                for (let cell of newCells) {
+                    if (cell.row >= 0 && cell.row < this.gridConfig.rows &&
+                        cell.col >= 0 && cell.col < this.gridConfig.cols) {
+                        const occupant = this.gridOccupancy[cell.row][cell.col];
+                        if (occupant !== null && occupant !== car) {
+                            // Blocked by another car
+                            return 0;
+                        }
+                    }
+                }
+            }
+            
+            return 0; // Shouldn't reach here
+        }
+
         // Move car to parking exit, then smoothly curve onto road
-        moveCarToExitAndTransition(car, steps) {
-            const direction = this.getForwardDirection(car.orientation);
+        moveCarToExitAndTransition(car, steps, exitDirection = 'forward') {
+            // Get the appropriate direction based on exit type
+            const direction = exitDirection === 'reverse' 
+                ? this.getReverseDirection(car.orientation)
+                : this.getForwardDirection(car.orientation);
+            
             const cellSize = this.gridConfig.cellSize;
             
             // Calculate exit position (just at parking boundary)
@@ -1211,10 +1292,14 @@
                 onComplete: () => {
                     // Car has left parking area - no grid cells to update
                     
-                    console.log('Car reached parking exit, transitioning to road...');
+                    console.log(`Car reached parking exit via ${exitDirection}, transitioning to road...`);
                     
-                    // Phase 2: Smoothly curve onto road
-                    this.curveOntoRoad(car);
+                    // Phase 2: Smoothly curve onto road (use appropriate curve function)
+                    if (exitDirection === 'reverse') {
+                        this.curveOntoRoadReverse(car);
+                    } else {
+                        this.curveOntoRoad(car);
+                    }
                 }
             });
         }
@@ -1342,6 +1427,178 @@ for (let t = 0; t <= 1; t += 0.002) {
                 curveGraphics.destroy();
             }
 
+            const pathLength = this.roadPath.getLength();
+            const spacedPoints = this.roadPath.getSpacedPoints(500);
+
+            // Find spaced point closest to p2 (where curve ended)
+            let startIndex = 0;
+            let minD = Infinity;
+            for (let i = 0; i < spacedPoints.length; i++) {
+                const dx = spacedPoints[i].x - p2x;
+                const dy = spacedPoints[i].y - p2y;
+                const d = dx * dx + dy * dy;
+                if (d < minD) { minD = d; startIndex = i; }
+            }
+
+            const remainingPoints = spacedPoints.length - startIndex;
+            const remainingDistance = (remainingPoints / spacedPoints.length) * pathLength;
+            const pathDuration = (remainingDistance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
+
+            const roadFollower = { index: startIndex };
+
+            this.tweens.add({
+                targets: roadFollower,
+                index: spacedPoints.length - 1,
+                duration: pathDuration,
+                ease: 'Linear',
+                onUpdate: () => {
+                    const idx = Math.floor(roadFollower.index);
+                    const nextIdx = Math.min(idx + 1, spacedPoints.length - 1);
+                    const fraction = roadFollower.index - idx;
+
+                    const point1 = spacedPoints[idx];
+                    const point2 = spacedPoints[nextIdx];
+
+                    car.sprite.x = point1.x + (point2.x - point1.x) * fraction;
+                    car.sprite.y = point1.y + (point2.y - point1.y) * fraction;
+
+                    const dx = point2.x - point1.x;
+                    const dy = point2.y - point1.y;
+                    if (dx !== 0 || dy !== 0) {
+                        car.sprite.rotation = Math.atan2(dy, dx) + Math.PI / 2;
+                    }
+                },
+                onComplete: () => {
+                    // Car has completed road traversal - remove it immediately
+                    this.removeCar(car);
+                }
+            });
+        }
+    });
+}
+        
+        // Smoothly curve from parking exit onto the road with reverse entry (anticlockwise turn)
+        curveOntoRoadReverse(car) {
+    if (!this.roadPath) {
+        // No road path - just remove the car immediately
+        this.removeCar(car);
+        return;
+    }
+
+    const startX = car.sprite.x;
+    const startY = car.sprite.y;
+    const startRotation = car.sprite.rotation;
+
+    // For reverse exit, the car is facing backwards, so we need to flip the forward direction
+    const reverseDirX = Math.sin(startRotation + Math.PI);
+    const reverseDirY = -Math.cos(startRotation + Math.PI);
+
+    // Find closest road point, but preferring points in the reverse direction
+    let bestT = 0;
+    let bestScore = -Infinity;
+
+    for (let t = 0; t <= 1; t += 0.005) {
+        const point = this.roadPath.getPoint(t);
+        const toPointX = point.x - startX;
+        const toPointY = point.y - startY;
+        const dist = Math.sqrt(toPointX * toPointX + toPointY * toPointY);
+
+        if (dist < 20) continue;
+
+        const normX = toPointX / dist;
+        const normY = toPointY / dist;
+
+        // Alignment with reverse direction
+        const reverseAlignment = normX * reverseDirX + normY * reverseDirY;
+        if (reverseAlignment < 0.3) continue;
+
+        const score = reverseAlignment / dist;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestT = t;
+        }
+    }
+
+    const roadPoint = this.roadPath.getPoint(bestT);
+    const roadTangent = this.roadPath.getTangent(bestT);
+
+    // P1 = go straight in reverse direction from car until at road level
+    const toRoadX = roadPoint.x - startX;
+    const toRoadY = roadPoint.y - startY;
+    const revDist = toRoadX * reverseDirX + toRoadY * reverseDirY;
+    const p1x = startX + reverseDirX * revDist;
+    const p1y = startY + reverseDirY * revDist;
+
+    // P2 = road point shifted along road tangent (anticlockwise/leftward for reverse entry)
+    // Negate the tangent direction to go anticlockwise instead of clockwise
+    const turnRadius = this.gridConfig.cellSize * 1.5;
+    const desiredP2x = roadPoint.x - roadTangent.x * turnRadius; // Note the minus
+    const desiredP2y = roadPoint.y - roadTangent.y * turnRadius; // Note the minus
+
+    // Clamp P2 to the nearest actual point ON the road path
+    let p2x = roadPoint.x;
+    let p2y = roadPoint.y;
+    let nearestDist = Infinity;
+    for (let t = 0; t <= 1; t += 0.002) {
+        const rp = this.roadPath.getPoint(t);
+        const dx = rp.x - desiredP2x;
+        const dy = rp.y - desiredP2y;
+        const d = dx * dx + dy * dy;
+        if (d < nearestDist) {
+            nearestDist = d;
+            p2x = rp.x;
+            p2y = rp.y;
+        }
+    }
+
+    const turnCurve = new Phaser.Curves.QuadraticBezier(
+        new Phaser.Math.Vector2(startX, startY),
+        new Phaser.Math.Vector2(p1x, p1y),
+        new Phaser.Math.Vector2(p2x, p2y)
+    );
+
+    // Debug visualization (only if enabled in config)
+    let curveGraphics;
+    if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE) {
+        curveGraphics = this.add.graphics();
+        curveGraphics.lineStyle(4, 0x0000FF, 0.8); // Blue for reverse
+        const curvePath = new Phaser.Curves.Path();
+        curvePath.add(turnCurve);
+        curvePath.draw(curveGraphics);
+        curveGraphics.fillStyle(0x00FF00, 1);
+        curveGraphics.fillCircle(p1x, p1y, 8);
+        curveGraphics.fillStyle(0xFF00FF, 1); // Magenta for reverse start/end
+        curveGraphics.fillCircle(startX, startY, 8);
+        curveGraphics.fillCircle(p2x, p2y, 8);
+        curveGraphics.setDepth(1000);
+    }
+
+    const curveLength = turnCurve.getLength();
+    const turnDuration = (curveLength / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
+
+    const follower = { t: 0 };
+
+    this.tweens.add({
+        targets: follower,
+        t: 1.0,
+        duration: turnDuration,
+        ease: 'Linear',
+        onUpdate: () => {
+            const point = turnCurve.getPoint(follower.t);
+            car.sprite.x = point.x;
+            car.sprite.y = point.y;
+
+            const tangent = turnCurve.getTangent(follower.t);
+            car.sprite.rotation = Math.atan2(tangent.y, tangent.x) + Math.PI / 2;
+        },
+        onComplete: () => {
+            if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
+                curveGraphics.destroy();
+            }
+
+            // After the reverse curve, car should be on road facing clockwise
+            // Now traverse the road in forward direction (clockwise)
             const pathLength = this.roadPath.getLength();
             const spacedPoints = this.roadPath.getSpacedPoints(500);
 
