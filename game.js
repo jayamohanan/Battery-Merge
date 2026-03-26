@@ -1099,6 +1099,14 @@
         moveOutCar(car) {
             console.log('Car fully charged! Moving out...');
             
+            // Award reward for fully charging the car
+            const vehicleDef = CONFIG.VEHICLES.find(v => v.key === car.type);
+            if (vehicleDef && vehicleDef.reward) {
+                this.coins += vehicleDef.reward;
+                this.updateCoinDisplay();
+                console.log(`Awarded ${vehicleDef.reward} coins for charging ${vehicleDef.label}`);
+            }
+            
             car.isCharging = false;
             car.isMovingOut = true;
             
