@@ -1099,16 +1099,20 @@
         moveOutCar(car) {
             console.log('Car fully charged! Moving out...');
             
-            // Award reward for fully charging the car
+            // Get vehicle definition for reward
             const vehicleDef = CONFIG.VEHICLES.find(v => v.key === car.type);
-            if (vehicleDef && vehicleDef.reward) {
-                this.coins += vehicleDef.reward;
-                this.updateCoinDisplay();
-                console.log(`Awarded ${vehicleDef.reward} coins for charging ${vehicleDef.label}`);
-            }
+            
+            // Store car position for coin animation (before car moves)
+            const carStartX = car.sprite.x;
+            const carStartY = car.sprite.y;
             
             car.isCharging = false;
             car.isMovingOut = true;
+            
+            // Trigger coin reward animation (coins will be added after animation completes)
+            if (vehicleDef && vehicleDef.reward) {
+                this.animateCoinReward(carStartX, carStartY, vehicleDef.reward);
+            }
             
             // IMPORTANT: Free all grid cells immediately when car starts leaving
             // This allows other cars to move into the vacated space right away
@@ -2164,6 +2168,62 @@ for (let t = 0; t <= 1; t += 0.002) {
             const coinIconX = this.coinText.x + CONFIG.COIN_COUNTER.TEXT_ICON_SPACING + CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
             this.coinIcon = this.add.image(coinIconX, coinY, 'coin');
             this.coinIcon.setDisplaySize(CONFIG.COIN_COUNTER.COIN_ICON_WIDTH, CONFIG.COIN_COUNTER.COIN_ICON_HEIGHT);
+        }
+        
+        // Animate coin reward when car is fully charged and moves out
+        animateCoinReward(startX, startY, rewardAmount) {
+            const coinCount = CONFIG.COIN_REWARD_ANIMATION.COIN_COUNT;
+            const topSpeed = CONFIG.COIN_REWARD_ANIMATION.TOP_SPEED_DURATION;
+            const speedVariation = CONFIG.COIN_REWARD_ANIMATION.SPEED_VARIATION;
+            const staggerDelay = CONFIG.COIN_REWARD_ANIMATION.STAGGER_DELAY;
+            const stackOffset = CONFIG.COIN_REWARD_ANIMATION.INITIAL_STACK_OFFSET;
+            
+            // Target position (coin icon in the counter)
+            const targetX = this.coinIcon.x;
+            const targetY = this.coinIcon.y;
+            
+            // Create array to track animated coins
+            const animatedCoins = [];
+            let completedCount = 0;
+            
+            // Create and animate each coin with slight delay and speed variation
+            for (let i = 0; i < coinCount; i++) {
+                // Create coin sprite at car position (stacked vertically with small offset)
+                const coin = this.add.image(startX, startY - (i * stackOffset), 'coin');
+                coin.setScale(CONFIG.COIN_REWARD_ANIMATION.COIN_SCALE);
+                coin.setDepth(100 + i); // Higher depth for coins on top
+                
+                animatedCoins.push(coin);
+                
+                // Calculate duration for this coin (top speed with variation)
+                // First coin is fastest, others are progressively slower
+                const durationMultiplier = 1 + (i * speedVariation / (coinCount - 1));
+                const duration = topSpeed * durationMultiplier;
+                
+                // Animate coin to target position with staggered start
+                this.time.delayedCall(i * staggerDelay, () => {
+                    this.tweens.add({
+                        targets: coin,
+                        x: targetX,
+                        y: targetY,
+                        scale: CONFIG.COIN_REWARD_ANIMATION.COIN_SCALE * 0.6, // Shrink slightly at end
+                        duration: duration,
+                        ease: CONFIG.COIN_REWARD_ANIMATION.EASE,
+                        onComplete: () => {
+                            // Destroy coin after animation
+                            coin.destroy();
+                            completedCount++;
+                            
+                            // When all coins have completed, update the coin count
+                            if (completedCount === coinCount) {
+                                this.coins += rewardAmount;
+                                this.updateCoinDisplay();
+                                console.log(`Awarded ${rewardAmount} coins (animation complete)`);
+                            }
+                        }
+                    });
+                });
+            }
         }
 
         createGrid() {

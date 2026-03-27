@@ -253,6 +253,17 @@ var CONFIG = {
         DURATION: 600                  // Animation duration in milliseconds
     },
     
+    // Coin reward animation settings (when car completes charging)
+    COIN_REWARD_ANIMATION: {
+        COIN_COUNT: 6,                 // Number of coins in the stack
+        COIN_SCALE: 0.8,               // Scale of coin sprites during animation
+        TOP_SPEED_DURATION: 600,       // Duration in ms for the fastest coin (top speed)
+        SPEED_VARIATION: 0.15,         // Speed variation for other coins (0.15 = 15% slower than top speed)
+        STAGGER_DELAY: 50,             // Delay in ms between each coin starting its animation
+        INITIAL_STACK_OFFSET: 2,       // Vertical spacing between coins in initial stack (pixels)
+        EASE: 'Power2'                 // Easing function for coin movement
+    },
+    
     // Parking Jam Car Movement settings
     PARKING_CAR: {
         MAX_SPEED: 300,                 // Maximum speed of cars moving on the road (pixels per second)
