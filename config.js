@@ -256,11 +256,11 @@ var CONFIG = {
     // Coin reward animation settings (when car completes charging)
     COIN_REWARD_ANIMATION: {
         COIN_COUNT: 6,                 // Number of coins in the stack
-        COIN_SCALE: 0.8,               // Scale of coin sprites during animation
+        REWARD_COIN_SIZE: 32,          // Size of reward coins in pixels (distinguishable from coin counter icon)
         TOP_SPEED_DURATION: 600,       // Duration in ms for the fastest coin (top speed)
         SPEED_VARIATION: 0.15,         // Speed variation for other coins (0.15 = 15% slower than top speed)
         STAGGER_DELAY: 50,             // Delay in ms between each coin starting its animation
-        INITIAL_STACK_OFFSET: 2,       // Vertical spacing between coins in initial stack (pixels)
+        INITIAL_STACK_OFFSET: 0,       // Vertical spacing between coins in initial stack (0 = single coin, top-down view)
         EASE: 'Power2'                 // Easing function for coin movement
     },
     

@@ -924,6 +924,11 @@
             
             if (!carToCharge) return;
             
+            // If this is the first time charging this car, spawn reward coins at its position
+            if (!carToCharge.isCharging && !carToCharge.rewardCoinsSpawned) {
+                this.spawnRewardCoins(carToCharge);
+            }
+            
             // Charge the car
             carToCharge.currentCharge += this.chargingRate;
             carToCharge.isCharging = true;
@@ -944,6 +949,29 @@
             if (carToCharge.currentCharge >= carToCharge.chargeRequired) {
                 this.moveOutCar(carToCharge);
             }
+        }
+
+        spawnRewardCoins(car) {
+            // Get vehicle definition for reward
+            const vehicleDef = CONFIG.VEHICLES.find(v => v.key === car.type);
+            if (!vehicleDef || !vehicleDef.reward) return;
+            
+            const coinCount = 10; // User requested 10 coins
+            const stackOffset = CONFIG.COIN_REWARD_ANIMATION.INITIAL_STACK_OFFSET; // 0 for single coin (top-down view)
+            
+            // Create coins at car position, below car sprite (so car covers them)
+            car.rewardCoins = [];
+            for (let i = 0; i < coinCount; i++) {
+                const coin = this.add.image(car.sprite.x, car.sprite.y - (i * stackOffset), 'coin');
+                coin.setDisplaySize(CONFIG.COIN_REWARD_ANIMATION.REWARD_COIN_SIZE, CONFIG.COIN_REWARD_ANIMATION.REWARD_COIN_SIZE);
+                coin.setDepth(car.sprite.depth - 1); // Below car so it's hidden
+                car.rewardCoins.push(coin);
+            }
+            
+            car.rewardCoinsSpawned = true;
+            car.coinReward = vehicleDef.reward; // Store reward amount
+            
+            console.log(`Spawned ${coinCount} reward coins at car position (hidden under car)`);
         }
 
         showChargingEffect(car) {
@@ -1099,20 +1127,8 @@
         moveOutCar(car) {
             console.log('Car fully charged! Moving out...');
             
-            // Get vehicle definition for reward
-            const vehicleDef = CONFIG.VEHICLES.find(v => v.key === car.type);
-            
-            // Store car position for coin animation (before car moves)
-            const carStartX = car.sprite.x;
-            const carStartY = car.sprite.y;
-            
             car.isCharging = false;
             car.isMovingOut = true;
-            
-            // Trigger coin reward animation (coins will be added after animation completes)
-            if (vehicleDef && vehicleDef.reward) {
-                this.animateCoinReward(carStartX, carStartY, vehicleDef.reward);
-            }
             
             // IMPORTANT: Free all grid cells immediately when car starts leaving
             // This allows other cars to move into the vacated space right away
@@ -1319,7 +1335,7 @@
         // Smoothly curve from parking exit onto the road with a natural right turn
         curveOntoRoad(car) {
     if (!this.roadPath) {
-        // No road path - just remove the car immediately
+        // No road path - remove car immediately (coins already animated in moveCarToExitAndTransition)
         this.removeCar(car);
         return;
     }
@@ -1456,6 +1472,12 @@ for (let t = 0; t <= 1; t += 0.002) {
             const remainingDistance = (remainingPoints / spacedPoints.length) * pathLength;
             const pathDuration = (remainingDistance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
 
+            // Animate coins when Bezier curve finishes and road traversal begins
+            if (car.rewardCoins && car.rewardCoins.length > 0) {
+                this.animateExistingCoins(car.rewardCoins, car.coinReward);
+                car.rewardCoins = []; // Clear reference
+            }
+
             const roadFollower = { index: startIndex };
 
             this.tweens.add({
@@ -1482,6 +1504,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
+                    // (coins were already animated when Bezier curve finished)
                     this.removeCar(car);
                 }
             });
@@ -1492,7 +1515,7 @@ for (let t = 0; t <= 1; t += 0.002) {
         // Smoothly curve from parking exit onto the road with reverse entry (anticlockwise turn)
         curveOntoRoadReverse(car) {
     if (!this.roadPath) {
-        // No road path - just remove the car immediately
+        // No road path - remove car immediately (coins already animated in moveCarToExitAndTransition)
         this.removeCar(car);
         return;
     }
@@ -1628,6 +1651,12 @@ for (let t = 0; t <= 1; t += 0.002) {
             const remainingDistance = (remainingPoints / spacedPoints.length) * pathLength;
             const pathDuration = (remainingDistance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
 
+            // Animate coins when Bezier curve finishes and road traversal begins
+            if (car.rewardCoins && car.rewardCoins.length > 0) {
+                this.animateExistingCoins(car.rewardCoins, car.coinReward);
+                car.rewardCoins = []; // Clear reference
+            }
+
             const roadFollower = { index: startIndex };
 
             this.tweens.add({
@@ -1654,6 +1683,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
+                    // (coins were already animated when Bezier curve finished)
                     this.removeCar(car);
                 }
             });
@@ -2190,7 +2220,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             for (let i = 0; i < coinCount; i++) {
                 // Create coin sprite at car position (stacked vertically with small offset)
                 const coin = this.add.image(startX, startY - (i * stackOffset), 'coin');
-                coin.setScale(CONFIG.COIN_REWARD_ANIMATION.COIN_SCALE);
+                coin.setDisplaySize(CONFIG.COIN_REWARD_ANIMATION.REWARD_COIN_SIZE, CONFIG.COIN_REWARD_ANIMATION.REWARD_COIN_SIZE);
                 coin.setDepth(100 + i); // Higher depth for coins on top
                 
                 animatedCoins.push(coin);
@@ -2202,11 +2232,65 @@ for (let t = 0; t <= 1; t += 0.002) {
                 
                 // Animate coin to target position with staggered start
                 this.time.delayedCall(i * staggerDelay, () => {
+                    const shrinkSize = CONFIG.COIN_REWARD_ANIMATION.REWARD_COIN_SIZE * 0.6; // Shrink to 60% at end
                     this.tweens.add({
                         targets: coin,
                         x: targetX,
                         y: targetY,
-                        scale: CONFIG.COIN_REWARD_ANIMATION.COIN_SCALE * 0.6, // Shrink slightly at end
+                        displayWidth: shrinkSize,
+                        displayHeight: shrinkSize,
+                        duration: duration,
+                        ease: CONFIG.COIN_REWARD_ANIMATION.EASE,
+                        onComplete: () => {
+                            // Destroy coin after animation
+                            coin.destroy();
+                            completedCount++;
+                            
+                            // When all coins have completed, update the coin count
+                            if (completedCount === coinCount) {
+                                this.coins += rewardAmount;
+                                this.updateCoinDisplay();
+                                console.log(`Awarded ${rewardAmount} coins (animation complete)`);
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+        // Animate existing coin sprites (spawned at car position) to coin counter
+        animateExistingCoins(coinSprites, rewardAmount) {
+            const topSpeed = CONFIG.COIN_REWARD_ANIMATION.TOP_SPEED_DURATION;
+            const speedVariation = CONFIG.COIN_REWARD_ANIMATION.SPEED_VARIATION;
+            const staggerDelay = CONFIG.COIN_REWARD_ANIMATION.STAGGER_DELAY;
+            
+            // Target position (coin icon in the counter)
+            const targetX = this.coinIcon.x;
+            const targetY = this.coinIcon.y;
+            
+            let completedCount = 0;
+            const coinCount = coinSprites.length;
+            
+            // Animate each existing coin with slight delay and speed variation
+            for (let i = 0; i < coinCount; i++) {
+                const coin = coinSprites[i];
+                
+                // Make coin visible and bring to top
+                coin.setDepth(100 + i);
+                
+                // Calculate duration for this coin (top speed with variation)
+                const durationMultiplier = 1 + (i * speedVariation / (coinCount - 1));
+                const duration = topSpeed * durationMultiplier;
+                
+                // Animate coin to target position with staggered start
+                this.time.delayedCall(i * staggerDelay, () => {
+                    const shrinkSize = coin.displayWidth * 0.6; // Shrink to 60% at end
+                    this.tweens.add({
+                        targets: coin,
+                        x: targetX,
+                        y: targetY,
+                        displayWidth: shrinkSize,
+                        displayHeight: shrinkSize,
                         duration: duration,
                         ease: CONFIG.COIN_REWARD_ANIMATION.EASE,
                         onComplete: () => {
