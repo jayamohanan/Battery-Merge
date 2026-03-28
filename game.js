@@ -1625,7 +1625,8 @@ for (let t = 0; t <= 1; t += 0.002) {
             car.sprite.y = point.y;
 
             const tangent = turnCurve.getTangent(follower.t);
-            car.sprite.rotation = Math.atan2(tangent.y, tangent.x) + Math.PI / 2;
+            // Add PI to flip car 180 degrees - makes BACK face direction of motion (reverse)
+            car.sprite.rotation = Math.atan2(tangent.y, tangent.x) + Math.PI / 2 + Math.PI;
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
