@@ -893,21 +893,20 @@
             // Simple logic: determine which cars can move based on collision detection
             // For now, we'll assume the first uncharged car can move
             
-            // Reset all canMove flags and hide all charge bars
+            // Reset all canMove flags and hide charge bars for cars with no charge
             for (let car of this.cars) {
                 car.canMove = false;
-                // Hide charge bars for all cars
-                if (car.chargeBar) car.chargeBar.setVisible(false);
-                if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
+                // Hide charge bars only for cars that haven't started charging yet
+                if (car.currentCharge === 0 && !car.isCharging) {
+                    if (car.chargeBar) car.chargeBar.setVisible(false);
+                    if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
+                }
             }
             
             // Find first car that isn't moving out and isn't fully charged
             for (let car of this.cars) {
                 if (!car.isMovingOut) {
                     car.canMove = true;
-                    // Show charge bar only for the car that can be charged
-                    if (car.chargeBar) car.chargeBar.setVisible(true);
-                    if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
                     break; // Only one car can be charged/moved at a time
                 }
             }
@@ -940,6 +939,10 @@
             // Charge the car
             carToCharge.currentCharge += this.chargingRate;
             carToCharge.isCharging = true;
+            
+            // Show charge bar when charging begins
+            if (carToCharge.chargeBar) carToCharge.chargeBar.setVisible(true);
+            if (carToCharge.chargeBarBg) carToCharge.chargeBarBg.setVisible(true);
             
             // Decrease remaining charge for the level
             this.remainingCharge = Math.max(0, this.remainingCharge - this.chargingRate);
