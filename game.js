@@ -848,6 +848,7 @@
             );
             barBg.setOrigin(0, 0.5);
             barBg.setDepth(15);
+            barBg.setVisible(false); // Hidden by default
             
             // Charge bar (green)
             const chargeBar = this.add.rectangle(
@@ -859,6 +860,7 @@
             );
             chargeBar.setOrigin(0, 0.5);
             chargeBar.setDepth(16);
+            chargeBar.setVisible(false); // Hidden by default
             
             // Store references
             car.chargeBarBg = barBg;
@@ -891,15 +893,21 @@
             // Simple logic: determine which cars can move based on collision detection
             // For now, we'll assume the first uncharged car can move
             
-            // Reset all canMove flags
+            // Reset all canMove flags and hide all charge bars
             for (let car of this.cars) {
                 car.canMove = false;
+                // Hide charge bars for all cars
+                if (car.chargeBar) car.chargeBar.setVisible(false);
+                if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
             }
             
             // Find first car that isn't moving out and isn't fully charged
             for (let car of this.cars) {
                 if (!car.isMovingOut) {
                     car.canMove = true;
+                    // Show charge bar only for the car that can be charged
+                    if (car.chargeBar) car.chargeBar.setVisible(true);
+                    if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
                     break; // Only one car can be charged/moved at a time
                 }
             }
@@ -1176,8 +1184,8 @@
                     car.isCharging = false;
                     // Restore grid cells since car couldn't leave
                     this.updateCarGridPosition(car);
-                    if (car.chargeBar) car.chargeBar.setVisible(true);
-                    if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
+                    // Update movable cars to show proper charge bar visibility
+                    this.updateMovableCars();
                 });
                 return;
             }
