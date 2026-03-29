@@ -20,6 +20,10 @@
             this.chargingSlots = [null, null, null]; // 3 slots, each charges a different car independently
             this.chargingSlotsUI = [];
             
+            // Vehicle sound management
+            this.activeSounds = [];             // Track currently playing vehicle sounds
+            this.maxConcurrentSounds = 5;       // Limit concurrent sounds (industry standard)
+            
             // Merge Scene properties (bottom half)
             this.coins = 1000;
             this.grid = Array(3).fill(null).map(() => Array(3).fill(null)); // 3x3 grid
@@ -86,6 +90,9 @@
             });
             this.load.image('bolt', 'graphics/bolt_64.png');
             this.load.image('road', 'graphics/road_80.png');
+            
+            // Load vehicle sound
+            this.load.audio('car_idle', 'sounds/car_idle.wav');
             
             // Load level data
             this.load.json('levels', 'levels.json');
@@ -1191,6 +1198,9 @@
             car.isCharging = false;
             car.isMovingOut = true;
             
+            // Start vehicle sound
+            this.startVehicleSound(car);
+            
             // IMPORTANT: Free all grid cells immediately when car starts leaving
             // This allows other cars to move into the vacated space right away
             for (let cell of car.occupiedCells) {
@@ -1232,6 +1242,7 @@
             } else {
                 // Both directions blocked - show collision and give up
                 console.log('Car is blocked in both directions! Showing collision...');
+                this.stopVehicleSound(car); // Stop sound since car can't move
                 this.showCollisionAndReturn(car, () => {
                     car.isMovingOut = false;
                     car.isCharging = false;
@@ -1368,6 +1379,10 @@
             const distance = steps * cellSize;
             const moveDuration = (distance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
             
+            // Track total journey progress (parking -> curve -> road = 0 to 1)
+            car.totalJourneyProgress = 0;
+            const parkingPhaseWeight = 0.15; // Parking exit is 15% of total journey
+            
             // Phase 1: Move to parking exit point
             this.tweens.add({
                 targets: [car.sprite, car.chargeBar, car.chargeBarBg],
@@ -1375,8 +1390,11 @@
                 y: exitY,
                 duration: moveDuration,
                 ease: 'Linear',
-                onUpdate: () => {
-                    // No need to update grid during exit - cells were already freed when movement started
+                onUpdate: (tween) => {
+                    // Update sound based on parking phase progress (0 to 15%)
+                    const parkingProgress = tween.progress;
+                    car.totalJourneyProgress = parkingProgress * parkingPhaseWeight;
+                    this.updateVehicleSound(car, car.totalJourneyProgress);
                 },
                 onComplete: () => {
                     // Car has left parking area - no grid cells to update
@@ -1497,19 +1515,25 @@ for (let t = 0; t <= 1; t += 0.002) {
     const turnDuration = (curveLength / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
 
     const follower = { t: 0 };
+    const curvePhaseWeight = 0.25; // Curve is 25% of total journey (15-40%)
+    const parkingPhaseWeight = 0.15; // Already completed
 
     this.tweens.add({
         targets: follower,
         t: 1.0,
         duration: turnDuration,
         ease: 'Linear',
-        onUpdate: () => {
+        onUpdate: (tween) => {
             const point = turnCurve.getPoint(follower.t);
             car.sprite.x = point.x;
             car.sprite.y = point.y;
 
             const tangent = turnCurve.getTangent(follower.t);
             car.sprite.rotation = Math.atan2(tangent.y, tangent.x) + Math.PI / 2;
+            
+            // Update sound based on curve phase progress (15% to 40%)
+            car.totalJourneyProgress = parkingPhaseWeight + (tween.progress * curvePhaseWeight);
+            this.updateVehicleSound(car, car.totalJourneyProgress);
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
@@ -1540,13 +1564,14 @@ for (let t = 0; t <= 1; t += 0.002) {
             }
 
             const roadFollower = { index: startIndex };
+            const roadPhaseWeight = 0.60; // Road is 60% of total journey (40-100%)
 
             this.tweens.add({
                 targets: roadFollower,
                 index: spacedPoints.length - 1,
                 duration: pathDuration,
                 ease: 'Linear',
-                onUpdate: () => {
+                onUpdate: (tween) => {
                     const idx = Math.floor(roadFollower.index);
                     const nextIdx = Math.min(idx + 1, spacedPoints.length - 1);
                     const fraction = roadFollower.index - idx;
@@ -1562,6 +1587,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                     if (dx !== 0 || dy !== 0) {
                         car.sprite.rotation = Math.atan2(dy, dx) + Math.PI / 2;
                     }
+                    
+                    // Update sound based on road phase progress (40% to 100%)
+                    car.totalJourneyProgress = parkingPhaseWeight + curvePhaseWeight + (tween.progress * roadPhaseWeight);
+                    this.updateVehicleSound(car, car.totalJourneyProgress);
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
@@ -1674,13 +1703,15 @@ for (let t = 0; t <= 1; t += 0.002) {
     const turnDuration = (curveLength / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
 
     const follower = { t: 0 };
+    const curvePhaseWeight = 0.25; // Curve is 25% of total journey (15-40%)
+    const parkingPhaseWeight = 0.15; // Already completed
 
     this.tweens.add({
         targets: follower,
         t: 1.0,
         duration: turnDuration,
         ease: 'Linear',
-        onUpdate: () => {
+        onUpdate: (tween) => {
             const point = turnCurve.getPoint(follower.t);
             car.sprite.x = point.x;
             car.sprite.y = point.y;
@@ -1688,6 +1719,10 @@ for (let t = 0; t <= 1; t += 0.002) {
             const tangent = turnCurve.getTangent(follower.t);
             // Add PI to flip car 180 degrees - makes BACK face direction of motion (reverse)
             car.sprite.rotation = Math.atan2(tangent.y, tangent.x) + Math.PI / 2 + Math.PI;
+            
+            // Update sound based on curve phase progress (15% to 40%)
+            car.totalJourneyProgress = parkingPhaseWeight + (tween.progress * curvePhaseWeight);
+            this.updateVehicleSound(car, car.totalJourneyProgress);
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
@@ -1720,13 +1755,14 @@ for (let t = 0; t <= 1; t += 0.002) {
             }
 
             const roadFollower = { index: startIndex };
+            const roadPhaseWeight = 0.60; // Road is 60% of total journey (40-100%)
 
             this.tweens.add({
                 targets: roadFollower,
                 index: spacedPoints.length - 1,
                 duration: pathDuration,
                 ease: 'Linear',
-                onUpdate: () => {
+                onUpdate: (tween) => {
                     const idx = Math.floor(roadFollower.index);
                     const nextIdx = Math.min(idx + 1, spacedPoints.length - 1);
                     const fraction = roadFollower.index - idx;
@@ -1742,6 +1778,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                     if (dx !== 0 || dy !== 0) {
                         car.sprite.rotation = Math.atan2(dy, dx) + Math.PI / 2;
                     }
+                    
+                    // Update sound based on road phase progress (40% to 100%)
+                    car.totalJourneyProgress = parkingPhaseWeight + curvePhaseWeight + (tween.progress * roadPhaseWeight);
+                    this.updateVehicleSound(car, car.totalJourneyProgress);
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
@@ -1775,6 +1815,9 @@ for (let t = 0; t <= 1; t += 0.002) {
         
         // Remove car and cleanup
         removeCar(car) {
+            // Stop vehicle sound if playing
+            this.stopVehicleSound(car);
+            
             // Clear grid occupancy
             if (car.occupiedCells) {
                 for (let cell of car.occupiedCells) {
@@ -1801,6 +1844,82 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Check win condition
             if (this.cars.length === 0) {
                 this.winLevel();
+            }
+        }
+
+        // Start vehicle sound with realistic acceleration
+        startVehicleSound(car) {
+            // Check if we've reached the concurrent sound limit
+            if (this.activeSounds.length >= this.maxConcurrentSounds) {
+                // Remove oldest sound
+                const oldestSound = this.activeSounds.shift();
+                if (oldestSound && oldestSound.isPlaying) {
+                    oldestSound.stop();
+                }
+            }
+            
+            // Create sound for this vehicle
+            const sound = this.sound.add('car_idle', {
+                loop: true,
+                volume: CONFIG.AUDIO.ENGINE_IDLE_VOLUME,
+                rate: CONFIG.AUDIO.ENGINE_IDLE_RATE
+            });
+            
+            sound.play();
+            car.engineSound = sound;
+            car.soundProgress = 0; // Track movement progress for dynamic sound
+            this.activeSounds.push(sound);
+        }
+
+        // Update vehicle sound based on movement progress (0 to 1)
+        updateVehicleSound(car, progress) {
+            if (!car.engineSound || !car.engineSound.isPlaying) return;
+            
+            const ac = CONFIG.AUDIO;
+            let targetRate, targetVolume;
+            
+            // Simulate realistic vehicle sound: acceleration -> cruising -> deceleration
+            if (progress < 0.2) {
+                // Starting/accelerating (0 to 20%)
+                const accelProgress = progress / 0.2;
+                targetRate = Phaser.Math.Linear(ac.ENGINE_IDLE_RATE, ac.ENGINE_MAX_RATE, accelProgress);
+                targetVolume = Phaser.Math.Linear(ac.ENGINE_IDLE_VOLUME, ac.ENGINE_ACTIVE_VOLUME, accelProgress);
+            } else if (progress < 0.8) {
+                // Cruising at speed (20% to 80%)
+                targetRate = ac.ENGINE_MAX_RATE;
+                targetVolume = ac.ENGINE_ACTIVE_VOLUME;
+            } else {
+                // Decelerating/exiting (80% to 100%)
+                const decelProgress = (progress - 0.8) / 0.2;
+                targetRate = Phaser.Math.Linear(ac.ENGINE_MAX_RATE, ac.ENGINE_IDLE_RATE, decelProgress);
+                targetVolume = Phaser.Math.Linear(ac.ENGINE_ACTIVE_VOLUME, ac.ENGINE_IDLE_VOLUME * 0.5, decelProgress);
+            }
+            
+            // Smooth interpolation for natural sound transitions
+            const currentRate = car.engineSound.rate;
+            const currentVolume = car.engineSound.volume;
+            
+            const newRate = Phaser.Math.Linear(currentRate, targetRate, ac.RATE_LERP_SPEED);
+            const newVolume = Phaser.Math.Linear(currentVolume, targetVolume, ac.VOLUME_LERP_SPEED);
+            
+            car.engineSound.setRate(newRate);
+            car.engineSound.setVolume(newVolume);
+        }
+
+        // Stop vehicle sound
+        stopVehicleSound(car) {
+            if (car.engineSound) {
+                if (car.engineSound.isPlaying) {
+                    car.engineSound.stop();
+                }
+                
+                // Remove from active sounds list
+                const index = this.activeSounds.indexOf(car.engineSound);
+                if (index > -1) {
+                    this.activeSounds.splice(index, 1);
+                }
+                
+                car.engineSound = null;
             }
         }
 
