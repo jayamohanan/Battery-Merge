@@ -1044,6 +1044,10 @@
             
             carSprite.setDepth(10);
             
+            // Create tire track graphics (below car sprite but above road)
+            const tireTrackGraphics = this.add.graphics();
+            tireTrackGraphics.setDepth(6); // Above road (depth 5), below car sprite (depth 10)
+            
             // Car object with charging state AND grid position
             const car = {
                 sprite: carSprite,
@@ -1059,7 +1063,11 @@
                 orientation: orientation,
                 width: width,
                 length: length,
-                occupiedCells: cells
+                occupiedCells: cells,
+                // Tire track data
+                tireTrackGraphics: tireTrackGraphics,
+                leftTrackPoints: [],
+                rightTrackPoints: []
             };
             
             this.cars.push(car);
@@ -1590,6 +1598,9 @@
                     const parkingProgress = tween.progress;
                     car.totalJourneyProgress = parkingProgress * parkingPhaseWeight;
                     this.updateVehicleSound(car, car.totalJourneyProgress);
+                    
+                    // Update tire tracks
+                    this.updateTireTracks(car);
                 },
                 onComplete: () => {
                     // Car has left parking area - no grid cells to update
@@ -1729,6 +1740,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Update sound based on curve phase progress (15% to 40%)
             car.totalJourneyProgress = parkingPhaseWeight + (tween.progress * curvePhaseWeight);
             this.updateVehicleSound(car, car.totalJourneyProgress);
+            
+            // Update tire tracks
+            this.updateTireTracks(car);
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
@@ -1786,6 +1800,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                     // Update sound based on road phase progress (40% to 100%)
                     car.totalJourneyProgress = parkingPhaseWeight + curvePhaseWeight + (tween.progress * roadPhaseWeight);
                     this.updateVehicleSound(car, car.totalJourneyProgress);
+                    
+                    // Update tire tracks
+                    this.updateTireTracks(car);
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
@@ -1918,6 +1935,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Update sound based on curve phase progress (15% to 40%)
             car.totalJourneyProgress = parkingPhaseWeight + (tween.progress * curvePhaseWeight);
             this.updateVehicleSound(car, car.totalJourneyProgress);
+            
+            // Update tire tracks
+            this.updateTireTracks(car);
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
@@ -1977,6 +1997,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                     // Update sound based on road phase progress (40% to 100%)
                     car.totalJourneyProgress = parkingPhaseWeight + curvePhaseWeight + (tween.progress * roadPhaseWeight);
                     this.updateVehicleSound(car, car.totalJourneyProgress);
+                    
+                    // Update tire tracks
+                    this.updateTireTracks(car);
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
@@ -2008,6 +2031,78 @@ for (let t = 0; t <= 1; t += 0.002) {
             return closestT;
         }
         
+        // Update tire tracks for a moving car
+        updateTireTracks(car) {
+            if (!CONFIG.TIRE_TRACKS.ENABLED) return;
+            if (!car.tireTrackGraphics) {
+                console.warn('Car missing tire track graphics:', car);
+                return;
+            }
+            if (!car.sprite) return;
+            
+            const carX = car.sprite.x;
+            const carY = car.sprite.y;
+            const carRotation = car.sprite.rotation;
+            
+            // Calculate left and right tire positions (perpendicular offset from car center)
+            // Perpendicular to car direction: rotate 90 degrees from car's forward direction
+            const perpX = Math.cos(carRotation); // Perpendicular X (left-right relative to car)
+            const perpY = Math.sin(carRotation); // Perpendicular Y
+            
+            const offset = CONFIG.TIRE_TRACKS.WHEEL_OFFSET;
+            const leftTireX = carX - perpX * offset;
+            const leftTireY = carY - perpY * offset;
+            const rightTireX = carX + perpX * offset;
+            const rightTireY = carY + perpY * offset;
+            
+            // Add points to tracks if car has moved enough distance
+            const addPoint = (trackPoints, x, y) => {
+                if (trackPoints.length > 0) {
+                    const lastPoint = trackPoints[trackPoints.length - 1];
+                    const dist = Math.sqrt((x - lastPoint.x) ** 2 + (y - lastPoint.y) ** 2);
+                    if (dist < CONFIG.TIRE_TRACKS.MIN_DISTANCE) return; // Too close, skip
+                }
+                
+                trackPoints.push({ x, y });
+                
+                // Limit number of points to prevent memory issues
+                if (trackPoints.length > CONFIG.TIRE_TRACKS.MAX_POINTS) {
+                    trackPoints.shift(); // Remove oldest point
+                }
+            };
+            
+            addPoint(car.leftTrackPoints, leftTireX, leftTireY);
+            addPoint(car.rightTrackPoints, rightTireX, rightTireY);
+            
+            // Redraw tire tracks
+            car.tireTrackGraphics.clear();
+            car.tireTrackGraphics.lineStyle(
+                CONFIG.TIRE_TRACKS.LINE_WIDTH,
+                CONFIG.TIRE_TRACKS.COLOR,
+                CONFIG.TIRE_TRACKS.ALPHA
+            );
+            
+            // Draw left tire track
+            if (car.leftTrackPoints.length > 1) {
+                car.tireTrackGraphics.beginPath();
+                car.tireTrackGraphics.moveTo(car.leftTrackPoints[0].x, car.leftTrackPoints[0].y);
+                for (let i = 1; i < car.leftTrackPoints.length; i++) {
+                    car.tireTrackGraphics.lineTo(car.leftTrackPoints[i].x, car.leftTrackPoints[i].y);
+                }
+                car.tireTrackGraphics.strokePath();
+            }
+            
+            // Draw right tire track
+            if (car.rightTrackPoints.length > 1) {
+                car.tireTrackGraphics.beginPath();
+                car.tireTrackGraphics.moveTo(car.rightTrackPoints[0].x, car.rightTrackPoints[0].y);
+                for (let i = 1; i < car.rightTrackPoints.length; i++) {
+                    car.tireTrackGraphics.lineTo(car.rightTrackPoints[i].x, car.rightTrackPoints[i].y);
+                }
+                car.tireTrackGraphics.strokePath();
+            }
+        }
+        
         // Remove car and cleanup
         removeCar(car) {
             // Stop vehicle sound if playing
@@ -2021,6 +2116,11 @@ for (let t = 0; t <= 1; t += 0.002) {
                         this.gridOccupancy[cell.row][cell.col] = null;
                     }
                 }
+            }
+            
+            // Destroy tire track graphics
+            if (car.tireTrackGraphics) {
+                car.tireTrackGraphics.destroy();
             }
             
             car.sprite.destroy();

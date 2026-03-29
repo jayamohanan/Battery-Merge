@@ -271,6 +271,17 @@ var CONFIG = {
         DEBUG_SHOW_CURVE: false,        // Show bezier curve when vehicle moves from parking to road
     },
     
+    // Tire tracks (black marks left by car wheels)
+    TIRE_TRACKS: {
+        ENABLED: true,                  // Enable tire track rendering
+        LINE_WIDTH: 3,                  // Thickness of tire track lines
+        COLOR: 0x000000,                // Black color for tire marks
+        ALPHA: 0.4,                     // Transparency (0.4 = 40% visible, like faded mud marks)
+        WHEEL_OFFSET: 10,               // Distance from car center to each tire track (perpendicular to car direction)
+        MAX_POINTS: 200,                // Maximum number of points to track per tire (prevents memory issues)
+        MIN_DISTANCE: 5,                // Minimum distance between points before adding new one (smoother lines)
+    },
+    
     // Exit Gate settings
     GATE: {
         POSITION_Y_FACTOR: 0.2,         // Gate position along exit tail (0 = bottom of tail, 0.5 = middle, 1 = top of tail)
