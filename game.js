@@ -6,9 +6,8 @@
 
         init() {
             // Parking Jam properties (top half)
-            this.cars = [];                     // Array of car objects {sprite, chargeRequired, currentCharge, canMove}
+            this.cars = [];                     // Array of car objects {sprite, chargeRequired, currentCharge, isCharging, isMovingOut}
             this.chargingInterval = null;       // Interval for charging
-            this.chargingRate = 0;              // Total charging rate (sum of battery values)
             this.chargingEffects = [];          // Visual charging effects
             this.levelData = null;              // Current level data
             this.currentLevelIndex = 0;         // Track which level we're on
@@ -18,7 +17,7 @@
             this.levelChargeText = null;        // Text display for remaining charge
             
             // Charging system properties (for parking jam)
-            this.chargingSlots = [null, null, null]; // 3 slots for batteries
+            this.chargingSlots = [null, null, null]; // 3 slots, each charges a different car independently
             this.chargingSlotsUI = [];
             
             // Merge Scene properties (bottom half)
@@ -376,10 +375,12 @@
             this.chargingSlots[slotIndex] = {
                 level: level,
                 chargePerMinute: chargePerMinute,
-                batteryData: batteryData
+                batteryData: batteryData,
+                assignedCar: null  // Each slot charges its own car
             };
             
-            // Start charging if this is the first battery
+            // Assign a car to this slot and update charging system
+            this.assignCarToSlot(slotIndex);
             this.updateChargingSystem();
         }
         
@@ -398,6 +399,18 @@
             slot.chargeText.setVisible(false);
             slot.slotFilledBg.setVisible(false);
             
+            // If this slot had an assigned car, hide its charge bar
+            const slotData = this.chargingSlots[slotIndex];
+            if (slotData && slotData.assignedCar) {
+                const car = slotData.assignedCar;
+                // Only hide if car has no charge yet
+                if (car.currentCharge === 0) {
+                    if (car.chargeBar) car.chargeBar.setVisible(false);
+                    if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
+                }
+                car.isCharging = false;
+            }
+            
             this.chargingSlots[slotIndex] = null;
             
             // Update charging system
@@ -405,13 +418,43 @@
         }
         
         updateChargingSystem() {
-            // Calculate total charging rate from batteries in slots
-            this.chargingRate = 0;
-            for (let battery of this.chargingSlots) {
-                if (battery !== null) {
-                    this.chargingRate += battery.level; // Battery level = charge units
+            // Each slot works independently - no total rate needed
+            // Just ensure all slots with batteries have cars assigned
+            for (let i = 0; i < this.chargingSlots.length; i++) {
+                if (this.chargingSlots[i] !== null && this.chargingSlots[i].assignedCar === null) {
+                    this.assignCarToSlot(i);
                 }
             }
+        }
+        
+        // Assign next available uncharged car to a slot
+        assignCarToSlot(slotIndex) {
+            if (this.chargingSlots[slotIndex] === null) return;
+            
+            // Find next car that needs charging and isn't assigned to another slot
+            for (let car of this.cars) {
+                if (car.isMovingOut) continue;
+                if (car.currentCharge >= car.chargeRequired) continue;
+                
+                // Check if this car is already assigned to another slot
+                let alreadyAssigned = false;
+                for (let i = 0; i < this.chargingSlots.length; i++) {
+                    if (this.chargingSlots[i] && this.chargingSlots[i].assignedCar === car) {
+                        alreadyAssigned = true;
+                        break;
+                    }
+                }
+                
+                if (!alreadyAssigned) {
+                    // Assign this car to the slot
+                    this.chargingSlots[slotIndex].assignedCar = car;
+                    console.log(`Slot ${slotIndex} assigned to car ${this.cars.indexOf(car)}`);
+                    return;
+                }
+            }
+            
+            // No car available - slot remains idle
+            console.log(`Slot ${slotIndex} has no car to charge (idle)`);
         }
         
         // ========== PARKING JAM METHODS ==========
@@ -890,26 +933,27 @@
         }
 
         updateMovableCars() {
-            // Simple logic: determine which cars can move based on collision detection
-            // For now, we'll assume the first uncharged car can move
-            
-            // Reset all canMove flags and hide charge bars for cars with no charge
+            // This function is now used to reassign cars to slots after a car moves out
+            // Hide charge bars for cars with no charge that aren't being charged
             for (let car of this.cars) {
-                car.canMove = false;
-                // Hide charge bars only for cars that haven't started charging yet
-                if (car.currentCharge === 0 && !car.isCharging) {
+                // Check if car is assigned to any slot
+                let isAssignedToSlot = false;
+                for (let i = 0; i < this.chargingSlots.length; i++) {
+                    if (this.chargingSlots[i] && this.chargingSlots[i].assignedCar === car) {
+                        isAssignedToSlot = true;
+                        break;
+                    }
+                }
+                
+                // Hide charge bar if car has no charge and isn't assigned
+                if (!isAssignedToSlot && car.currentCharge === 0 && !car.isCharging) {
                     if (car.chargeBar) car.chargeBar.setVisible(false);
                     if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
                 }
             }
             
-            // Find first car that isn't moving out and isn't fully charged
-            for (let car of this.cars) {
-                if (!car.isMovingOut) {
-                    car.canMove = true;
-                    break; // Only one car can be charged/moved at a time
-                }
-            }
+            // Try to assign cars to any slots that need them
+            this.updateChargingSystem();
         }
 
         startCharging() {
@@ -923,42 +967,48 @@
         }
 
         chargeCycle() {
-            // Use charging rate from batteries in slots
-            if (this.chargingRate === 0) return; // No batteries in slots
-            
-            // Find the car that can be charged
-            const carToCharge = this.cars.find(car => car.canMove && !car.isMovingOut);
-            
-            if (!carToCharge) return;
-            
-            // If this is the first time charging this car, spawn reward coins at its position
-            if (!carToCharge.isCharging && !carToCharge.rewardCoinsSpawned) {
-                this.spawnRewardCoins(carToCharge);
-            }
-            
-            // Charge the car
-            carToCharge.currentCharge += this.chargingRate;
-            carToCharge.isCharging = true;
-            
-            // Show charge bar when charging begins
-            if (carToCharge.chargeBar) carToCharge.chargeBar.setVisible(true);
-            if (carToCharge.chargeBarBg) carToCharge.chargeBarBg.setVisible(true);
-            
-            // Decrease remaining charge for the level
-            this.remainingCharge = Math.max(0, this.remainingCharge - this.chargingRate);
-            
-            // Update charge displays
-            this.updateCarChargeBar(carToCharge);
-            this.updateLevelChargeDisplay();
-            
-            // Show charging effect
-            this.showChargingEffect(carToCharge);
-            
-            console.log(`Charging car: ${carToCharge.currentCharge}/${carToCharge.chargeRequired} | Level remaining: ${this.remainingCharge}/${this.totalChargeRequired}`);
-            
-            // Check if car is fully charged
-            if (carToCharge.currentCharge >= carToCharge.chargeRequired) {
-                this.moveOutCar(carToCharge);
+            // Each slot charges its assigned car independently
+            for (let i = 0; i < this.chargingSlots.length; i++) {
+                const slot = this.chargingSlots[i];
+                if (!slot || !slot.assignedCar) continue; // Slot empty or no car assigned
+                
+                const car = slot.assignedCar;
+                if (car.isMovingOut) continue; // Skip cars that are leaving
+                
+                // If this is the first time charging this car, spawn reward coins
+                if (!car.isCharging && !car.rewardCoinsSpawned) {
+                    this.spawnRewardCoins(car);
+                }
+                
+                // Charge the car with this slot's battery level
+                const chargeAmount = slot.level;
+                car.currentCharge += chargeAmount;
+                car.isCharging = true;
+                
+                // Show charge bar when charging begins
+                if (car.chargeBar) car.chargeBar.setVisible(true);
+                if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
+                
+                // Decrease remaining charge for the level
+                this.remainingCharge = Math.max(0, this.remainingCharge - chargeAmount);
+                
+                // Update charge displays
+                this.updateCarChargeBar(car);
+                this.updateLevelChargeDisplay();
+                
+                // Show charging effect
+                this.showChargingEffect(car);
+                
+                console.log(`Slot ${i} charging car: ${car.currentCharge}/${car.chargeRequired}`);
+                
+                // Check if car is fully charged
+                if (car.currentCharge >= car.chargeRequired) {
+                    // Unassign car from slot before moving it out
+                    slot.assignedCar = null;
+                    this.moveOutCar(car);
+                    // Try to assign next car to this slot
+                    this.assignCarToSlot(i);
+                }
             }
         }
 
