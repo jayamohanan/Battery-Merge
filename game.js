@@ -24,6 +24,13 @@
             this.activeSounds = [];             // Track currently playing vehicle sounds
             this.maxConcurrentSounds = 5;       // Limit concurrent sounds (industry standard)
             
+            // Gate properties
+            this.gateLeftDoor = null;           // Left gate door sprite
+            this.gateRightDoor = null;          // Right gate door sprite
+            this.gateOpen = false;              // Current gate state
+            this.gateAnimating = false;         // Whether gate is currently animating
+            this.gateCheckRadius = CONFIG.GATE.PROXIMITY_RADIUS; // Distance to check for nearby vehicles
+            
             // Merge Scene properties (bottom half)
             this.coins = 1000;
             this.grid = Array(3).fill(null).map(() => Array(3).fill(null)); // 3x3 grid
@@ -547,6 +554,19 @@
             console.log('Parking data:', parkingData);
             console.log('Road data:', roadData);
             
+            // Clean up existing gate if any
+            if (this.gateLeftDoor) {
+                this.gateLeftDoor.destroy();
+                this.gateLeftDoor = null;
+            }
+            if (this.gateRightDoor) {
+                this.gateRightDoor.destroy();
+                this.gateRightDoor = null;
+            }
+            this.gatePosition = null;
+            this.gateOpen = false;
+            this.gateAnimating = false;
+            
             const sceneWidth = this.cameras.main.width;
             const sceneHeight = this.cameras.main.height;
             const parkingAreaHeight = sceneHeight * 0.5;
@@ -649,6 +669,9 @@
             
             console.log('Road rope created with pre-scaled texture - no rope scaling needed');
             
+            // Create exit gate at the end of the road
+            this.createExitGate(centerX, centerY, halfW, halfH, offset, roadWidth);
+            
             // Draw parking area rectangle
             const parkingRect = this.add.rectangle(
                 centerX,
@@ -668,6 +691,167 @@
                 alpha: parkingData.alpha
             });
             console.log('=== DRAW PARKING AND ROAD COMPLETE ===');
+        }
+        
+        // Create exit gate at the end of the road (left edge going upward)
+        createExitGate(centerX, centerY, halfW, halfH, offset, roadWidth) {
+            // Calculate gate position at the left edge of the road, near the exit
+            const left = centerX - halfW - offset;
+            const top = centerY - halfH - offset;
+            const radius = offset;
+            
+            // Calculate the exit tail (upward extension from top-left corner)
+            const cellSize = this.gridConfig.cellSize;
+            const exitExtraDistance = cellSize * 8; // Same as in createRoadPath
+            const exitTailStart = top + radius; // Where the upward exit tail begins (after corner)
+            const exitTailEnd = Math.min(top + radius, 0) - exitExtraDistance; // Top of exit tail
+            const exitTailLength = exitTailStart - exitTailEnd; // Positive length (going upward)
+            
+            // Position gate along the exit tail based on CONFIG
+            // POSITION_Y_FACTOR: 0 = at bottom of exit tail, 0.5 = halfway up, 1 = at top
+            const gateX = left; // X position at left edge of road
+            const gateY = exitTailStart - (exitTailLength * CONFIG.GATE.POSITION_Y_FACTOR);
+            
+            // Gate dimensions from CONFIG
+            const gateLength = roadWidth * CONFIG.GATE.LENGTH_PERCENT; // Each gate extends from edge toward center
+            const gateThickness = roadWidth * CONFIG.GATE.THICKNESS_PERCENT; // Gate thickness
+            const centerGap = roadWidth * CONFIG.GATE.CENTER_GAP_PERCENT; // Gap documented for reference
+            
+            // Create left gate door (starts at left edge of road, extends toward center)
+            // Both gates aligned on same horizontal line
+            // When closed: horizontal (perpendicular to upward road)
+            // Pivots on its outer (left) edge
+            this.gateLeftDoor = this.add.rectangle(
+                gateX - roadWidth / 2, // Left edge of road
+                gateY, // Same Y as right gate - horizontally aligned
+                gateLength, // Width extends toward center
+                gateThickness, // Thickness
+                CONFIG.GATE.COLOR // Brown color for gate
+            );
+            this.gateLeftDoor.setStrokeStyle(CONFIG.GATE.BORDER_WIDTH, CONFIG.GATE.BORDER_COLOR);
+            this.gateLeftDoor.setDepth(10); // Above road
+            this.gateLeftDoor.setOrigin(0, 0.5); // Pivot on left edge (outer edge)
+            
+            // Create right gate door (starts at right edge of road, extends toward center)
+            // Both gates aligned on same horizontal line
+            // When closed: horizontal (perpendicular to upward road)
+            // Pivots on its outer (right) edge
+            this.gateRightDoor = this.add.rectangle(
+                gateX + roadWidth / 2, // Right edge of road
+                gateY, // Same Y as left gate - horizontally aligned
+                gateLength, // Width extends toward center
+                gateThickness, // Thickness
+                CONFIG.GATE.COLOR // Brown color for gate
+            );
+            this.gateRightDoor.setStrokeStyle(CONFIG.GATE.BORDER_WIDTH, CONFIG.GATE.BORDER_COLOR);
+            this.gateRightDoor.setDepth(10); // Above road
+            this.gateRightDoor.setOrigin(1, 0.5); // Pivot on right edge (outer edge)
+            
+            // Store gate position for proximity checks
+            this.gatePosition = { x: gateX, y: gateY };
+            
+            console.log('Exit gate created:', {
+                position: { x: gateX, y: gateY },
+                exitTail: { start: exitTailStart, end: exitTailEnd, length: exitTailLength },
+                positionYFactor: CONFIG.GATE.POSITION_Y_FACTOR,
+                roadWidth: roadWidth,
+                doorSize: { length: gateLength, thickness: gateThickness },
+                centerGap: centerGap,
+                leftDoorX: gateX - roadWidth / 2,
+                rightDoorX: gateX + roadWidth / 2,
+                state: 'closed'
+            });
+        }
+        
+        // Check if any vehicle is near the gate
+        isVehicleNearGate() {
+            if (!this.gatePosition) return false;
+            
+            for (let car of this.cars) {
+                // Only check cars that are moving out
+                if (!car.isMovingOut) continue;
+                
+                const dx = car.sprite.x - this.gatePosition.x;
+                const dy = car.sprite.y - this.gatePosition.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < this.gateCheckRadius) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Open the gate (doors swing outward, becoming parallel to road)
+        openGate() {
+            if (this.gateOpen || this.gateAnimating) return;
+            
+            this.gateAnimating = true;
+            console.log('Opening gate...');
+            
+            // Left door rotates 90 degrees counterclockwise to become vertical (parallel to upward road)
+            // Pivots on left edge, swings outward to the left
+            this.tweens.add({
+                targets: this.gateLeftDoor,
+                angle: -90,
+                duration: CONFIG.GATE.OPEN_DURATION,
+                ease: 'Cubic.easeOut'
+            });
+            
+            // Right door rotates 90 degrees clockwise to become vertical (parallel to upward road)
+            // Pivots on right edge, swings outward to the right
+            this.tweens.add({
+                targets: this.gateRightDoor,
+                angle: 90,
+                duration: CONFIG.GATE.OPEN_DURATION,
+                ease: 'Cubic.easeOut',
+                onComplete: () => {
+                    this.gateOpen = true;
+                    this.gateAnimating = false;
+                    console.log('Gate opened');
+                }
+            });
+        }
+        
+        // Close the gate (doors swing back, becoming perpendicular to road)
+        closeGate() {
+            if (!this.gateOpen || this.gateAnimating) return;
+            
+            this.gateAnimating = true;
+            console.log('Closing gate...');
+            
+            // Both doors rotate back to 0 degrees (horizontal, perpendicular to upward road)
+            this.tweens.add({
+                targets: this.gateLeftDoor,
+                angle: 0,
+                duration: CONFIG.GATE.OPEN_DURATION,
+                ease: 'Cubic.easeIn'
+            });
+            
+            this.tweens.add({
+                targets: this.gateRightDoor,
+                angle: 0,
+                duration: CONFIG.GATE.OPEN_DURATION,
+                ease: 'Cubic.easeIn',
+                onComplete: () => {
+                    this.gateOpen = false;
+                    this.gateAnimating = false;
+                    console.log('Gate closed');
+                }
+            });
+        }
+        
+        // Update gate state based on vehicle proximity
+        updateGate() {
+            if (!this.gateLeftDoor || !this.gateRightDoor) return;
+            
+            const vehicleNearby = this.isVehicleNearGate();
+            
+            if (vehicleNearby && !this.gateOpen) {
+                this.openGate();
+            } else if (!vehicleNearby && this.gateOpen) {
+                this.closeGate();
+            }
         }
         
         // Create curved road path (same as in editor)
@@ -2242,6 +2426,9 @@ for (let t = 0; t <= 1; t += 0.002) {
         update() {
             // Update logic for merge scene only
             // Vehicle physics removed - now handled by ParkingJamScene
+            
+            // Update gate state based on vehicle proximity
+            this.updateGate();
             
             // Check level-up timer
             this.checkLevelUpTimer();

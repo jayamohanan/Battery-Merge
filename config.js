@@ -271,6 +271,19 @@ var CONFIG = {
         DEBUG_SHOW_CURVE: false,        // Show bezier curve when vehicle moves from parking to road
     },
     
+    // Exit Gate settings
+    GATE: {
+        POSITION_Y_FACTOR: 0.2,         // Gate position along exit tail (0 = bottom of tail, 0.5 = middle, 1 = top of tail)
+        LENGTH_PERCENT: 0.42,           // Each gate length as percentage of road width (0.42 = 42%, leaves 16% gap)
+        THICKNESS_PERCENT: 0.12,        // Gate thickness as percentage of road width (0.12 = 12%)
+        CENTER_GAP_PERCENT: 0.16,       // Gap between gates in center as percentage of road width (0.16 = 16%)
+        OPEN_DURATION: 400,             // Animation duration for opening/closing (milliseconds)
+        PROXIMITY_RADIUS: 150,          // Distance to detect vehicles approaching gate (pixels)
+        COLOR: 0x8B4513,                // Gate color (brown)
+        BORDER_COLOR: 0x654321,         // Gate border color (dark brown)
+        BORDER_WIDTH: 3,                // Gate border width (pixels)
+    },
+    
     // Level Editor settings
     EDITOR: {
         // Responsive sizing configuration
