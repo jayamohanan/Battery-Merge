@@ -775,7 +775,18 @@
                 const dy = car.sprite.y - this.gatePosition.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance < this.gateCheckRadius) {
+                // Car must be approaching from below (higher y values) moving up the exit tail
+                const isApproachingFromBelow = car.sprite.y > this.gatePosition.y; // Car is below gate (coming up)
+                
+                // Car's x position must be less than the right edge of right gate (where pivot is)
+                // Right gate door pivots at: gateX + roadWidth/2 (extreme right edge of road)
+                // Car travels along center of road, so car.x should be < right edge to be on the road
+                const roadWidth = this.gridConfig.roadWidth || 100;
+                const rightGateEdge = this.gatePosition.x + roadWidth / 2;
+                const leftGateEdge = this.gatePosition.x - roadWidth / 2;
+                const isOnExitTail = car.sprite.x > leftGateEdge && car.sprite.x < rightGateEdge;
+                
+                if (distance < this.gateCheckRadius && isApproachingFromBelow && isOnExitTail) {
                     return true;
                 }
             }
