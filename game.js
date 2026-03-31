@@ -138,7 +138,7 @@
             
             // Create graphics for charging connections
             this.chargingConnectionsGraphics = this.add.graphics();
-            this.chargingConnectionsGraphics.setDepth(50); // High depth to ensure visibility
+            this.chargingConnectionsGraphics.setDepth(8); // Above road (5) and tire tracks (6), below cars (10)
             
             // Setup drag and drop for batteries
             this.setupBatteryDropZones();
@@ -1874,6 +1874,11 @@
             const distance = steps * cellSize;
             const moveDuration = (distance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
             
+            // Clear tire tracks at start (will only be drawn during bezier curve)
+            if (car.leftTrackPoints) car.leftTrackPoints = [];
+            if (car.rightTrackPoints) car.rightTrackPoints = [];
+            if (car.tireTrackGraphics) car.tireTrackGraphics.clear();
+            
             // Track total journey progress (parking -> curve -> road = 0 to 1)
             car.totalJourneyProgress = 0;
             const parkingPhaseWeight = 0.15; // Parking exit is 15% of total journey
@@ -1890,9 +1895,7 @@
                     const parkingProgress = tween.progress;
                     car.totalJourneyProgress = parkingProgress * parkingPhaseWeight;
                     this.updateVehicleSound(car, car.totalJourneyProgress);
-                    
-                    // Update tire tracks
-                    this.updateTireTracks(car);
+                    // No tire tracks during parking exit phase
                 },
                 onComplete: () => {
                     // Car has left parking area - no grid cells to update
@@ -2033,12 +2036,19 @@ for (let t = 0; t <= 1; t += 0.002) {
             car.totalJourneyProgress = parkingPhaseWeight + (tween.progress * curvePhaseWeight);
             this.updateVehicleSound(car, car.totalJourneyProgress);
             
-            // Update tire tracks
-            this.updateTireTracks(car);
+            // Update tire tracks only during forward curve if enabled in config
+            if (CONFIG.TIRE_TRACKS.SHOW_FORWARD_TURN) {
+                this.updateTireTracks(car);
+            }
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
                 curveGraphics.destroy();
+            }
+            
+            // Fade out tire tracks after forward curve if enabled
+            if (CONFIG.TIRE_TRACKS.SHOW_FORWARD_TURN && CONFIG.TIRE_TRACKS.FADE_ENABLED) {
+                this.fadeTireTracks(car);
             }
 
             const pathLength = this.roadPath.getLength();
@@ -2092,9 +2102,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     // Update sound based on road phase progress (40% to 100%)
                     car.totalJourneyProgress = parkingPhaseWeight + curvePhaseWeight + (tween.progress * roadPhaseWeight);
                     this.updateVehicleSound(car, car.totalJourneyProgress);
-                    
-                    // Update tire tracks
-                    this.updateTireTracks(car);
+                    // No tire tracks during road following phase (only during bezier curve)
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
@@ -2228,12 +2236,17 @@ for (let t = 0; t <= 1; t += 0.002) {
             car.totalJourneyProgress = parkingPhaseWeight + (tween.progress * curvePhaseWeight);
             this.updateVehicleSound(car, car.totalJourneyProgress);
             
-            // Update tire tracks
+            // Always update tire tracks during reverse curve (this is a reverse turn)
             this.updateTireTracks(car);
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
                 curveGraphics.destroy();
+            }
+            
+            // Fade out tire tracks after reverse curve if enabled
+            if (CONFIG.TIRE_TRACKS.FADE_ENABLED) {
+                this.fadeTireTracks(car);
             }
 
             // After the reverse curve, car should be on road facing clockwise
@@ -2289,9 +2302,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     // Update sound based on road phase progress (40% to 100%)
                     car.totalJourneyProgress = parkingPhaseWeight + curvePhaseWeight + (tween.progress * roadPhaseWeight);
                     this.updateVehicleSound(car, car.totalJourneyProgress);
-                    
-                    // Update tire tracks
-                    this.updateTireTracks(car);
+                    // No tire tracks during road following phase (only during bezier curve)
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
@@ -2393,6 +2404,32 @@ for (let t = 0; t <= 1; t += 0.002) {
                 }
                 car.tireTrackGraphics.strokePath();
             }
+        }
+        
+        // Fade out tire tracks with animation
+        fadeTireTracks(car) {
+            if (!CONFIG.TIRE_TRACKS.ENABLED || !CONFIG.TIRE_TRACKS.FADE_ENABLED) return;
+            if (!car.tireTrackGraphics) return;
+            
+            // Use delayedCall to wait before starting fade
+            this.time.delayedCall(CONFIG.TIRE_TRACKS.FADE_DELAY, () => {
+                // Animate alpha from current value to 0
+                this.tweens.add({
+                    targets: car.tireTrackGraphics,
+                    alpha: 0,
+                    duration: CONFIG.TIRE_TRACKS.FADE_DURATION,
+                    ease: 'Linear',
+                    onComplete: () => {
+                        // Clear the tracks after fade completes
+                        if (car.tireTrackGraphics) {
+                            car.tireTrackGraphics.clear();
+                            car.tireTrackGraphics.alpha = 1; // Reset alpha for next use
+                        }
+                        if (car.leftTrackPoints) car.leftTrackPoints = [];
+                        if (car.rightTrackPoints) car.rightTrackPoints = [];
+                    }
+                });
+            });
         }
         
         // Remove car and cleanup

@@ -288,12 +288,18 @@ var CONFIG = {
     // Tire tracks (black marks left by car wheels)
     TIRE_TRACKS: {
         ENABLED: true,                  // Enable tire track rendering
+        SHOW_FORWARD_TURN: false,       // Show tire marks during forward exit turn (if false, only show during reverse turn)
         LINE_WIDTH: 3,                  // Thickness of tire track lines
         COLOR: 0x000000,                // Black color for tire marks
         ALPHA: 0.4,                     // Transparency (0.4 = 40% visible, like faded mud marks)
         WHEEL_OFFSET: 10,               // Distance from car center to each tire track (perpendicular to car direction)
         MAX_POINTS: 200,                // Maximum number of points to track per tire (prevents memory issues)
         MIN_DISTANCE: 5,                // Minimum distance between points before adding new one (smoother lines)
+        
+        // Fade animation for tire tracks (after bezier curve completes)
+        FADE_ENABLED: true,             // Enable fade out animation
+        FADE_DURATION: 400,             // Duration of fade out in milliseconds (how quickly tracks disappear)
+        FADE_DELAY: 0,                  // Delay before fade starts in milliseconds (0 = fade immediately)
     },
     
     // Exit Gate settings
