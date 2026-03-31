@@ -19,6 +19,8 @@
             // Charging system properties (for parking jam)
             this.chargingSlots = [null, null, null]; // 3 slots, each charges a different car independently
             this.chargingSlotsUI = [];
+            this.chargingConnectionsGraphics = null; // Graphics for drawing charging connections
+            this.chargingAnimationProgress = [0, 0, 0]; // Animation progress for each slot (0 to 1)
             
             // Vehicle sound management
             this.activeSounds = [];             // Track currently playing vehicle sounds
@@ -133,6 +135,10 @@
             
             // Create 3 charging slots (moved to top of bottom half, just below parking area)
             this.createChargingSlots();
+            
+            // Create graphics for charging connections
+            this.chargingConnectionsGraphics = this.add.graphics();
+            this.chargingConnectionsGraphics.setDepth(50); // High depth to ensure visibility
             
             // Setup drag and drop for batteries
             this.setupBatteryDropZones();
@@ -463,6 +469,20 @@
                     // Assign this car to the slot
                     this.chargingSlots[slotIndex].assignedCar = car;
                     console.log(`Slot ${slotIndex} assigned to car ${this.cars.indexOf(car)}`);
+                    
+                    // Start line tracing animation if enabled
+                    if (CONFIG.CHARGING_CONNECTION.ANIMATE_ENABLED) {
+                        this.chargingAnimationProgress[slotIndex] = 0.001; // Start with tiny bit visible
+                        this.tweens.add({
+                            targets: this.chargingAnimationProgress,
+                            [slotIndex]: 1,
+                            duration: CONFIG.CHARGING_CONNECTION.ANIMATE_DURATION,
+                            ease: CONFIG.CHARGING_CONNECTION.ANIMATE_EASE
+                        });
+                    } else {
+                        this.chargingAnimationProgress[slotIndex] = 1; // Show full line immediately
+                    }
+                    
                     return;
                 }
             }
@@ -865,6 +885,277 @@
             }
         }
         
+        // Draw charging connections using Manhattan routing with rounded corners
+        drawChargingConnections() {
+            if (!this.chargingConnectionsGraphics) return;
+            
+            // Clear previous frame's lines
+            this.chargingConnectionsGraphics.clear();
+            
+            // Draw connection for each active charging slot
+            for (let i = 0; i < this.chargingSlots.length; i++) {
+                const slot = this.chargingSlots[i];
+                if (!slot || !slot.assignedCar) continue;
+                
+                const car = slot.assignedCar;
+                if (!car.sprite || car.isMovingOut) continue;
+                
+                const slotUI = this.chargingSlotsUI[i];
+                
+                // Point A: midpoint of top side of charging slot
+                const slotSize = 100; // Same as defined in createChargingSlots
+                const pointA = {
+                    x: slotUI.x,
+                    y: slotUI.y - slotSize / 2
+                };
+                
+                // Point B: midpoint of bottom side of vehicle
+                const carBounds = car.sprite.getBounds();
+                const pointB = {
+                    x: carBounds.centerX,
+                    y: carBounds.bottom
+                };
+                
+                // Set line style from config with alpha
+                this.chargingConnectionsGraphics.lineStyle(
+                    CONFIG.CHARGING_CONNECTION.LINE_WIDTH, 
+                    CONFIG.CHARGING_CONNECTION.LINE_COLOR, 
+                    CONFIG.CHARGING_CONNECTION.LINE_ALPHA
+                );
+                
+                // Corner radius from config
+                const cornerRadius = CONFIG.CHARGING_CONNECTION.CORNER_RADIUS;
+                
+                // Different vertical distances for each slot from config
+                const slotDistances = CONFIG.CHARGING_CONNECTION.SLOT_DISTANCES;
+                const verticalStep = slotDistances[i] || 20;
+                
+                // Calculate intermediate points for Manhattan routing
+                const midY = pointA.y - verticalStep;
+                
+                // Check if points are aligned vertically (same x)
+                const isAligned = Math.abs(pointB.x - pointA.x) < 1;
+                
+                // Get animation progress for this slot (0 to 1)
+                // If animation is disabled or progress not set, show full line
+                let progress = this.chargingAnimationProgress[i];
+                if (progress === undefined || progress === null) {
+                    progress = CONFIG.CHARGING_CONNECTION.ANIMATE_ENABLED ? 0 : 1;
+                }
+                if (!CONFIG.CHARGING_CONNECTION.ANIMATE_ENABLED) {
+                    progress = 1; // Always show full line if animation is disabled
+                }
+                
+                // Clamp progress between 0 and 1
+                progress = Math.max(0, Math.min(1, progress));
+                
+                this.chargingConnectionsGraphics.beginPath();
+                this.chargingConnectionsGraphics.moveTo(pointA.x, pointA.y);
+                
+                if (isAligned) {
+                    // Simple case: straight vertical line with animation
+                    if (progress > 0) {
+                        const totalDist = pointA.y - pointB.y;
+                        const currentY = pointA.y - (totalDist * progress);
+                        this.chargingConnectionsGraphics.lineTo(pointA.x, currentY);
+                    }
+                } else {
+                    // Manhattan routing with animated tracing
+                    const goingRight = pointB.x > pointA.x;
+                    
+                    // Calculate path segment lengths for animation
+                    const vert1Dist = Math.abs(pointA.y - (midY + cornerRadius));
+                    const arcDist = (Math.PI / 2) * cornerRadius; // Quarter circle arc length
+                    const horizDist = Math.abs(pointB.x - pointA.x) - 2 * cornerRadius;
+                    const vert2Dist = Math.abs(midY - cornerRadius - pointB.y);
+                    const totalDist = vert1Dist + arcDist + horizDist + arcDist + vert2Dist;
+                    
+                    // Calculate distances at each segment boundary (cumulative)
+                    const dist1 = vert1Dist;
+                    const dist2 = dist1 + arcDist;
+                    const dist3 = dist2 + horizDist;
+                    const dist4 = dist3 + arcDist;
+                    const dist5 = dist4 + vert2Dist;
+                    
+                    const currentDist = totalDist * progress;
+                    
+                    // Segment 1: First vertical line
+                    if (currentDist <= dist1) {
+                        // Partial first vertical segment
+                        const segProgress = currentDist / vert1Dist;
+                        const currentY = pointA.y - (vert1Dist * segProgress);
+                        this.chargingConnectionsGraphics.lineTo(pointA.x, currentY);
+                    }
+                    // Segment 2: First corner arc
+                    else if (currentDist <= dist2) {
+                        // Complete first vertical segment
+                        this.chargingConnectionsGraphics.lineTo(pointA.x, midY + cornerRadius);
+                        
+                        // Partial first arc
+                        const segProgress = (currentDist - dist1) / arcDist;
+                        const arcAngle = (Math.PI / 2) * segProgress;
+                        
+                        if (goingRight) {
+                            this.chargingConnectionsGraphics.arc(
+                                pointA.x + cornerRadius,
+                                midY + cornerRadius,
+                                cornerRadius,
+                                Math.PI,
+                                Math.PI - arcAngle,
+                                true
+                            );
+                        } else {
+                            this.chargingConnectionsGraphics.arc(
+                                pointA.x - cornerRadius,
+                                midY + cornerRadius,
+                                cornerRadius,
+                                0,
+                                arcAngle,
+                                false
+                            );
+                        }
+                    }
+                    // Segment 3: Horizontal line
+                    else if (currentDist <= dist3) {
+                        // Complete first vertical and first arc
+                        this.chargingConnectionsGraphics.lineTo(pointA.x, midY + cornerRadius);
+                        
+                        if (goingRight) {
+                            this.chargingConnectionsGraphics.arc(
+                                pointA.x + cornerRadius,
+                                midY + cornerRadius,
+                                cornerRadius,
+                                Math.PI,
+                                Math.PI * 1.5,
+                                false
+                            );
+                        } else {
+                            this.chargingConnectionsGraphics.arc(
+                                pointA.x - cornerRadius,
+                                midY + cornerRadius,
+                                cornerRadius,
+                                0,
+                                Math.PI * 1.5,
+                                true
+                            );
+                        }
+                        
+                        // Partial horizontal segment
+                        const segProgress = (currentDist - dist2) / horizDist;
+                        if (goingRight) {
+                            const currentX = (pointA.x + cornerRadius) + (horizDist * segProgress);
+                            this.chargingConnectionsGraphics.lineTo(currentX, midY);
+                        } else {
+                            const currentX = (pointA.x - cornerRadius) - (horizDist * segProgress);
+                            this.chargingConnectionsGraphics.lineTo(currentX, midY);
+                        }
+                    }
+                    // Segment 4: Second corner arc
+                    else if (currentDist <= dist4) {
+                        // Complete first vertical, first arc, and horizontal
+                        this.chargingConnectionsGraphics.lineTo(pointA.x, midY + cornerRadius);
+                        
+                        if (goingRight) {
+                            this.chargingConnectionsGraphics.arc(
+                                pointA.x + cornerRadius,
+                                midY + cornerRadius,
+                                cornerRadius,
+                                Math.PI,
+                                Math.PI * 1.5,
+                                false
+                            );
+                            this.chargingConnectionsGraphics.lineTo(pointB.x - cornerRadius, midY);
+                        } else {
+                            this.chargingConnectionsGraphics.arc(
+                                pointA.x - cornerRadius,
+                                midY + cornerRadius,
+                                cornerRadius,
+                                0,
+                                Math.PI * 1.5,
+                                true
+                            );
+                            this.chargingConnectionsGraphics.lineTo(pointB.x + cornerRadius, midY);
+                        }
+                        
+                        // Partial second arc
+                        const segProgress = (currentDist - dist3) / arcDist;
+                        const arcAngle = (Math.PI / 2) * segProgress;
+                        
+                        if (goingRight) {
+                            this.chargingConnectionsGraphics.arc(
+                                pointB.x - cornerRadius,
+                                midY - cornerRadius,
+                                cornerRadius,
+                                Math.PI / 2,
+                                Math.PI / 2 - arcAngle,
+                                true
+                            );
+                        } else {
+                            this.chargingConnectionsGraphics.arc(
+                                pointB.x + cornerRadius,
+                                midY - cornerRadius,
+                                cornerRadius,
+                                Math.PI / 2,
+                                Math.PI / 2 + arcAngle,
+                                false
+                            );
+                        }
+                    }
+                    // Segment 5: Final vertical line
+                    else {
+                        // Complete all previous segments
+                        this.chargingConnectionsGraphics.lineTo(pointA.x, midY + cornerRadius);
+                        
+                        if (goingRight) {
+                            this.chargingConnectionsGraphics.arc(
+                                pointA.x + cornerRadius,
+                                midY + cornerRadius,
+                                cornerRadius,
+                                Math.PI,
+                                Math.PI * 1.5,
+                                false
+                            );
+                            this.chargingConnectionsGraphics.lineTo(pointB.x - cornerRadius, midY);
+                            this.chargingConnectionsGraphics.arc(
+                                pointB.x - cornerRadius,
+                                midY - cornerRadius,
+                                cornerRadius,
+                                Math.PI / 2,
+                                0,
+                                true
+                            );
+                        } else {
+                            this.chargingConnectionsGraphics.arc(
+                                pointA.x - cornerRadius,
+                                midY + cornerRadius,
+                                cornerRadius,
+                                0,
+                                Math.PI * 1.5,
+                                true
+                            );
+                            this.chargingConnectionsGraphics.lineTo(pointB.x + cornerRadius, midY);
+                            this.chargingConnectionsGraphics.arc(
+                                pointB.x + cornerRadius,
+                                midY - cornerRadius,
+                                cornerRadius,
+                                Math.PI / 2,
+                                Math.PI,
+                                false
+                            );
+                        }
+                        
+                        // Partial final vertical segment
+                        const segProgress = (currentDist - dist4) / vert2Dist;
+                        const currentY = (midY - cornerRadius) - (vert2Dist * segProgress);
+                        this.chargingConnectionsGraphics.lineTo(pointB.x, currentY);
+                    }
+                }
+                
+                // Stroke the path
+                this.chargingConnectionsGraphics.strokePath();
+            }
+        }
+        
         // Create curved road path (same as in editor)
         createRoadPath(centerX, centerY, halfW, halfH, offset) {
             const path = new Phaser.Curves.Path();
@@ -1215,6 +1506,7 @@
                 if (car.currentCharge >= car.chargeRequired) {
                     // Unassign car from slot before moving it out
                     slot.assignedCar = null;
+                    this.chargingAnimationProgress[i] = 0; // Reset animation progress
                     this.moveOutCar(car);
                     // Try to assign next car to this slot
                     this.assignCarToSlot(i);
@@ -2540,6 +2832,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             
             // Update gate state based on vehicle proximity
             this.updateGate();
+            
+            // Draw charging connections
+            this.drawChargingConnections();
             
             // Check level-up timer
             this.checkLevelUpTimer();
