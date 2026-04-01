@@ -61,7 +61,7 @@ var CONFIG = {
     // Coin Counter Display (above grid, top-right)
     COIN_COUNTER: {
         PADDING_FROM_GRID_TOP: 50,     // Padding above the grid (pixels)
-        OFFSET_FROM_RIGHT: 50,         // Horizontal offset from right edge of grid (pixels)
+        PADDING_FROM_SCREEN_RIGHT: 20, // Padding from right edge of screen (pixels) - ensures visibility on mobile
         TEXT_SIZE: '48px',             // Font size for coin count text
         TEXT_COLOR: '#FFD700',         // Gold color for text
         COIN_ICON_WIDTH: 40,           // Coin icon display width (pixels)

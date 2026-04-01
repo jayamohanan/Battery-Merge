@@ -3027,26 +3027,23 @@ for (let t = 0; t <= 1; t += 0.002) {
         createCoinDisplay() {
             const sceneWidth = this.cameras.main.width;
             
-            // Calculate position: top-right above grid
-            const gridWidth = this.GRID_COLS * this.CELL_SIZE + (this.GRID_COLS - 1) * this.CELL_GAP;
-            const gridRightX = this.gridStartX + gridWidth - this.CELL_SIZE / 2;
-            
             // Position above the top edge of the grid (gridStartY is center of top row cells)
             const gridTopEdge = this.gridStartY - this.CELL_SIZE / 2;
             const coinY = gridTopEdge - CONFIG.COIN_COUNTER.PADDING_FROM_GRID_TOP;
             
-            // Coin text (displayed first)
-            this.coinText = this.add.text(gridRightX - CONFIG.COIN_COUNTER.OFFSET_FROM_RIGHT, coinY, `${this.coins}`, {
+            // Position coin icon at right edge with padding
+            const coinIconX = sceneWidth - CONFIG.COIN_COUNTER.PADDING_FROM_SCREEN_RIGHT - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
+            this.coinIcon = this.add.image(coinIconX, coinY, 'coin');
+            this.coinIcon.setDisplaySize(CONFIG.COIN_COUNTER.COIN_ICON_WIDTH, CONFIG.COIN_COUNTER.COIN_ICON_HEIGHT);
+            
+            // Coin text (to the left of the icon)
+            const coinTextX = coinIconX - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2 - CONFIG.COIN_COUNTER.TEXT_ICON_SPACING;
+            this.coinText = this.add.text(coinTextX, coinY, `${this.coins}`, {
                 fontSize: CONFIG.COIN_COUNTER.TEXT_SIZE,
                 fontFamily: CONFIG.FONT_FAMILY,
                 color: CONFIG.COIN_COUNTER.TEXT_COLOR,
                 fontStyle: 'bold'
             }).setOrigin(1, 0.5);  // Right-aligned
-            
-            // Coin icon (to the right of text)
-            const coinIconX = this.coinText.x + CONFIG.COIN_COUNTER.TEXT_ICON_SPACING + CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
-            this.coinIcon = this.add.image(coinIconX, coinY, 'coin');
-            this.coinIcon.setDisplaySize(CONFIG.COIN_COUNTER.COIN_ICON_WIDTH, CONFIG.COIN_COUNTER.COIN_ICON_HEIGHT);
         }
         
         // Animate coin reward when car is fully charged and moves out
