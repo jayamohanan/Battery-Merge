@@ -21,6 +21,7 @@
             this.chargingSlotsUI = [];
             this.chargingConnectionsGraphics = null; // Graphics for drawing charging connections
             this.chargingAnimationProgress = [0, 0, 0]; // Animation progress for each slot (0 to 1)
+            this.chargingPlugHeads = []; // Plug head sprites for each slot
             
             // Vehicle sound management
             this.activeSounds = [];             // Track currently playing vehicle sounds
@@ -92,6 +93,7 @@
             this.load.image('coin', 'graphics/coin.svg');
             this.load.image('point', 'graphics/point.png');
             this.load.image('button', 'graphics/Button.png');
+            this.load.image('plug', 'graphics/plug.png');
             
             // Load parking jam assets - dynamically load all vehicles from CONFIG.VEHICLES
             CONFIG.VEHICLES.forEach(vehicle => {
@@ -280,6 +282,17 @@
                     batterySprite: null,
                     batteryLevelText: null
                 });
+                
+                // Create plug head sprite for this slot (hidden initially)
+                const plugSize = CONFIG.CHARGING_CONNECTION.PLUG_HEAD_SIZE;
+                const plugHead = this.add.sprite(0, 0, 'plug');
+                plugHead.setDisplaySize(plugSize, plugSize);
+                plugHead.setOrigin(0.5, 1); // Origin at bottom center (so bottom is at line end)
+                plugHead.setDepth(9); // Above charging lines (8), below cars (10)
+                plugHead.setTint(CONFIG.CHARGING_CONNECTION.LINE_COLOR); // Same color as charging line
+                plugHead.setAlpha(CONFIG.CHARGING_CONNECTION.LINE_ALPHA); // Same transparency as line
+                plugHead.setVisible(false);
+                this.chargingPlugHeads.push(plugHead);
             }
         }
         
@@ -892,6 +905,13 @@
             // Clear previous frame's lines
             this.chargingConnectionsGraphics.clear();
             
+            // Hide all plug heads initially (will be shown for active connections)
+            for (let i = 0; i < this.chargingPlugHeads.length; i++) {
+                if (this.chargingPlugHeads[i]) {
+                    this.chargingPlugHeads[i].setVisible(false);
+                }
+            }
+            
             // Draw connection for each active charging slot
             for (let i = 0; i < this.chargingSlots.length; i++) {
                 const slot = this.chargingSlots[i];
@@ -916,6 +936,13 @@
                     y: carBounds.bottom
                 };
                 
+                // Apply offset for plug head - line ends above actual car bottom
+                const plugOffset = CONFIG.CHARGING_CONNECTION.PLUG_HEAD_OFFSET_Y;
+                const adjustedPointB = {
+                    x: pointB.x,
+                    y: pointB.y + plugOffset // positive offset moves down, negative moves up
+                };
+                
                 // Set line style from config with alpha
                 this.chargingConnectionsGraphics.lineStyle(
                     CONFIG.CHARGING_CONNECTION.LINE_WIDTH, 
@@ -934,7 +961,7 @@
                 const midY = pointA.y - verticalStep;
                 
                 // Check if points are aligned vertically (same x)
-                const isAligned = Math.abs(pointB.x - pointA.x) < 1;
+                const isAligned = Math.abs(adjustedPointB.x - pointA.x) < 1;
                 
                 // Get animation progress for this slot (0 to 1)
                 // If animation is disabled or progress not set, show full line
@@ -955,19 +982,19 @@
                 if (isAligned) {
                     // Simple case: straight vertical line with animation
                     if (progress > 0) {
-                        const totalDist = pointA.y - pointB.y;
+                        const totalDist = pointA.y - adjustedPointB.y;
                         const currentY = pointA.y - (totalDist * progress);
                         this.chargingConnectionsGraphics.lineTo(pointA.x, currentY);
                     }
                 } else {
                     // Manhattan routing with animated tracing
-                    const goingRight = pointB.x > pointA.x;
+                    const goingRight = adjustedPointB.x > pointA.x;
                     
                     // Calculate path segment lengths for animation
                     const vert1Dist = Math.abs(pointA.y - (midY + cornerRadius));
                     const arcDist = (Math.PI / 2) * cornerRadius; // Quarter circle arc length
-                    const horizDist = Math.abs(pointB.x - pointA.x) - 2 * cornerRadius;
-                    const vert2Dist = Math.abs(midY - cornerRadius - pointB.y);
+                    const horizDist = Math.abs(adjustedPointB.x - pointA.x) - 2 * cornerRadius;
+                    const vert2Dist = Math.abs(midY - cornerRadius - adjustedPointB.y);
                     const totalDist = vert1Dist + arcDist + horizDist + arcDist + vert2Dist;
                     
                     // Calculate distances at each segment boundary (cumulative)
@@ -1064,7 +1091,7 @@
                                 Math.PI * 1.5,
                                 false
                             );
-                            this.chargingConnectionsGraphics.lineTo(pointB.x - cornerRadius, midY);
+                            this.chargingConnectionsGraphics.lineTo(adjustedPointB.x - cornerRadius, midY);
                         } else {
                             this.chargingConnectionsGraphics.arc(
                                 pointA.x - cornerRadius,
@@ -1074,7 +1101,7 @@
                                 Math.PI * 1.5,
                                 true
                             );
-                            this.chargingConnectionsGraphics.lineTo(pointB.x + cornerRadius, midY);
+                            this.chargingConnectionsGraphics.lineTo(adjustedPointB.x + cornerRadius, midY);
                         }
                         
                         // Partial second arc
@@ -1083,7 +1110,7 @@
                         
                         if (goingRight) {
                             this.chargingConnectionsGraphics.arc(
-                                pointB.x - cornerRadius,
+                                adjustedPointB.x - cornerRadius,
                                 midY - cornerRadius,
                                 cornerRadius,
                                 Math.PI / 2,
@@ -1092,7 +1119,7 @@
                             );
                         } else {
                             this.chargingConnectionsGraphics.arc(
-                                pointB.x + cornerRadius,
+                                adjustedPointB.x + cornerRadius,
                                 midY - cornerRadius,
                                 cornerRadius,
                                 Math.PI / 2,
@@ -1115,9 +1142,9 @@
                                 Math.PI * 1.5,
                                 false
                             );
-                            this.chargingConnectionsGraphics.lineTo(pointB.x - cornerRadius, midY);
+                            this.chargingConnectionsGraphics.lineTo(adjustedPointB.x - cornerRadius, midY);
                             this.chargingConnectionsGraphics.arc(
-                                pointB.x - cornerRadius,
+                                adjustedPointB.x - cornerRadius,
                                 midY - cornerRadius,
                                 cornerRadius,
                                 Math.PI / 2,
@@ -1133,9 +1160,9 @@
                                 Math.PI * 1.5,
                                 true
                             );
-                            this.chargingConnectionsGraphics.lineTo(pointB.x + cornerRadius, midY);
+                            this.chargingConnectionsGraphics.lineTo(adjustedPointB.x + cornerRadius, midY);
                             this.chargingConnectionsGraphics.arc(
-                                pointB.x + cornerRadius,
+                                adjustedPointB.x + cornerRadius,
                                 midY - cornerRadius,
                                 cornerRadius,
                                 Math.PI / 2,
@@ -1147,12 +1174,23 @@
                         // Partial final vertical segment
                         const segProgress = (currentDist - dist4) / vert2Dist;
                         const currentY = (midY - cornerRadius) - (vert2Dist * segProgress);
-                        this.chargingConnectionsGraphics.lineTo(pointB.x, currentY);
+                        this.chargingConnectionsGraphics.lineTo(adjustedPointB.x, currentY);
                     }
                 }
                 
                 // Stroke the path
                 this.chargingConnectionsGraphics.strokePath();
+                
+                // Position and show plug head sprite at end of line (original pointB, not adjusted)
+                const plugHead = this.chargingPlugHeads[i];
+                if (plugHead && progress >= 1) {
+                    // Position plug head at adjusted point B (bottom of plug at end of line)
+                    plugHead.x = adjustedPointB.x;
+                    plugHead.y = adjustedPointB.y; // Origin is at bottom, so this puts bottom at line end
+                    plugHead.setVisible(true);
+                } else if (plugHead) {
+                    plugHead.setVisible(false);
+                }
             }
         }
         

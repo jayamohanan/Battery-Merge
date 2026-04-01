@@ -252,8 +252,12 @@ var CONFIG = {
         LINE_ALPHA: 0.5,                // Transparency of charging lines (0-1, 0.5 = 50%)
         SLOT_DISTANCES: [20, 35, 50],   // Vertical step distance for each slot (slot 0, 1, 2)
         
+        // Plug head icon settings (electrical connector at car end)
+        PLUG_HEAD_SIZE: 24,             // Size of plug head sprite (width and height in pixels)
+        PLUG_HEAD_OFFSET_Y: 25,          // Vertical offset from car bottom (positive = move down, negative = move up)
+        
         // Animation settings (trace effect from battery slot to car)
-        ANIMATE_ENABLED: false,         // Enable line tracing animation
+        ANIMATE_ENABLED: true,         // Enable line tracing animation
         ANIMATE_DURATION: 800,          // Duration of trace animation in milliseconds
         ANIMATE_EASE: 'Power2',         // Easing function for animation
     },
