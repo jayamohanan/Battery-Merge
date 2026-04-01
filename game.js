@@ -22,6 +22,7 @@
             this.chargingConnectionsGraphics = null; // Graphics for drawing charging connections
             this.chargingAnimationProgress = [0, 0, 0]; // Animation progress for each slot (0 to 1)
             this.chargingPlugHeads = []; // Plug head sprites for each slot
+            this.chargingPulseTimestamps = [0, 0, 0]; // Track last charge time for pulse effect
             
             // Vehicle sound management
             this.activeSounds = [];             // Track currently playing vehicle sounds
@@ -944,11 +945,28 @@
                     y: pointB.y + plugOffset // positive offset moves down, negative moves up
                 };
                 
-                // Set line style from config with alpha
+                // Calculate pulse effect (flash on charge)
+                let lineAlpha = CONFIG.CHARGING_CONNECTION.LINE_ALPHA;
+                let plugAlpha = CONFIG.CHARGING_CONNECTION.LINE_ALPHA;
+                
+                if (CONFIG.CHARGING_CONNECTION.PULSE_ENABLED) {
+                    const timeSinceCharge = this.time.now - this.chargingPulseTimestamps[i];
+                    if (timeSinceCharge < CONFIG.CHARGING_CONNECTION.PULSE_DURATION) {
+                        // Calculate pulse progress (0 to 1)
+                        const pulseProgress = timeSinceCharge / CONFIG.CHARGING_CONNECTION.PULSE_DURATION;
+                        // Fade from bright to normal using ease out
+                        const pulseFactor = 1 - Math.pow(pulseProgress, 2);
+                        lineAlpha = CONFIG.CHARGING_CONNECTION.LINE_ALPHA + 
+                            (CONFIG.CHARGING_CONNECTION.PULSE_ALPHA_MAX - CONFIG.CHARGING_CONNECTION.LINE_ALPHA) * pulseFactor;
+                        plugAlpha = lineAlpha;
+                    }
+                }
+                
+                // Set line style from config with pulsing alpha
                 this.chargingConnectionsGraphics.lineStyle(
                     CONFIG.CHARGING_CONNECTION.LINE_WIDTH, 
                     CONFIG.CHARGING_CONNECTION.LINE_COLOR, 
-                    CONFIG.CHARGING_CONNECTION.LINE_ALPHA
+                    lineAlpha
                 );
                 
                 // Corner radius from config
@@ -1188,6 +1206,8 @@
                     // Position plug head at adjusted point B (bottom of plug at end of line)
                     plugHead.x = adjustedPointB.x;
                     plugHead.y = adjustedPointB.y; // Origin is at bottom, so this puts bottom at line end
+                    plugHead.setTint(CONFIG.CHARGING_CONNECTION.LINE_COLOR); // Ensure tint matches line color
+                    plugHead.setAlpha(plugAlpha); // Apply pulse alpha (matches line alpha)
                     plugHead.setVisible(true);
                 } else if (plugHead) {
                     plugHead.setVisible(false);
@@ -1417,13 +1437,34 @@
         }
 
         createCarChargeBar(car) {
-            const offsetY = CONFIG.PARKING_CAR.CHARGE_VALUE_OFFSET_Y; // Above the car
+            // Calculate position based on vehicle orientation and dimensions
+            const cellSize = this.gridConfig.cellSize;
             
             if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
+                // Calculate offset to place text above the vehicle sprite
+                // We need to account for the rotated sprite dimensions
+                let offsetX = 0;
+                let offsetY = 0;
+                
+                const padding = CONFIG.PARKING_CAR.CHARGE_VALUE_PADDING;
+                
+                // Calculate the visual height of the vehicle based on orientation
+                // When 'up' or 'down', the visual height is length * cellSize
+                // When 'left' or 'right', the visual height is width * cellSize (because it's rotated)
+                let visualHeight;
+                if (car.orientation === 'up' || car.orientation === 'down') {
+                    visualHeight = car.length * cellSize;
+                } else { // 'left' or 'right'
+                    visualHeight = car.width * cellSize;
+                }
+                
+                // Text always goes above the vehicle (top of screen = negative Y)
+                offsetY = -(visualHeight / 2 + padding);
+                
                 // Decreasing value mode (like Blum Merge)
                 const remainingCharge = car.chargeRequired - car.currentCharge;
                 const chargeText = this.add.text(
-                    car.sprite.x,
+                    car.sprite.x + offsetX,
                     car.sprite.y + offsetY,
                     `${Math.round(remainingCharge)}`,
                     {
@@ -1442,9 +1483,18 @@
                 car.chargeBar = null;
                 car.chargeBarBg = null;
             } else {
-                // Progress bar mode
+                // Progress bar mode - use simple offset
                 const barWidth = 60;
                 const barHeight = 8;
+                
+                // Calculate visual height based on orientation
+                let visualHeight;
+                if (car.orientation === 'up' || car.orientation === 'down') {
+                    visualHeight = car.length * cellSize;
+                } else {
+                    visualHeight = car.width * cellSize;
+                }
+                const offsetY = -(visualHeight / 2 + CONFIG.PARKING_CAR.CHARGE_VALUE_PADDING);
                 
                 // Background bar
                 const barBg = this.add.rectangle(
@@ -1575,8 +1625,11 @@
                 this.updateCarChargeBar(car);
                 this.updateLevelChargeDisplay();
                 
-                // Show charging effect
+                // Show charging effect (bolt animation)
                 this.showChargingEffect(car);
+                
+                // Mark this slot as pulsing (for connection line flash)
+                this.chargingPulseTimestamps[i] = this.time.now;
                 
                 console.log(`Slot ${i} charging car: ${car.currentCharge}/${car.chargeRequired}`);
                 
@@ -1616,8 +1669,8 @@
         }
 
         showChargingEffect(car) {
-            // Create bolt effect near the car
-            const bolt = this.add.sprite(car.sprite.x + 30, car.sprite.y, 'bolt');
+            // Create bolt effect at center of the car
+            const bolt = this.add.sprite(car.sprite.x, car.sprite.y, 'bolt');
             bolt.setScale(0.5);
             bolt.setDepth(20);
             bolt.setAlpha(0.8);

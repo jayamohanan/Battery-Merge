@@ -260,6 +260,11 @@ var CONFIG = {
         ANIMATE_ENABLED: false,         // Enable line tracing animation
         ANIMATE_DURATION: 800,          // Duration of trace animation in milliseconds
         ANIMATE_EASE: 'Power2',         // Easing function for animation
+        
+        // Pulse/blink effect on each charge cycle
+        PULSE_ENABLED: true,            // Enable pulse/blink effect when charging
+        PULSE_DURATION: 200,            // Duration of pulse flash in milliseconds
+        PULSE_ALPHA_MAX: 1.0,           // Maximum alpha during pulse (1.0 = fully opaque)
     },
     
     // Lightning bolt charging effect settings
@@ -291,8 +296,8 @@ var CONFIG = {
         // Charge display mode
         CHARGE_DISPLAY_MODE: 'value',   // 'bar' = progress bar, 'value' = decreasing number (like Blum Merge)
         CHARGE_VALUE_SIZE: '24px',      // Font size for charge value text
-        CHARGE_VALUE_COLOR: '#FF6B6B',  // Red color for remaining charge value
-        CHARGE_VALUE_OFFSET_Y: -40,     // Vertical offset above car (same as bar position)
+        CHARGE_VALUE_COLOR: '#000000',  // Black color for remaining charge value
+        CHARGE_VALUE_PADDING: 10,       // Padding above vehicle sprite (pixels)
     },
     
     // Tire tracks (black marks left by car wheels)
