@@ -432,7 +432,7 @@
             slot.chargeText.setVisible(false);
             slot.slotFilledBg.setVisible(false);
             
-            // If this slot had an assigned car, hide its charge bar
+            // If this slot had an assigned car, hide its charge display
             const slotData = this.chargingSlots[slotIndex];
             if (slotData && slotData.assignedCar) {
                 const car = slotData.assignedCar;
@@ -440,6 +440,7 @@
                 if (car.currentCharge === 0) {
                     if (car.chargeBar) car.chargeBar.setVisible(false);
                     if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
+                    if (car.chargeText) car.chargeText.setVisible(false);
                 }
                 car.isCharging = false;
             }
@@ -1416,45 +1417,79 @@
         }
 
         createCarChargeBar(car) {
-            const barWidth = 60;
-            const barHeight = 8;
-            const offsetY = -40; // Above the car
+            const offsetY = CONFIG.PARKING_CAR.CHARGE_VALUE_OFFSET_Y; // Above the car
             
-            // Background bar
-            const barBg = this.add.rectangle(
-                car.sprite.x,
-                car.sprite.y + offsetY,
-                barWidth,
-                barHeight,
-                0x888888
-            );
-            barBg.setOrigin(0, 0.5);
-            barBg.setDepth(15);
-            barBg.setVisible(false); // Hidden by default
-            
-            // Charge bar (green)
-            const chargeBar = this.add.rectangle(
-                car.sprite.x,
-                car.sprite.y + offsetY,
-                0,
-                barHeight,
-                0x4CAF50
-            );
-            chargeBar.setOrigin(0, 0.5);
-            chargeBar.setDepth(16);
-            chargeBar.setVisible(false); // Hidden by default
-            
-            // Store references
-            car.chargeBarBg = barBg;
-            car.chargeBar = chargeBar;
+            if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
+                // Decreasing value mode (like Blum Merge)
+                const remainingCharge = car.chargeRequired - car.currentCharge;
+                const chargeText = this.add.text(
+                    car.sprite.x,
+                    car.sprite.y + offsetY,
+                    `${Math.round(remainingCharge)}`,
+                    {
+                        fontSize: CONFIG.PARKING_CAR.CHARGE_VALUE_SIZE,
+                        fontFamily: CONFIG.FONT_FAMILY,
+                        color: CONFIG.PARKING_CAR.CHARGE_VALUE_COLOR,
+                        fontStyle: 'bold'
+                    }
+                );
+                chargeText.setOrigin(0.5, 0.5);
+                chargeText.setDepth(15);
+                chargeText.setVisible(false); // Hidden by default
+                
+                // Store references
+                car.chargeText = chargeText;
+                car.chargeBar = null;
+                car.chargeBarBg = null;
+            } else {
+                // Progress bar mode
+                const barWidth = 60;
+                const barHeight = 8;
+                
+                // Background bar
+                const barBg = this.add.rectangle(
+                    car.sprite.x,
+                    car.sprite.y + offsetY,
+                    barWidth,
+                    barHeight,
+                    0x888888
+                );
+                barBg.setOrigin(0, 0.5);
+                barBg.setDepth(15);
+                barBg.setVisible(false); // Hidden by default
+                
+                // Charge bar (green)
+                const chargeBar = this.add.rectangle(
+                    car.sprite.x,
+                    car.sprite.y + offsetY,
+                    0,
+                    barHeight,
+                    0x4CAF50
+                );
+                chargeBar.setOrigin(0, 0.5);
+                chargeBar.setDepth(16);
+                chargeBar.setVisible(false); // Hidden by default
+                
+                // Store references
+                car.chargeBarBg = barBg;
+                car.chargeBar = chargeBar;
+                car.chargeText = null;
+            }
         }
 
         updateCarChargeBar(car) {
-            if (!car.chargeBar) return;
-            
-            const barWidth = 60;
-            const progress = Math.min(car.currentCharge / car.chargeRequired, 1);
-            car.chargeBar.width = barWidth * progress;
+            if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
+                // Update decreasing value
+                if (!car.chargeText) return;
+                const remainingCharge = Math.max(0, car.chargeRequired - car.currentCharge);
+                car.chargeText.setText(`${Math.round(remainingCharge)}`);
+            } else {
+                // Update progress bar
+                if (!car.chargeBar) return;
+                const barWidth = 60;
+                const progress = Math.min(car.currentCharge / car.chargeRequired, 1);
+                car.chargeBar.width = barWidth * progress;
+            }
         }
 
         updateLevelChargeDisplay() {
@@ -1484,10 +1519,11 @@
                     }
                 }
                 
-                // Hide charge bar if car has no charge and isn't assigned
+                // Hide charge display if car has no charge and isn't assigned
                 if (!isAssignedToSlot && car.currentCharge === 0 && !car.isCharging) {
                     if (car.chargeBar) car.chargeBar.setVisible(false);
                     if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
+                    if (car.chargeText) car.chargeText.setVisible(false);
                 }
             }
             
@@ -1524,9 +1560,13 @@
                 car.currentCharge += chargeAmount;
                 car.isCharging = true;
                 
-                // Show charge bar when charging begins
-                if (car.chargeBar) car.chargeBar.setVisible(true);
-                if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
+                // Show charge display when charging begins
+                if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
+                    if (car.chargeText) car.chargeText.setVisible(true);
+                } else {
+                    if (car.chargeBar) car.chargeBar.setVisible(true);
+                    if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
+                }
                 
                 // Decrease remaining charge for the level
                 this.remainingCharge = Math.max(0, this.remainingCharge - chargeAmount);
@@ -1748,9 +1788,10 @@
             // Update movable cars immediately so next car can start charging
             this.updateMovableCars();
             
-            // Hide charge bar
+            // Hide charge display
             if (car.chargeBar) car.chargeBar.setVisible(false);
             if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
+            if (car.chargeText) car.chargeText.setVisible(false);
             
             // Calculate exit options in both directions BEFORE making any move
             const stepsToExitForward = this.calculateStepsToExit(car);
@@ -2493,6 +2534,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             car.sprite.destroy();
             if (car.chargeBar) car.chargeBar.destroy();
             if (car.chargeBarBg) car.chargeBarBg.destroy();
+            if (car.chargeText) car.chargeText.destroy();
             
             // Remove from array
             const index = this.cars.indexOf(car);
@@ -2659,6 +2701,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 if (car.sprite) car.sprite.destroy();
                 if (car.chargeBar) car.chargeBar.destroy();
                 if (car.chargeBarBg) car.chargeBarBg.destroy();
+                if (car.chargeText) car.chargeText.destroy();
             }
             this.cars = [];
             

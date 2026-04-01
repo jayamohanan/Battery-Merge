@@ -287,6 +287,12 @@ var CONFIG = {
         MAX_SPEED: 300,                 // Maximum speed of cars moving on the road (pixels per second)
         EXIT_TO_ROAD_DURATION: 1000,   // Duration for car to move from parking to road entrance (ms)
         DEBUG_SHOW_CURVE: false,        // Show bezier curve when vehicle moves from parking to road
+        
+        // Charge display mode
+        CHARGE_DISPLAY_MODE: 'value',   // 'bar' = progress bar, 'value' = decreasing number (like Blum Merge)
+        CHARGE_VALUE_SIZE: '24px',      // Font size for charge value text
+        CHARGE_VALUE_COLOR: '#FF6B6B',  // Red color for remaining charge value
+        CHARGE_VALUE_OFFSET_Y: -40,     // Vertical offset above car (same as bar position)
     },
     
     // Tire tracks (black marks left by car wheels)
