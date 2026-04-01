@@ -257,7 +257,7 @@ var CONFIG = {
         PLUG_HEAD_OFFSET_Y: 25,          // Vertical offset from car bottom (positive = move down, negative = move up)
         
         // Animation settings (trace effect from battery slot to car)
-        ANIMATE_ENABLED: true,         // Enable line tracing animation
+        ANIMATE_ENABLED: false,         // Enable line tracing animation
         ANIMATE_DURATION: 800,          // Duration of trace animation in milliseconds
         ANIMATE_EASE: 'Power2',         // Easing function for animation
     },
