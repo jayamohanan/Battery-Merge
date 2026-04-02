@@ -1398,24 +1398,48 @@
             const tireTrackGraphics = this.add.graphics();
             tireTrackGraphics.setDepth(6); // Above road (depth 5), below car sprite (depth 10)
             
-            // Create vehicle shadow (simple ellipse that follows the car)
+            // Create vehicle shadow (rounded rectangle shadow that matches car shape)
             let shadowGraphics = null;
             if (CONFIG.VEHICLE_SHADOW.ENABLED) {
                 shadowGraphics = this.add.graphics();
                 shadowGraphics.setDepth(CONFIG.VEHICLE_SHADOW.DEPTH);
                 
-                // Calculate shadow size based on average of car dimensions
-                const avgDimension = (targetWidth + targetHeight) / 2;
-                const shadowWidth = avgDimension * CONFIG.VEHICLE_SHADOW.SCALE_X;
-                const shadowHeight = avgDimension * CONFIG.VEHICLE_SHADOW.SCALE_Y;
+                // Calculate shadow size based on car dimensions (match car shape)
+                const shadowWidth = targetWidth * CONFIG.VEHICLE_SHADOW.SCALE_X;
+                const shadowHeight = targetHeight * CONFIG.VEHICLE_SHADOW.SCALE_Y;
                 
-                // Draw elliptical shadow
-                shadowGraphics.fillStyle(CONFIG.VEHICLE_SHADOW.COLOR, CONFIG.VEHICLE_SHADOW.ALPHA);
-                shadowGraphics.fillEllipse(0, 0, shadowWidth, shadowHeight);
+                // Create blur effect by drawing multiple rounded rectangles with increasing size and decreasing alpha
+                const blurLayers = Math.floor(CONFIG.VEHICLE_SHADOW.BLUR / 2); // Number of blur layers
+                const totalLayers = blurLayers + 1;
                 
-                // Position shadow with offset (simulating sun angle from top-left)
+                // Normalize alpha so total darkness stays constant regardless of blur amount
+                // Use exponential falloff for natural-looking blur
+                for (let i = blurLayers; i >= 0; i--) {
+                    const expansion = i * 2; // Each layer expands by 2 pixels
+                    const distanceFromCenter = i / Math.max(blurLayers, 1); // 0 (center) to 1 (edge)
+                    
+                    // Exponential falloff: center is full alpha, edges fade to near-zero
+                    // Normalize by dividing by totalLayers to maintain consistent darkness
+                    const falloff = Math.exp(-distanceFromCenter * 3); // e^(-3x) gives smooth falloff
+                    const layerAlpha = (CONFIG.VEHICLE_SHADOW.ALPHA * falloff) / Math.sqrt(totalLayers);
+                    
+                    const layerRadius = CONFIG.VEHICLE_SHADOW.CORNER_RADIUS + (i * 0.5); // Corner radius grows slightly with blur
+                    shadowGraphics.fillStyle(CONFIG.VEHICLE_SHADOW.COLOR, layerAlpha);
+                    shadowGraphics.fillRoundedRect(
+                        -(shadowWidth + expansion) / 2, 
+                        -(shadowHeight + expansion) / 2, 
+                        shadowWidth + expansion, 
+                        shadowHeight + expansion,
+                        layerRadius
+                    );
+                }
+                
+                // Position shadow with offset (sun from SE: shadow to NW)
                 shadowGraphics.x = carX + CONFIG.VEHICLE_SHADOW.OFFSET_X;
                 shadowGraphics.y = carY + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                
+                // Match car rotation so shadow aligns with car shape
+                shadowGraphics.rotation = carSprite.rotation;
             }
             
             // Car object with charging state AND grid position
@@ -2057,10 +2081,11 @@
                     this.updateVehicleSound(car, car.totalJourneyProgress);
                     // No tire tracks during parking exit phase
                     
-                    // Update shadow position manually if shadow exists (to maintain offset)
+                    // Update shadow position and rotation manually if shadow exists (to maintain offset and alignment)
                     if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
                         car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
                         car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                        car.shadow.rotation = car.sprite.rotation;
                     }
                 },
                 onComplete: () => {
@@ -2207,10 +2232,11 @@ for (let t = 0; t <= 1; t += 0.002) {
                 this.updateTireTracks(car);
             }
             
-            // Update shadow position if shadow exists
+            // Update shadow position and rotation if shadow exists
             if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
                 car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
                 car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                car.shadow.rotation = car.sprite.rotation;
             }
         },
         onComplete: () => {
@@ -2276,10 +2302,11 @@ for (let t = 0; t <= 1; t += 0.002) {
                     this.updateVehicleSound(car, car.totalJourneyProgress);
                     // No tire tracks during road following phase (only during bezier curve)
                     
-                    // Update shadow position if shadow exists
+                    // Update shadow position and rotation if shadow exists
                     if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
                         car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
                         car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                        car.shadow.rotation = car.sprite.rotation;
                     }
                 },
                 onComplete: () => {
@@ -2417,10 +2444,11 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Always update tire tracks during reverse curve (this is a reverse turn)
             this.updateTireTracks(car);
             
-            // Update shadow position if shadow exists
+            // Update shadow position and rotation if shadow exists
             if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
                 car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
                 car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                car.shadow.rotation = car.sprite.rotation;
             }
         },
         onComplete: () => {
@@ -2488,10 +2516,11 @@ for (let t = 0; t <= 1; t += 0.002) {
                     this.updateVehicleSound(car, car.totalJourneyProgress);
                     // No tire tracks during road following phase (only during bezier curve)
                     
-                    // Update shadow position if shadow exists
+                    // Update shadow position and rotation if shadow exists
                     if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
                         car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
                         car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                        car.shadow.rotation = car.sprite.rotation;
                     }
                 },
                 onComplete: () => {

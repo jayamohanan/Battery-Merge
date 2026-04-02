@@ -303,23 +303,24 @@ var CONFIG = {
     // Vehicle Shadow settings (simple elliptical shadow for mobile performance)
     VEHICLE_SHADOW: {
         ENABLED: true,                  // Enable/disable shadows
-        SCALE_X: 0.85,                  // Horizontal scale relative to car width (0.85 = 85% of car width)
-        SCALE_Y: 0.4,                   // Vertical scale relative to car height (0.4 = 40% for flat ellipse)
-        ALPHA: 0.25,                    // Shadow transparency (0.25 = subtle, 0.5 = darker)
-        COLOR: 0x000000,                // Shadow color (black)
-        OFFSET_X: 3,                    // Horizontal offset from car center (sun from top-left: positive = shadow right)
-        OFFSET_Y: -12,                    // Vertical offset from car center (positive = shadow below)
+        SCALE_X: 0.85,                  // Horizontal scale relative to car width (0.85 = slightly smaller than car)
+        SCALE_Y: 0.85,                  // Vertical scale relative to car length (0.85 = slightly smaller than car)
+        ALPHA: 0.3,                    // Shadow transparency (0.08 = very transparent, higher = darker)
+        COLOR: 0x555555,                // Shadow color (gray)
+        OFFSET_X: -5,                   // Horizontal offset from car center (sun from SE: negative = shadow to west)
+        OFFSET_Y: -5,                   // Vertical offset from car center (sun from SE: negative = shadow to north)
         DEPTH: 4,                       // Render depth (4 = below road at 5, below cars at 10)
-        BLUR: 8,                        // Blur amount - note: actual blur requires premium effects, this is for reference
+        BLUR: 30,                       // Blur spread in pixels (higher = more blur, softer edges)
+        CORNER_RADIUS: 10,               // Rounded corner radius in pixels (makes shadow look like car shape)
     },
     
     // Tire tracks (black marks left by car wheels)
     TIRE_TRACKS: {
         ENABLED: true,                  // Enable tire track rendering
         SHOW_FORWARD_TURN: false,       // Show tire marks during forward exit turn (if false, only show during reverse turn)
-        LINE_WIDTH: 3,                  // Thickness of tire track lines
-        COLOR: 0x000000,                // Black color for tire marks
-        ALPHA: 0.4,                     // Transparency (0.4 = 40% visible, like faded mud marks)
+        LINE_WIDTH: 6,                  // Thickness of tire track lines
+        COLOR: 0x888888,                // Gray color for tire marks
+        ALPHA: 0.3,                     // Transparency (0.4 = 40% visible, like faded mud marks)
         WHEEL_OFFSET: 10,               // Distance from car center to each tire track (perpendicular to car direction)
         MAX_POINTS: 200,                // Maximum number of points to track per tire (prevents memory issues)
         MIN_DISTANCE: 5,                // Minimum distance between points before adding new one (smoother lines)
