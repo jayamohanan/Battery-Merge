@@ -308,7 +308,7 @@ var CONFIG = {
         ALPHA: 0.25,                    // Shadow transparency (0.25 = subtle, 0.5 = darker)
         COLOR: 0x000000,                // Shadow color (black)
         OFFSET_X: 3,                    // Horizontal offset from car center (sun from top-left: positive = shadow right)
-        OFFSET_Y: -4,                    // Vertical offset from car center (positive = shadow below)
+        OFFSET_Y: -12,                    // Vertical offset from car center (positive = shadow below)
         DEPTH: 4,                       // Render depth (4 = below road at 5, below cars at 10)
         BLUR: 8,                        // Blur amount - note: actual blur requires premium effects, this is for reference
     },
