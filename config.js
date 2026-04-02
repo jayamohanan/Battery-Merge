@@ -300,6 +300,19 @@ var CONFIG = {
         CHARGE_VALUE_PADDING: 10,       // Padding above vehicle sprite (pixels)
     },
     
+    // Vehicle Shadow settings (simple elliptical shadow for mobile performance)
+    VEHICLE_SHADOW: {
+        ENABLED: true,                  // Enable/disable shadows
+        SCALE_X: 0.85,                  // Horizontal scale relative to car width (0.85 = 85% of car width)
+        SCALE_Y: 0.4,                   // Vertical scale relative to car height (0.4 = 40% for flat ellipse)
+        ALPHA: 0.25,                    // Shadow transparency (0.25 = subtle, 0.5 = darker)
+        COLOR: 0x000000,                // Shadow color (black)
+        OFFSET_X: 3,                    // Horizontal offset from car center (sun from top-left: positive = shadow right)
+        OFFSET_Y: -4,                    // Vertical offset from car center (positive = shadow below)
+        DEPTH: 4,                       // Render depth (4 = below road at 5, below cars at 10)
+        BLUR: 8,                        // Blur amount - note: actual blur requires premium effects, this is for reference
+    },
+    
     // Tire tracks (black marks left by car wheels)
     TIRE_TRACKS: {
         ENABLED: true,                  // Enable tire track rendering

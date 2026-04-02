@@ -1398,6 +1398,26 @@
             const tireTrackGraphics = this.add.graphics();
             tireTrackGraphics.setDepth(6); // Above road (depth 5), below car sprite (depth 10)
             
+            // Create vehicle shadow (simple ellipse that follows the car)
+            let shadowGraphics = null;
+            if (CONFIG.VEHICLE_SHADOW.ENABLED) {
+                shadowGraphics = this.add.graphics();
+                shadowGraphics.setDepth(CONFIG.VEHICLE_SHADOW.DEPTH);
+                
+                // Calculate shadow size based on average of car dimensions
+                const avgDimension = (targetWidth + targetHeight) / 2;
+                const shadowWidth = avgDimension * CONFIG.VEHICLE_SHADOW.SCALE_X;
+                const shadowHeight = avgDimension * CONFIG.VEHICLE_SHADOW.SCALE_Y;
+                
+                // Draw elliptical shadow
+                shadowGraphics.fillStyle(CONFIG.VEHICLE_SHADOW.COLOR, CONFIG.VEHICLE_SHADOW.ALPHA);
+                shadowGraphics.fillEllipse(0, 0, shadowWidth, shadowHeight);
+                
+                // Position shadow with offset (simulating sun angle from top-left)
+                shadowGraphics.x = carX + CONFIG.VEHICLE_SHADOW.OFFSET_X;
+                shadowGraphics.y = carY + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+            }
+            
             // Car object with charging state AND grid position
             const car = {
                 sprite: carSprite,
@@ -1417,7 +1437,9 @@
                 // Tire track data
                 tireTrackGraphics: tireTrackGraphics,
                 leftTrackPoints: [],
-                rightTrackPoints: []
+                rightTrackPoints: [],
+                // Shadow graphics
+                shadow: shadowGraphics
             };
             
             this.cars.push(car);
@@ -2015,9 +2037,15 @@
             car.totalJourneyProgress = 0;
             const parkingPhaseWeight = 0.15; // Parking exit is 15% of total journey
             
+            // Prepare tween targets (include shadow if it exists)
+            const tweenTargets = [car.sprite, car.chargeBar, car.chargeBarBg];
+            if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
+                tweenTargets.push(car.shadow);
+            }
+            
             // Phase 1: Move to parking exit point
             this.tweens.add({
-                targets: [car.sprite, car.chargeBar, car.chargeBarBg],
+                targets: tweenTargets,
                 x: exitX,
                 y: exitY,
                 duration: moveDuration,
@@ -2028,6 +2056,12 @@
                     car.totalJourneyProgress = parkingProgress * parkingPhaseWeight;
                     this.updateVehicleSound(car, car.totalJourneyProgress);
                     // No tire tracks during parking exit phase
+                    
+                    // Update shadow position manually if shadow exists (to maintain offset)
+                    if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
+                        car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
+                        car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                    }
                 },
                 onComplete: () => {
                     // Car has left parking area - no grid cells to update
@@ -2172,6 +2206,12 @@ for (let t = 0; t <= 1; t += 0.002) {
             if (CONFIG.TIRE_TRACKS.SHOW_FORWARD_TURN) {
                 this.updateTireTracks(car);
             }
+            
+            // Update shadow position if shadow exists
+            if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
+                car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
+                car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+            }
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
@@ -2235,6 +2275,12 @@ for (let t = 0; t <= 1; t += 0.002) {
                     car.totalJourneyProgress = parkingPhaseWeight + curvePhaseWeight + (tween.progress * roadPhaseWeight);
                     this.updateVehicleSound(car, car.totalJourneyProgress);
                     // No tire tracks during road following phase (only during bezier curve)
+                    
+                    // Update shadow position if shadow exists
+                    if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
+                        car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
+                        car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                    }
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
@@ -2370,6 +2416,12 @@ for (let t = 0; t <= 1; t += 0.002) {
             
             // Always update tire tracks during reverse curve (this is a reverse turn)
             this.updateTireTracks(car);
+            
+            // Update shadow position if shadow exists
+            if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
+                car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
+                car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+            }
         },
         onComplete: () => {
             if (CONFIG.PARKING_CAR.DEBUG_SHOW_CURVE && curveGraphics) {
@@ -2435,6 +2487,12 @@ for (let t = 0; t <= 1; t += 0.002) {
                     car.totalJourneyProgress = parkingPhaseWeight + curvePhaseWeight + (tween.progress * roadPhaseWeight);
                     this.updateVehicleSound(car, car.totalJourneyProgress);
                     // No tire tracks during road following phase (only during bezier curve)
+                    
+                    // Update shadow position if shadow exists
+                    if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
+                        car.shadow.x = car.sprite.x + CONFIG.VEHICLE_SHADOW.OFFSET_X;
+                        car.shadow.y = car.sprite.y + CONFIG.VEHICLE_SHADOW.OFFSET_Y;
+                    }
                 },
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
@@ -2582,6 +2640,11 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Destroy tire track graphics
             if (car.tireTrackGraphics) {
                 car.tireTrackGraphics.destroy();
+            }
+            
+            // Destroy shadow graphics
+            if (car.shadow) {
+                car.shadow.destroy();
             }
             
             car.sprite.destroy();
