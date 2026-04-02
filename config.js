@@ -265,6 +265,7 @@ var CONFIG = {
         PULSE_ENABLED: true,            // Enable pulse/blink effect when charging
         PULSE_DURATION: 200,            // Duration of pulse flash in milliseconds
         PULSE_ALPHA_MAX: 1.0,           // Maximum alpha during pulse (1.0 = fully opaque)
+        PULSE_BATTERY_SCALE: 0.15,      // Battery scale pulse amount (0.15 = 15% larger at peak)
     },
     
     // Lightning bolt charging effect settings

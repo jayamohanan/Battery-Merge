@@ -959,6 +959,18 @@
                         lineAlpha = CONFIG.CHARGING_CONNECTION.LINE_ALPHA + 
                             (CONFIG.CHARGING_CONNECTION.PULSE_ALPHA_MAX - CONFIG.CHARGING_CONNECTION.LINE_ALPHA) * pulseFactor;
                         plugAlpha = lineAlpha;
+                        
+                        // Pulse battery sprite in slot (scale up and down in sync with wire pulse)
+                        if (slotUI.batterySprite && slotUI.batterySprite.active) {
+                            // Scale pulse: 1.0 -> 1.0 + PULSE_BATTERY_SCALE -> 1.0
+                            const batteryScale = CONFIG.CELL.BATTERY_SCALE * (1 + CONFIG.CHARGING_CONNECTION.PULSE_BATTERY_SCALE * pulseFactor);
+                            slotUI.batterySprite.setScale(batteryScale);
+                        }
+                    } else {
+                        // Reset battery scale to normal when pulse is complete
+                        if (slotUI.batterySprite && slotUI.batterySprite.active) {
+                            slotUI.batterySprite.setScale(CONFIG.CELL.BATTERY_SCALE);
+                        }
                     }
                 }
                 
