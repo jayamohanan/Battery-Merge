@@ -359,7 +359,8 @@
             const batteryIcon = `battery${batteryIconLevel}`;
             
             // Create battery sprite in slot (using same offset as grid cells)
-            const batterySprite = this.add.image(slot.x, slot.y + CONFIG.CELL.BATTERY_Y_OFFSET, batteryIcon).setScale(CONFIG.CELL.BATTERY_SCALE);
+            const batterySprite = this.add.image(slot.x, slot.y + CONFIG.CELL.BATTERY_Y_OFFSET, batteryIcon);
+            batterySprite.setDisplaySize(CONFIG.CELL.BATTERY_DISPLAY_SIZE, CONFIG.CELL.BATTERY_DISPLAY_SIZE);
             
             // Make battery draggable
             const hitArea = new Phaser.Geom.Rectangle(
@@ -962,14 +963,15 @@
                         
                         // Pulse battery sprite in slot (scale up and down in sync with wire pulse)
                         if (slotUI.batterySprite && slotUI.batterySprite.active) {
-                            // Scale pulse: 1.0 -> 1.0 + PULSE_BATTERY_SCALE -> 1.0
-                            const batteryScale = CONFIG.CELL.BATTERY_SCALE * (1 + CONFIG.CHARGING_CONNECTION.PULSE_BATTERY_SCALE * pulseFactor);
-                            slotUI.batterySprite.setScale(batteryScale);
+                            // Scale pulse: base size -> slightly larger -> base size
+                            const baseSize = CONFIG.CELL.BATTERY_DISPLAY_SIZE;
+                            const batterySize = baseSize * (1 + CONFIG.CHARGING_CONNECTION.PULSE_BATTERY_SCALE * pulseFactor);
+                            slotUI.batterySprite.setDisplaySize(batterySize, batterySize);
                         }
                     } else {
-                        // Reset battery scale to normal when pulse is complete
+                        // Reset battery size to normal when pulse is complete
                         if (slotUI.batterySprite && slotUI.batterySprite.active) {
-                            slotUI.batterySprite.setScale(CONFIG.CELL.BATTERY_SCALE);
+                            slotUI.batterySprite.setDisplaySize(CONFIG.CELL.BATTERY_DISPLAY_SIZE, CONFIG.CELL.BATTERY_DISPLAY_SIZE);
                         }
                     }
                 }
@@ -3666,7 +3668,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             
             // Create battery sprite (not directly draggable, dragged via draggableBg)
             const battery = this.add.image(cellData.x, cellData.y + CONFIG.CELL.BATTERY_Y_OFFSET, batteryIcon);
-            battery.setScale(CONFIG.CELL.BATTERY_SCALE);
+            battery.setDisplaySize(CONFIG.CELL.BATTERY_DISPLAY_SIZE, CONFIG.CELL.BATTERY_DISPLAY_SIZE);
             
             // Add level text at top of battery
             const levelText = this.add.text(
@@ -3711,35 +3713,35 @@ for (let t = 0; t <= 1; t += 0.002) {
 
         playSpawnAnimation(batteryData) {
             const { sprite, levelText } = batteryData;
-            const baseScale = CONFIG.CELL.BATTERY_SCALE;
+            const baseSize = CONFIG.CELL.BATTERY_DISPLAY_SIZE;
             const anim = CONFIG.SPAWN_ANIMATION;
             
             // Start from squashed state (wide and short)
-            sprite.setScale(baseScale * anim.INITIAL_SCALE_X, baseScale * anim.INITIAL_SCALE_Y);
+            sprite.setDisplaySize(baseSize * anim.INITIAL_SCALE_X, baseSize * anim.INITIAL_SCALE_Y);
             levelText.setScale(anim.INITIAL_SCALE_X, anim.INITIAL_SCALE_Y);
             
             // Animate sprite with squash & stretch using chained tweens
             // Phase 1: Overshoot stretch (tall and narrow)
             this.tweens.add({
                 targets: sprite,
-                scaleX: baseScale * anim.STRETCH_SCALE_X,
-                scaleY: baseScale * anim.STRETCH_SCALE_Y,
+                displayWidth: baseSize * anim.STRETCH_SCALE_X,
+                displayHeight: baseSize * anim.STRETCH_SCALE_Y,
                 duration: anim.STRETCH_DURATION,
                 ease: 'Cubic.easeOut',
                 onComplete: () => {
                     // Phase 2: Slight opposite bounce (squash again but less)
                     this.tweens.add({
                         targets: sprite,
-                        scaleX: baseScale * anim.BOUNCE_SCALE_X,
-                        scaleY: baseScale * anim.BOUNCE_SCALE_Y,
+                        displayWidth: baseSize * anim.BOUNCE_SCALE_X,
+                        displayHeight: baseSize * anim.BOUNCE_SCALE_Y,
                         duration: anim.BOUNCE_DURATION,
                         ease: 'Cubic.easeInOut',
                         onComplete: () => {
                             // Phase 3: Settle to normal scale
                             this.tweens.add({
                                 targets: sprite,
-                                scaleX: baseScale,
-                                scaleY: baseScale,
+                                displayWidth: baseSize,
+                                displayHeight: baseSize,
                                 duration: anim.SETTLE_DURATION,
                                 ease: 'Cubic.easeOut'
                             });

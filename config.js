@@ -81,7 +81,8 @@ var CONFIG = {
         FILLED_BG_COLOR: 0xFFFFFF,     // Background color when cell has a battery
         
         // Battery icon configuration
-        BATTERY_SCALE: 1.0,            // Battery icon scale (1.0 = full size, 64px)
+        BATTERY_DISPLAY_SIZE: 64,      // Fixed display size in pixels (all batteries shown at this size regardless of source image dimensions)
+        BATTERY_SCALE: 1.0,            // Battery icon scale (1.0 = full size, 64px) - DEPRECATED: Use BATTERY_DISPLAY_SIZE instead
         BATTERY_Y_OFFSET: 5,           // Vertical offset from cell center (positive = down)
         
         // Level text configuration
