@@ -4,7 +4,7 @@ var CONFIG = {
     TEXT_COLOR: '#333333',
     
     RESET_PROGRESS: false,         // Set to true to clear saved progress on load
-    BATTERY_START_LEVEL: 9,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
+    BATTERY_START_LEVEL: 16,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
     BATTERY_IMAGE_EXTENSIONS: ['svg', 'png', 'jpg', 'webp'],  // Priority order for battery image extensions
     
     // UI Button Configuration
