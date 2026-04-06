@@ -1665,8 +1665,8 @@
                     this.spawnRewardCoins(car);
                 }
                 
-                // Charge the car with this slot's battery level
-                const chargeAmount = slot.level;
+                // Charge the car with this slot's battery charge per minute value
+                const chargeAmount = slot.chargePerMinute;
                 car.currentCharge += chargeAmount;
                 car.isCharging = true;
                 
