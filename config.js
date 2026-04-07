@@ -390,7 +390,23 @@ var CONFIG = {
     VEHICLES: [
         { key: 'car_1x2',    label: 'Car (1×2)',    width: 1, length: 2, maxCharge: 100, reward: 50 },
         { key: 'long_1x3',   label: 'Long (1×3)',   width: 1, length: 3, maxCharge: 150, reward: 75 },
-        { key: 'truck_1x3',  label: 'Truck (1×3)',  width: 1, length: 3, maxCharge: 200, reward: 100 }
+        { key: 'truck_1x4',  label: 'Truck (1×4)',  width: 1, length: 4, maxCharge: 200, reward: 100 },
+        { key: 'boat_1x2',   label: 'Boat (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'bus_1x1',    label: 'Bus (1×1)',    width: 1, length: 1, maxCharge: 50, reward: 25 },
+        { key: 'drone_1x1',   label: 'Drone (1×1)',   width: 1, length: 1, maxCharge: 200, reward: 100 },
+        { key: 'fire_1x3',   label: 'Fire Truck (1×3)',   width: 1, length: 3, maxCharge: 200, reward: 100 },
+        { key: 'forklift_1x2',   label: 'Forklift (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'helicopter_1x2',   label: 'Helicopter (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'boat_1x2',   label: 'Boat (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'jcb_2x5',   label: 'JCB (2×5)',   width: 2, length: 5, maxCharge: 200, reward: 100 },
+        { key: 'load_1x3',   label: 'Loader (1×3)',   width: 1, length: 3, maxCharge: 200, reward: 100 },
+        { key: 'motorbike_1x2',   label: 'Motorbike (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'pickup_1x2',   label: 'Pickup (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'plow_1x2',   label: 'Plow (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'police_1x2',   label: 'Police (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'sweeper_1x2',   label: 'Sweeper (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+
+
     ]
 };
 
