@@ -15,6 +15,7 @@
             this.totalChargeRequired = 0;       // Total charge needed for all cars in level
             this.remainingCharge = 0;           // Remaining charge to complete level
             this.levelChargeText = null;        // Text display for remaining charge
+            this.blockedCarsRetryTimer = null;  // Timer to retry moving blocked cars
             
             // Charging system properties (for parking jam)
             this.chargingSlots = [null, null, null]; // 3 slots, each charges a different car independently
@@ -1465,6 +1466,7 @@
                 canMove: false,
                 isCharging: false,
                 isMovingOut: false,
+                waitingToExit: false,
                 // Grid position data
                 gridRow: carData.gridRow,
                 gridCol: carData.gridCol,
@@ -1878,11 +1880,40 @@
             });
         }
 
+        // Show brief visual feedback when car is blocked (lighter than collision)
+        showBlockedFeedback(car) {
+            // Just a quick shake, no movement needed
+            this.cameras.main.shake(100, 0.003);
+        }
+
+        // Retry movement for cars that are fully charged but blocked
+        retryBlockedCars() {
+            // Only check every 500ms to avoid performance issues
+            if (!this.blockedCarsRetryTimer || this.time.now - this.blockedCarsRetryTimer > 500) {
+                this.blockedCarsRetryTimer = this.time.now;
+                
+                // Find all cars waiting to exit
+                const waitingCars = this.cars.filter(car => 
+                    car.waitingToExit === true && 
+                    car.currentCharge >= car.chargeRequired &&
+                    !car.isMovingOut
+                );
+                
+                // Try to move each waiting car
+                for (let car of waitingCars) {
+                    console.log('Retrying blocked car movement...');
+                    car.waitingToExit = false; // Clear flag before retry
+                    this.moveOutCar(car);
+                }
+            }
+        }
+
         moveOutCar(car) {
             console.log('Car fully charged! Moving out...');
             
             car.isCharging = false;
             car.isMovingOut = true;
+            car.waitingToExit = false;  // Clear waiting flag since car is now moving
             
             // Start vehicle sound
             this.startVehicleSound(car);
@@ -1927,17 +1958,18 @@
                 stepsToExit = stepsToExitReverse;
                 console.log('Forward blocked! Using reverse exit');
             } else {
-                // Both directions blocked - show collision and give up
-                console.log('Car is blocked in both directions! Showing collision...');
+                // Both directions blocked - mark car as waiting to exit and will retry later
+                console.log('Car is blocked in both directions! Will retry when obstacle clears...');
                 this.stopVehicleSound(car); // Stop sound since car can't move
-                this.showCollisionAndReturn(car, () => {
-                    car.isMovingOut = false;
-                    car.isCharging = false;
-                    // Restore grid cells since car couldn't leave
-                    this.updateCarGridPosition(car);
-                    // Update movable cars to show proper charge bar visibility
-                    this.updateMovableCars();
-                });
+                car.isMovingOut = false;
+                car.isCharging = false;
+                car.waitingToExit = true;  // Mark as waiting - will retry periodically
+                // Restore grid cells since car couldn't leave yet
+                this.updateCarGridPosition(car);
+                // Update movable cars to show proper charge bar visibility
+                this.updateMovableCars();
+                // Show brief collision feedback without full animation
+                this.showBlockedFeedback(car);
                 return;
             }
             
@@ -3115,6 +3147,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             
             // Check level-up timer
             this.checkLevelUpTimer();
+            
+            // Retry blocked cars periodically
+            this.retryBlockedCars();
         }
 
         applyMotorPower() {
