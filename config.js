@@ -354,8 +354,8 @@ var CONFIG = {
         ROAD_WIDTH_CELL_PERCENT: 1.33, // Road width as percentage of cell size (1.33 = 133%)
         
         // Grid configuration (like Parking Jam 3D)
-        GRID_COLS: 6,                  // Number of columns in parking grid
-        GRID_ROWS: 6,                  // Number of rows in parking grid
+        GRID_COLS: 12,                  // Number of columns in parking grid
+        GRID_ROWS: 12,                  // Number of rows in parking grid
         // NOTE: CELL_SIZE is calculated dynamically as (screenWidth * GRID_WIDTH_PERCENT * ZOOM_FACTOR) / GRID_COLS
         GRID_LINE_COLOR: 0xCCCCCC,     // Grid line color
         GRID_LINE_WIDTH: 2,            // Grid line thickness
@@ -388,10 +388,10 @@ var CONFIG = {
     // 2. Add an entry here with the key (filename without .png), label (display name), width, and length
     // 3. The vehicle will automatically appear in both the editor and game!
     VEHICLES: [
+        { key: 'motorbike_1x2',   label: 'Motorbike (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
         { key: 'car_1x2',    label: 'Car (1×2)',    width: 1, length: 2, maxCharge: 100, reward: 50 },
         { key: 'long_1x3',   label: 'Long (1×3)',   width: 1, length: 3, maxCharge: 150, reward: 75 },
         { key: 'truck_1x4',  label: 'Truck (1×4)',  width: 1, length: 4, maxCharge: 200, reward: 100 },
-        { key: 'boat_1x2',   label: 'Boat (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
         { key: 'bus_1x1',    label: 'Bus (1×1)',    width: 1, length: 1, maxCharge: 50, reward: 25 },
         { key: 'drone_1x1',   label: 'Drone (1×1)',   width: 1, length: 1, maxCharge: 200, reward: 100 },
         { key: 'fire_1x3',   label: 'Fire Truck (1×3)',   width: 1, length: 3, maxCharge: 200, reward: 100 },
@@ -400,7 +400,6 @@ var CONFIG = {
         { key: 'boat_1x2',   label: 'Boat (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
         { key: 'jcb_2x5',   label: 'JCB (2×5)',   width: 2, length: 5, maxCharge: 200, reward: 100 },
         { key: 'load_1x3',   label: 'Loader (1×3)',   width: 1, length: 3, maxCharge: 200, reward: 100 },
-        { key: 'motorbike_1x2',   label: 'Motorbike (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
         { key: 'pickup_1x2',   label: 'Pickup (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
         { key: 'plow_1x2',   label: 'Plow (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
         { key: 'police_1x2',   label: 'Police (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
