@@ -1870,8 +1870,8 @@
                 duration: 150,
                 ease: 'Power2',
                 onComplete: () => {
-                    // Add shake effect
-                    this.cameras.main.shake(100, 0.005);
+                    // Shake effect removed - was annoying
+                    // this.cameras.main.shake(100, 0.005);
                     
                     // Phase 2: Return to original position
                     this.tweens.add({
@@ -1890,8 +1890,8 @@
 
         // Show brief visual feedback when car is blocked (lighter than collision)
         showBlockedFeedback(car) {
-            // Just a quick shake, no movement needed
-            this.cameras.main.shake(100, 0.003);
+            // Shake effect removed - was annoying
+            // this.cameras.main.shake(100, 0.003);
         }
 
         // Retry movement for cars that are fully charged but blocked
