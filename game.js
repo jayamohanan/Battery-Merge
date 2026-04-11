@@ -96,6 +96,7 @@
             this.load.image('point', 'graphics/point.png');
             this.load.image('button', 'graphics/Button.png');
             this.load.image('plug', 'graphics/plug.png');
+            this.load.image('charging_station', 'graphics/charging_station.png');
             
             // Load parking jam assets - dynamically load all vehicles from CONFIG.VEHICLES
             CONFIG.VEHICLES.forEach(vehicle => {
@@ -234,6 +235,13 @@
             const slotGap = 15; // Same as grid cell gap
             const totalWidth = 3 * slotSize + 2 * slotGap;
             const startX = (sceneWidth - totalWidth) / 2;
+            
+            // Add charging station icon to the left of the slots
+            const stationIconSize = CONFIG.CHARGING_CONNECTION.STATION_ICON_SIZE;
+            const stationIconX = startX + CONFIG.CHARGING_CONNECTION.STATION_ICON_OFFSET_X;
+            const stationIcon = this.add.sprite(stationIconX, slotY, 'charging_station');
+            stationIcon.setDisplaySize(stationIconSize, stationIconSize);
+            stationIcon.setDepth(1); // Below most UI elements
             
             for (let i = 0; i < 3; i++) {
                 const slotX = startX + i * (slotSize + slotGap) + slotSize / 2;

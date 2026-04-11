@@ -195,7 +195,7 @@
       "chargeRequired": 150
     },
     {
-      "type": "truck_1x3",
+      "type": "truck_1x4",
       "gridRow": 8,
       "gridCol": 4,
       "orientation": "up",

@@ -257,6 +257,10 @@ var CONFIG = {
         PLUG_HEAD_SIZE: 24,             // Size of plug head sprite (width and height in pixels)
         PLUG_HEAD_OFFSET_Y: 25,          // Vertical offset from car bottom (positive = move down, negative = move up)
         
+        // Charging station icon (displayed to the left of charging slots)
+        STATION_ICON_SIZE: 112,         // Size of charging station icon (width and height in pixels) - 40% bigger than original 80
+        STATION_ICON_OFFSET_X: -45,     // Horizontal offset from first slot (negative = to the left)
+        
         // Animation settings (trace effect from battery slot to car)
         ANIMATE_ENABLED: false,         // Enable line tracing animation
         ANIMATE_DURATION: 800,          // Duration of trace animation in milliseconds
