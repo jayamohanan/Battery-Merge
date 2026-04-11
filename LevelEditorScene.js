@@ -112,6 +112,34 @@ class LevelEditorScene extends Phaser.Scene {
         // Create rotation input panel (hidden by default)
         this.createRotationPanel();
         
+        // Setup keyboard shortcuts
+        this.input.keyboard.on('keydown-A', () => {
+            if (this.selectedCar) {
+                this.rotate90Degrees();
+            }
+        });
+        
+        this.input.keyboard.on('keydown-Q', () => {
+            this.spawnCar();
+        });
+        
+        // Arrow keys for spawning with specific orientations
+        this.input.keyboard.on('keydown-UP', () => {
+            this.spawnCarWithOrientation('up');
+        });
+        
+        this.input.keyboard.on('keydown-RIGHT', () => {
+            this.spawnCarWithOrientation('right');
+        });
+        
+        this.input.keyboard.on('keydown-DOWN', () => {
+            this.spawnCarWithOrientation('down');
+        });
+        
+        this.input.keyboard.on('keydown-LEFT', () => {
+            this.spawnCarWithOrientation('left');
+        });
+        
         // Setup click handler for deselection
         this.input.on('pointerdown', this.onPointerDown, this);
     }
@@ -421,12 +449,12 @@ class LevelEditorScene extends Phaser.Scene {
             this.inputElements.push(dropdown);
         }
         
-        // Spawn Car button
-        const spawnButton = this.add.rectangle(280, controlY, 150, 50, 0x2196F3);
+        // Spawn Vehicle button (positioned to avoid dropdown overlap)
+        const spawnButton = this.add.rectangle(400, controlY, 180, 50, 0x2196F3);
         spawnButton.setStrokeStyle(3, 0x1565C0);
         spawnButton.setInteractive({ useHandCursor: true });
         
-        const spawnButtonText = this.add.text(300, controlY, 'SPAWN CAR', {
+        const spawnButtonText = this.add.text(400, controlY, 'SPAWN VEHICLE', {
             fontSize: '18px',
             fontFamily: CONFIG.FONT_FAMILY,
             color: '#FFFFFF',
@@ -648,32 +676,19 @@ class LevelEditorScene extends Phaser.Scene {
         const sceneWidth = this.cameras.main.width;
         const sceneHeight = this.cameras.main.height;
         
-        // Panel background
+        // Simple rotation button (no background panel or label)
         this.rotationPanel = this.add.container(sceneWidth / 2, sceneHeight * 0.5 + 180);
         this.rotationPanel.setVisible(false);
         this.rotationPanel.setDepth(20); // Above cars (depth 10)
         
-        const panelBg = this.add.rectangle(0, 0, 220, 80, 0xFFFFFF);
-        panelBg.setStrokeStyle(3, 0x333333);
-        this.rotationPanel.add(panelBg);
-        
-        // Rotation label
-        const rotationLabel = this.add.text(0, -15, 'Orientation:', {
-            fontSize: '16px',
-            fontFamily: CONFIG.FONT_FAMILY,
-            color: '#000000',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-        this.rotationPanel.add(rotationLabel);
-        
         // Rotate 90° button
-        const rotateBtn = this.add.rectangle(0, 20, 140, 35, 0x2196F3);
-        rotateBtn.setStrokeStyle(2, 0x1565C0);
+        const rotateBtn = this.add.rectangle(0, 0, 140, 40, 0x2196F3);
+        rotateBtn.setStrokeStyle(3, 0x1565C0);
         rotateBtn.setInteractive({ useHandCursor: true });
         this.rotationPanel.add(rotateBtn);
         
-        const rotateBtnText = this.add.text(0, 20, 'Rotate 90°', {
-            fontSize: '16px',
+        const rotateBtnText = this.add.text(0, 0, 'Rotate 90°', {
+            fontSize: '18px',
             fontFamily: CONFIG.FONT_FAMILY,
             color: '#FFFFFF',
             fontStyle: 'bold'
@@ -871,6 +886,23 @@ class LevelEditorScene extends Phaser.Scene {
             this.createCarAtGrid(centerRow, centerCol, 'left', width, length);
         } else {
             console.log('Cannot spawn car - no space at center');
+        }
+    }
+    
+    spawnCarWithOrientation(orientation) {
+        // Get vehicle dimensions from the selected car type name
+        const dimensions = this.getVehicleDimensions(this.selectedCarType);
+        const { width, length } = dimensions;
+        
+        // Find center grid position for spawning
+        const centerCol = Math.floor(this.gridCols / 2);
+        const centerRow = Math.floor(this.gridRows / 2);
+        
+        // Try to spawn with the specified orientation
+        if (this.canPlaceCar(centerRow, centerCol, orientation, width, length)) {
+            this.createCarAtGrid(centerRow, centerCol, orientation, width, length);
+        } else {
+            console.log(`Cannot spawn car with orientation '${orientation}' - no space at center`);
         }
     }
     
