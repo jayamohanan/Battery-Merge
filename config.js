@@ -248,7 +248,7 @@ var CONFIG = {
     // Charging connection line settings
     CHARGING_CONNECTION: {
         CORNER_RADIUS: 10,              // Radius for rounded corners in charging connection lines (pixels)
-        LINE_WIDTH: 3,                  // Width of charging connection lines (pixels)
+        LINE_WIDTH: 5,                  // Width of charging connection lines (pixels)
         LINE_COLOR: 0x888888,           // Grey color for charging lines
         LINE_ALPHA: 0.5,                // Transparency of charging lines (0-1, 0.5 = 50%)
         SLOT_DISTANCES: [20, 35, 50],   // Vertical step distance for each slot (slot 0, 1, 2)
