@@ -1471,6 +1471,7 @@
                 type: carData.type,
                 chargeRequired: carData.chargeRequired || 100,
                 currentCharge: 0,
+                displayedCharge: 0,  // Smoothly animates towards currentCharge
                 canMove: false,
                 isCharging: false,
                 isMovingOut: false,
@@ -1653,14 +1654,17 @@
                 // Update battery icon fill and text
                 if (!car.chargeText || !car.batteryFill) return;
                 
+                // Use displayedCharge for smooth animation
+                const displayCharge = car.displayedCharge !== undefined ? car.displayedCharge : car.currentCharge;
+                
                 // Calculate charge value based on config
                 const chargeValue = CONFIG.PARKING_CAR.SHOW_REMAINING_CHARGE
-                    ? Math.max(0, car.chargeRequired - car.currentCharge)  // Remaining: 100→0
-                    : Math.min(Math.round(car.currentCharge), car.chargeRequired);  // Charged: 0→100
+                    ? Math.max(0, car.chargeRequired - displayCharge)  // Remaining: 100→0
+                    : Math.min(displayCharge, car.chargeRequired);  // Charged: 0→100
                 car.chargeText.setText(`${Math.round(chargeValue)}`);
                 
                 // Update battery fill (green bar grows from left to right)
-                const progress = Math.min(car.currentCharge / car.chargeRequired, 1);
+                const progress = Math.min(displayCharge / car.chargeRequired, 1);
                 const batteryWidth = CONFIG.PARKING_CAR.BATTERY_ICON_WIDTH;
                 const batteryHeight = CONFIG.PARKING_CAR.BATTERY_ICON_HEIGHT;
                 const fillWidth = (batteryWidth - CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH * 2) * progress;
@@ -3226,9 +3230,12 @@ for (let t = 0; t <= 1; t += 0.002) {
             }
         }
 
-        update() {
+        update(time, delta) {
             // Update logic for merge scene only
             // Vehicle physics removed - now handled by ParkingJamScene
+            
+            // Smoothly animate charge display for all cars
+            this.updateChargeAnimations(delta);
             
             // Update gate state based on vehicle proximity
             this.updateGate();
@@ -3241,6 +3248,35 @@ for (let t = 0; t <= 1; t += 0.002) {
             
             // Retry blocked cars periodically
             this.retryBlockedCars();
+        }
+        
+        updateChargeAnimations(delta) {
+            // Smoothly interpolate displayedCharge towards currentCharge
+            const animationSpeed = CONFIG.PARKING_CAR.CHARGE_ANIMATION_SPEED;
+            const deltaSeconds = delta / 1000;
+            
+            for (let car of this.cars) {
+                if (car.displayedCharge === undefined) {
+                    car.displayedCharge = car.currentCharge;
+                    continue;
+                }
+                
+                // Calculate the difference between target and current display
+                const difference = car.currentCharge - car.displayedCharge;
+                
+                if (Math.abs(difference) > 0.01) {
+                    // Move displayedCharge towards currentCharge
+                    const maxChange = animationSpeed * deltaSeconds;
+                    const change = Math.sign(difference) * Math.min(Math.abs(difference), maxChange);
+                    car.displayedCharge += change;
+                    
+                    // Update the visual display
+                    this.updateCarChargeBar(car);
+                } else {
+                    // Snap to final value when very close
+                    car.displayedCharge = car.currentCharge;
+                }
+            }
         }
 
         applyMotorPower() {

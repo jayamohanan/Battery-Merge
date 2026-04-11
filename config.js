@@ -302,6 +302,7 @@ var CONFIG = {
         // Charge display mode
         CHARGE_DISPLAY_MODE: 'value',   // 'bar' = progress bar, 'value' = decreasing number (like Blum Merge)
         SHOW_REMAINING_CHARGE: false,    // true = show remaining charge (100→0), false = show charged amount (0→100)
+        CHARGE_ANIMATION_SPEED: 120,    // Speed of charge number animation (units per second) - higher = faster
         CHARGE_VALUE_SIZE: '20px',      // Font size for charge value text inside battery
         CHARGE_VALUE_COLOR: '#333333',  // Dark gray color for text (contrasts with both white and green)
         CHARGE_VALUE_PADDING: 10,       // Padding above vehicle sprite (pixels)
