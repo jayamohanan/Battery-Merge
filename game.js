@@ -353,7 +353,7 @@
         }
         
         // Method to add battery to charging slot (can be called from MergeScene)
-        addBatteryToSlot(slotIndex, level) {
+        addBatteryToSlot(slotIndex, level, preserveAssignedCar = null) {
             if (slotIndex < 0 || slotIndex >= 3) return;
             if (this.chargingSlots[slotIndex] !== null) {
                 // Slot already occupied
@@ -420,11 +420,13 @@
                 level: level,
                 chargePerMinute: chargePerMinute,
                 batteryData: batteryData,
-                assignedCar: null  // Each slot charges its own car
+                assignedCar: preserveAssignedCar  // Preserve existing car assignment if provided
             };
             
-            // Assign a car to this slot and update charging system
-            this.assignCarToSlot(slotIndex);
+            // Only assign a new car if no car was preserved
+            if (preserveAssignedCar === null) {
+                this.assignCarToSlot(slotIndex);
+            }
             this.updateChargingSystem();
         }
         
@@ -4201,6 +4203,9 @@ for (let t = 0; t <= 1; t += 0.002) {
         }
 
         moveBatteryToChargingSlot(batteryData, slotIndex) {
+            // Save the car assignment from the target slot before clearing it
+            const preserveAssignedCar = this.chargingSlots[slotIndex] ? this.chargingSlots[slotIndex].assignedCar : null;
+            
             // Clear old position
             if (batteryData.inGrid) {
                 this.removeBattery(batteryData);
@@ -4222,8 +4227,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                 }
             }
             
-            // Add to new charging slot
-            this.addBatteryToSlot(slotIndex, batteryData.level);
+            // Add to new charging slot, preserving car assignment
+            this.addBatteryToSlot(slotIndex, batteryData.level, preserveAssignedCar);
         }
 
         swapBatteryWithChargingSlot(battery1, battery2, slotIndex) {
@@ -4233,6 +4238,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Swap grid battery with charging slot battery
                 const row1 = battery1.row;
                 const col1 = battery1.col;
+                
+                // Save the car assignment from the target slot before clearing it
+                const preserveAssignedCar = this.chargingSlots[slotIndex] ? this.chargingSlots[slotIndex].assignedCar : null;
                 
                 // Remove battery1 from grid
                 this.removeBattery(battery1);
@@ -4262,8 +4270,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Spawn battery in grid (this creates new sprites with draggableBg)
                 const newBattery2 = this.spawnBatteryInGrid(row1, col1, battery2.level);
                 
-                // Add battery1 to charging slot
-                this.addBatteryToSlot(slotIndex, battery1.level);
+                // Add battery1 to charging slot, preserving car assignment
+                this.addBatteryToSlot(slotIndex, battery1.level, preserveAssignedCar);
                 
             } else if (battery1.inChargingSlot) {
                 // Swap two charging slot batteries
@@ -4275,6 +4283,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                 
                 const level1 = battery1.level;
                 const level2 = battery2.level;
+                
+                // Save car assignments before clearing slots
+                const preserveCar1 = this.chargingSlots[slot1Index] ? this.chargingSlots[slot1Index].assignedCar : null;
+                const preserveCar2 = this.chargingSlots[slot2Index] ? this.chargingSlots[slot2Index].assignedCar : null;
                 
                 // Clear both slots
                 this.chargingSlots[slot1Index] = null;
@@ -4290,9 +4302,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot2.slotFilledBg.setVisible(false);
                 slot2.chargeText.setVisible(false);
                 
-                // Add swapped batteries
-                this.addBatteryToSlot(slot1Index, level2);
-                this.addBatteryToSlot(slot2Index, level1);
+                // Add swapped batteries, preserving each slot's car assignment
+                this.addBatteryToSlot(slot1Index, level2, preserveCar1);
+                this.addBatteryToSlot(slot2Index, level1, preserveCar2);
             }
             
             this.updateChargingSystem();
@@ -4322,6 +4334,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.batteryLevelText = null;
             }
             
+            // Save car assignment before removing battery from charging slot
+            const preserveAssignedCar = this.chargingSlots[targetSlotIndex] ? this.chargingSlots[targetSlotIndex].assignedCar : null;
+            
             // Remove target battery from charging slot
             this.chargingSlots[targetSlotIndex] = null;
             const targetSlot = this.chargingSlotsUI[targetSlotIndex];
@@ -4335,9 +4350,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             targetSlot.batterySprite = null;
             targetSlot.batteryLevelText = null;
             
-            // Create new battery at target slot with level + 1
+            // Create new battery at target slot with level + 1, preserving car assignment
             const newLevel = targetBattery.level + 1;
-            this.addBatteryToSlot(targetSlotIndex, newLevel);
+            this.addBatteryToSlot(targetSlotIndex, newLevel, preserveAssignedCar);
             
             // Update highest level
             if (newLevel > this.highestBatteryLevel) {
