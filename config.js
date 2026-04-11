@@ -301,9 +301,21 @@ var CONFIG = {
         
         // Charge display mode
         CHARGE_DISPLAY_MODE: 'value',   // 'bar' = progress bar, 'value' = decreasing number (like Blum Merge)
-        CHARGE_VALUE_SIZE: '24px',      // Font size for charge value text
-        CHARGE_VALUE_COLOR: '#000000',  // Black color for remaining charge value
+        SHOW_REMAINING_CHARGE: false,    // true = show remaining charge (100→0), false = show charged amount (0→100)
+        CHARGE_VALUE_SIZE: '20px',      // Font size for charge value text inside battery
+        CHARGE_VALUE_COLOR: '#333333',  // Dark gray color for text (contrasts with both white and green)
         CHARGE_VALUE_PADDING: 10,       // Padding above vehicle sprite (pixels)
+        
+        // Battery icon settings (horizontal battery)
+        BATTERY_ICON_WIDTH: 80,         // Width of battery icon (pixels)
+        BATTERY_ICON_HEIGHT: 30,        // Height of battery icon (pixels)
+        BATTERY_BORDER_WIDTH: 3,        // Border thickness (pixels)
+        BATTERY_BORDER_COLOR: 0x333333, // Dark border color
+        BATTERY_EMPTY_COLOR: 0xFFFFFF,  // White background for empty area
+        BATTERY_FILL_COLOR: 0x4CAF50,   // Green color for filled area
+        BATTERY_CAP_WIDTH: 6,           // Width of battery terminal/cap on right side
+        BATTERY_CAP_HEIGHT: 16,         // Height of battery terminal/cap
+        BATTERY_CORNER_RADIUS: 4,       // Rounded corner radius for battery body
     },
     
     // Vehicle Shadow settings (simple elliptical shadow for mobile performance)

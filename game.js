@@ -1531,11 +1531,59 @@
                 // Text always goes above the vehicle (top of screen = negative Y)
                 offsetY = -(visualHeight / 2 + padding);
                 
-                // Decreasing value mode (like Blum Merge)
+                // Battery icon mode (horizontal battery with fill and text)
+                const batteryWidth = CONFIG.PARKING_CAR.BATTERY_ICON_WIDTH;
+                const batteryHeight = CONFIG.PARKING_CAR.BATTERY_ICON_HEIGHT;
+                const batteryX = car.sprite.x + offsetX;
+                const batteryY = car.sprite.y + offsetY;
+                
+                // Create battery container group
+                const batteryContainer = this.add.container(batteryX, batteryY);
+                batteryContainer.setDepth(15);
+                
+                // Battery body background (white)
+                const batteryBody = this.add.graphics();
+                batteryBody.fillStyle(CONFIG.PARKING_CAR.BATTERY_EMPTY_COLOR, 1);
+                batteryBody.fillRoundedRect(
+                    -batteryWidth / 2,
+                    -batteryHeight / 2,
+                    batteryWidth,
+                    batteryHeight,
+                    CONFIG.PARKING_CAR.BATTERY_CORNER_RADIUS
+                );
+                
+                // Battery border
+                batteryBody.lineStyle(CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH, CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR, 1);
+                batteryBody.strokeRoundedRect(
+                    -batteryWidth / 2,
+                    -batteryHeight / 2,
+                    batteryWidth,
+                    batteryHeight,
+                    CONFIG.PARKING_CAR.BATTERY_CORNER_RADIUS
+                );
+                
+                // Battery cap/terminal (on right side)
+                batteryBody.fillStyle(CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR, 1);
+                batteryBody.fillRoundedRect(
+                    batteryWidth / 2,
+                    -CONFIG.PARKING_CAR.BATTERY_CAP_HEIGHT / 2,
+                    CONFIG.PARKING_CAR.BATTERY_CAP_WIDTH,
+                    CONFIG.PARKING_CAR.BATTERY_CAP_HEIGHT,
+                    2
+                );
+                
+                batteryContainer.add(batteryBody);
+                
+                // Battery fill (green, grows from left to right)
+                const batteryFill = this.add.graphics();
+                batteryFill.setPosition(0, 0);
+                batteryContainer.add(batteryFill);
+                
+                // Charge text (inside battery)
                 const remainingCharge = car.chargeRequired - car.currentCharge;
                 const chargeText = this.add.text(
-                    car.sprite.x + offsetX,
-                    car.sprite.y + offsetY,
+                    0,
+                    0,
                     `${Math.round(remainingCharge)}`,
                     {
                         fontSize: CONFIG.PARKING_CAR.CHARGE_VALUE_SIZE,
@@ -1545,10 +1593,13 @@
                     }
                 );
                 chargeText.setOrigin(0.5, 0.5);
-                chargeText.setDepth(15);
-                chargeText.setVisible(false); // Hidden by default
+                batteryContainer.add(chargeText);
+                
+                batteryContainer.setVisible(false); // Hidden by default
                 
                 // Store references
+                car.batteryContainer = batteryContainer;
+                car.batteryFill = batteryFill;
                 car.chargeText = chargeText;
                 car.chargeBar = null;
                 car.chargeBarBg = null;
@@ -1599,10 +1650,33 @@
 
         updateCarChargeBar(car) {
             if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
-                // Update decreasing value
-                if (!car.chargeText) return;
-                const remainingCharge = Math.max(0, car.chargeRequired - car.currentCharge);
-                car.chargeText.setText(`${Math.round(remainingCharge)}`);
+                // Update battery icon fill and text
+                if (!car.chargeText || !car.batteryFill) return;
+                
+                // Calculate charge value based on config
+                const chargeValue = CONFIG.PARKING_CAR.SHOW_REMAINING_CHARGE
+                    ? Math.max(0, car.chargeRequired - car.currentCharge)  // Remaining: 100→0
+                    : Math.min(Math.round(car.currentCharge), car.chargeRequired);  // Charged: 0→100
+                car.chargeText.setText(`${Math.round(chargeValue)}`);
+                
+                // Update battery fill (green bar grows from left to right)
+                const progress = Math.min(car.currentCharge / car.chargeRequired, 1);
+                const batteryWidth = CONFIG.PARKING_CAR.BATTERY_ICON_WIDTH;
+                const batteryHeight = CONFIG.PARKING_CAR.BATTERY_ICON_HEIGHT;
+                const fillWidth = (batteryWidth - CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH * 2) * progress;
+                
+                // Redraw the fill
+                car.batteryFill.clear();
+                if (fillWidth > 0) {
+                    car.batteryFill.fillStyle(CONFIG.PARKING_CAR.BATTERY_FILL_COLOR, 1);
+                    car.batteryFill.fillRoundedRect(
+                        -batteryWidth / 2 + CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH,
+                        -batteryHeight / 2 + CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH,
+                        fillWidth,
+                        batteryHeight - CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH * 2,
+                        Math.max(0, CONFIG.PARKING_CAR.BATTERY_CORNER_RADIUS - CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH)
+                    );
+                }
             } else {
                 // Update progress bar
                 if (!car.chargeBar) return;
@@ -1643,7 +1717,7 @@
                 if (!isAssignedToSlot && car.currentCharge === 0 && !car.isCharging) {
                     if (car.chargeBar) car.chargeBar.setVisible(false);
                     if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
-                    if (car.chargeText) car.chargeText.setVisible(false);
+                    if (car.batteryContainer) car.batteryContainer.setVisible(false);
                 }
             }
             
@@ -1682,7 +1756,7 @@
                 
                 // Show charge display when charging begins
                 if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
-                    if (car.chargeText) car.chargeText.setVisible(true);
+                    if (car.batteryContainer) car.batteryContainer.setVisible(true);
                 } else {
                     if (car.chargeBar) car.chargeBar.setVisible(true);
                     if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
@@ -1862,9 +1936,18 @@
             const cellSize = this.gridConfig.cellSize;
             const bumpDistance = cellSize * 0.3; // Move 30% of cell size
             
+            // Determine which elements to animate based on display mode
+            const targets = [car.sprite];
+            if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
+                if (car.batteryContainer) targets.push(car.batteryContainer);
+            } else {
+                if (car.chargeBar) targets.push(car.chargeBar);
+                if (car.chargeBarBg) targets.push(car.chargeBarBg);
+            }
+            
             // Phase 1: Move forward a bit (bump)
             this.tweens.add({
-                targets: [car.sprite, car.chargeBar, car.chargeBarBg],
+                targets: targets,
                 x: `+=${direction.col * bumpDistance}`,
                 y: `+=${direction.row * bumpDistance}`,
                 duration: 150,
@@ -1875,7 +1958,7 @@
                     
                     // Phase 2: Return to original position
                     this.tweens.add({
-                        targets: [car.sprite, car.chargeBar, car.chargeBarBg],
+                        targets: targets,
                         x: `-=${direction.col * bumpDistance}`,
                         y: `-=${direction.row * bumpDistance}`,
                         duration: 200,
@@ -1943,7 +2026,7 @@
             // Hide charge display
             if (car.chargeBar) car.chargeBar.setVisible(false);
             if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
-            if (car.chargeText) car.chargeText.setVisible(false);
+            if (car.batteryContainer) car.batteryContainer.setVisible(false);
             
             // Calculate exit options in both directions BEFORE making any move
             const stepsToExitForward = this.calculateStepsToExit(car);
@@ -2733,7 +2816,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             car.sprite.destroy();
             if (car.chargeBar) car.chargeBar.destroy();
             if (car.chargeBarBg) car.chargeBarBg.destroy();
-            if (car.chargeText) car.chargeText.destroy();
+            if (car.batteryContainer) car.batteryContainer.destroy();
             
             // Remove from array
             const index = this.cars.indexOf(car);
