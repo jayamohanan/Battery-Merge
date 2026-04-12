@@ -4,7 +4,7 @@ var CONFIG = {
     TEXT_COLOR: '#333333',
     
     RESET_PROGRESS: false,         // Set to true to clear saved progress on load
-    BATTERY_START_LEVEL: 1,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
+    BATTERY_START_LEVEL: 16,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
     BATTERY_IMAGE_EXTENSIONS: ['svg', 'png', 'jpg', 'webp'],  // Priority order for battery image extensions
     
     // UI Button Configuration
@@ -405,7 +405,7 @@ var CONFIG = {
     // 2. Add an entry here with the key (filename without .png), label (display name), width, and length
     // 3. The vehicle will automatically appear in both the editor and game!
     VEHICLES: [
-        { key: 'motorbike_1x2',   label: 'Motorbike (1×2)',   width: 1, length: 2, maxCharge: 200, reward: 100 },
+        { key: 'motorbike_1x2',   label: 'Motorbike (1×2)',   width: 1, length: 2, maxCharge: 5, reward: 100 },
         { key: 'car_1x2',    label: 'Car (1×2)',    width: 1, length: 2, maxCharge: 100, reward: 50 },
         { key: 'long_1x3',   label: 'Long (1×3)',   width: 1, length: 3, maxCharge: 150, reward: 75 },
         { key: 'truck_1x4',  label: 'Truck (1×4)',  width: 1, length: 4, maxCharge: 200, reward: 100 },
