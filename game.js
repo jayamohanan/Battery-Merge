@@ -361,7 +361,7 @@
             }
             
             const slot = this.chargingSlotsUI[slotIndex];
-            const chargePerMinute = level * 5;
+            const chargePerMinute = getBatteryChargeValue(level);
             
             // Determine which battery icon to use (dynamically uses highest available)
             const batteryIconLevel = getBatteryIconLevel(level);
@@ -4416,7 +4416,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             if (batteryData.inChargingSlot) {
                 const slotIndex = batteryData.slotIndex;
                 const slot = this.chargingSlotsUI[slotIndex];
-                const chargePerMinute = batteryData.level * 5;
+                const chargePerMinute = getBatteryChargeValue(batteryData.level);
                 
                 // Re-add to charging slots
                 this.chargingSlots[slotIndex] = {
@@ -4577,7 +4577,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     
                     // Update slot data
                     slotData.level = newLevel;
-                    slotData.chargePerMinute = newLevel * 5;
+                    slotData.chargePerMinute = getBatteryChargeValue(newLevel);
                     
                     // Update batteryData if it exists
                     if (slotData.batteryData) {
@@ -4593,7 +4593,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     
                     // Update UI
                     slot.batteryLevelText.setText(`LVL ${newLevel}`);
-                    slot.chargeText.setText(`${newLevel * 5}`);
+                    slot.chargeText.setText(`${getBatteryChargeValue(newLevel)}`);
                 }
             }
             
