@@ -317,6 +317,24 @@ var CONFIG = {
         BATTERY_CAP_WIDTH: 6,           // Width of battery terminal/cap on right side
         BATTERY_CAP_HEIGHT: 16,         // Height of battery terminal/cap
         BATTERY_CORNER_RADIUS: 4,       // Rounded corner radius for battery body
+        
+        // Analog meter settings (gauge above battery icon)
+        ANALOG_METER_ENABLED: true,     // Enable analog meter display
+        ANALOG_METER_SHOW: true,        // Show/hide meter (if false, only battery icon shows)
+        ANALOG_METER_RADIUS: 35,        // Radius of the meter arc (pixels)
+        ANALOG_METER_OFFSET_Y: -30,     // Offset above battery icon (negative = above)
+        ANALOG_METER_ARC_WIDTH: 3,      // Width of the semi-circle arc line
+        ANALOG_METER_ARC_COLOR: 0x333333, // Color of the arc
+        ANALOG_METER_NEEDLE_LENGTH: 28, // Length of the needle (slightly shorter than radius)
+        ANALOG_METER_NEEDLE_WIDTH: 2,   // Width of the needle line
+        ANALOG_METER_NEEDLE_COLOR: 0xE53935, // Red color for needle
+        ANALOG_METER_MAX_ANGLE: 160,    // Maximum angle for full charge (degrees, 0=left, 180=right)
+        ANALOG_METER_MARKER_INTERVAL: 20, // Interval between scale markers (degrees)
+        ANALOG_METER_MARKER_LENGTH: 6,  // Length of scale markers
+        ANALOG_METER_MARKER_WIDTH: 2,   // Width of scale markers
+        ANALOG_METER_OVERSHOOT_FACTOR: 1.3, // Overshoot multiplier (1.3 = overshoots by 30%)
+        ANALOG_METER_PULSE_INTENSITY: 25, // Random pulse intensity (degrees)
+        ANALOG_METER_SETTLE_SPEED: 0.15, // Speed of needle settling (0.1 = slower, 0.3 = faster)
     },
     
     // Vehicle Shadow settings (simple elliptical shadow for mobile performance)

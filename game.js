@@ -454,6 +454,7 @@
                     if (car.chargeBar) car.chargeBar.setVisible(false);
                     if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
                     if (car.chargeText) car.chargeText.setVisible(false);
+                    if (car.batteryContainer) car.batteryContainer.setVisible(false);
                 }
                 car.isCharging = false;
             }
@@ -1600,12 +1601,92 @@
                 
                 batteryContainer.setVisible(false); // Hidden by default
                 
+                // Create analog meter above the battery icon (as part of container)
+                let analogMeter = null;
+                let analogNeedle = null;
+                if (CONFIG.PARKING_CAR.ANALOG_METER_ENABLED && CONFIG.PARKING_CAR.ANALOG_METER_SHOW) {
+                    const meterConfig = CONFIG.PARKING_CAR;
+                    const meterOffsetY = meterConfig.ANALOG_METER_OFFSET_Y; // Relative to battery
+                    const radius = meterConfig.ANALOG_METER_RADIUS;
+                    
+                    // Create meter graphics (will be added to container)
+                    analogMeter = this.add.graphics();
+                    
+                    // Draw semi-circle arc at TOP (above the horizontal line)
+                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                    analogMeter.beginPath();
+                    analogMeter.arc(0, meterOffsetY, radius, -Math.PI, 0, false); // From left (-PI) to right (0), going upward
+                    analogMeter.strokePath();
+                    
+                    // Draw straight line at bottom to close the semicircle
+                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                    analogMeter.beginPath();
+                    analogMeter.moveTo(-radius, meterOffsetY);
+                    analogMeter.lineTo(radius, meterOffsetY);
+                    analogMeter.strokePath();
+                    
+                    // Draw scale markers at specific angles (45°, 90°, 135°)
+                    const markerAngles = [45, 90, 135];
+                    for (let deg of markerAngles) {
+                        // Map angle to radians (0° = -PI at left, 180° = 0 at right)
+                        const angle = -Math.PI + (deg * Math.PI / 180);
+                        const markerLength = meterConfig.ANALOG_METER_MARKER_LENGTH;
+                        const startX = Math.cos(angle) * (radius - markerLength);
+                        const startY = meterOffsetY + Math.sin(angle) * (radius - markerLength);
+                        const endX = Math.cos(angle) * radius;
+                        const endY = meterOffsetY + Math.sin(angle) * radius;
+                        
+                        analogMeter.lineStyle(meterConfig.ANALOG_METER_MARKER_WIDTH, meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                        analogMeter.beginPath();
+                        analogMeter.moveTo(startX, startY);
+                        analogMeter.lineTo(endX, endY);
+                        analogMeter.strokePath();
+                    }
+                    
+                    // Add meter to battery container
+                    batteryContainer.add(analogMeter);
+                    
+                    // Create needle (separate graphics for rotation)
+                    analogNeedle = this.add.graphics();
+                    analogNeedle.setPosition(0, meterOffsetY);
+                    
+                    // Draw tapered needle (thick at center, thin at tip)
+                    const needleLength = meterConfig.ANALOG_METER_NEEDLE_LENGTH;
+                    const needleBaseWidth = 8; // Width at the base (center)
+                    const needleTipWidth = 2;  // Width at the tip
+                    
+                    analogNeedle.fillStyle(meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                    analogNeedle.beginPath();
+                    // Draw trapezoid pointing up (wide at center, narrow at tip)
+                    analogNeedle.moveTo(-needleBaseWidth/2, 0); // Left base at center
+                    analogNeedle.lineTo(needleBaseWidth/2, 0);  // Right base at center
+                    analogNeedle.lineTo(needleTipWidth/2, -needleLength);  // Right tip at far end
+                    analogNeedle.lineTo(-needleTipWidth/2, -needleLength); // Left tip at far end
+                    analogNeedle.closePath();
+                    analogNeedle.fillPath();
+                    
+                    // Draw center dot
+                    analogNeedle.fillStyle(meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                    analogNeedle.fillCircle(0, 0, 5);
+                    
+                    // Initialize needle at 5 degrees (slightly right from left edge of top arc)
+                    analogNeedle.setRotation(-Math.PI/2 + (5 * Math.PI / 180)); // Start at 5 degrees
+                    
+                    // Add needle to battery container
+                    batteryContainer.add(analogNeedle);
+                }
+                
                 // Store references
                 car.batteryContainer = batteryContainer;
                 car.batteryFill = batteryFill;
                 car.chargeText = chargeText;
                 car.chargeBar = null;
                 car.chargeBarBg = null;
+                car.analogMeter = analogMeter;
+                car.analogNeedle = analogNeedle;
+                car.needleCurrentAngle = 5; // Current needle angle (5-160)
+                car.needleTargetAngle = 5;  // Target needle angle based on charge
+                car.needleVelocity = 0;     // Velocity for overshoot animation
             } else {
                 // Progress bar mode - use simple offset
                 const barWidth = 60;
@@ -1682,6 +1763,13 @@
                         batteryHeight - CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH * 2,
                         Math.max(0, CONFIG.PARKING_CAR.BATTERY_CORNER_RADIUS - CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH)
                     );
+                }
+                
+                // Update analog meter needle target angle
+                if (car.analogNeedle && CONFIG.PARKING_CAR.ANALOG_METER_ENABLED && CONFIG.PARKING_CAR.ANALOG_METER_SHOW) {
+                    const maxAngle = CONFIG.PARKING_CAR.ANALOG_METER_MAX_ANGLE;
+                    const minAngle = 5; // Minimum angle (5 degrees from left)
+                    car.needleTargetAngle = minAngle + (progress * (maxAngle - minAngle));
                 }
             } else {
                 // Update progress bar
@@ -2990,6 +3078,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 if (car.chargeBar) car.chargeBar.destroy();
                 if (car.chargeBarBg) car.chargeBarBg.destroy();
                 if (car.chargeText) car.chargeText.destroy();
+                if (car.batteryContainer) car.batteryContainer.destroy();
             }
             this.cars = [];
             
@@ -3277,6 +3366,50 @@ for (let t = 0; t <= 1; t += 0.002) {
                 } else {
                     // Snap to final value when very close
                     car.displayedCharge = car.currentCharge;
+                }
+                
+                // Animate analog meter needle with overshoot and pulse
+                if (car.analogNeedle && CONFIG.PARKING_CAR.ANALOG_METER_ENABLED && CONFIG.PARKING_CAR.ANALOG_METER_SHOW && car.isCharging) {
+                    const meterConfig = CONFIG.PARKING_CAR;
+                    const targetAngle = car.needleTargetAngle;
+                    const currentAngle = car.needleCurrentAngle;
+                    const minAngle = 5;  // Minimum angle (5 degrees)
+                    const maxAngle = 180; // Maximum angle (180 degrees)
+                    
+                    // Calculate difference
+                    const diff = targetAngle - currentAngle;
+                    
+                    // Apply overshoot when target changes significantly
+                    if (Math.abs(diff) > 1) {
+                        // Add velocity towards target with overshoot
+                        car.needleVelocity += diff * 0.08; // Acceleration towards target
+                        
+                        // Add random pulse for dynamic movement
+                        if (Math.random() < 0.1) { // 10% chance each frame
+                            car.needleVelocity += (Math.random() - 0.5) * meterConfig.ANALOG_METER_PULSE_INTENSITY;
+                        }
+                        
+                        // Apply damping to settle
+                        car.needleVelocity *= (1 - meterConfig.ANALOG_METER_SETTLE_SPEED);
+                        
+                        // Update current angle
+                        car.needleCurrentAngle += car.needleVelocity * deltaSeconds * 60;
+                        
+                        // Clamp to arc bounds (don't allow needle to go below horizontal or beyond right)
+                        car.needleCurrentAngle = Math.max(minAngle, Math.min(maxAngle, car.needleCurrentAngle));
+                    } else {
+                        // Snap to target when very close
+                        car.needleCurrentAngle = targetAngle;
+                        car.needleVelocity = 0;
+                    }
+                    
+                    // Convert angle to rotation for top-oriented meter
+                    // Needle is drawn pointing up (-Y direction), which is angle -PI/2
+                    // 0° charge = needle points left on arc (rotation -PI/2)
+                    // 90° charge = needle points top on arc (rotation 0)
+                    // 180° charge = needle points right on arc (rotation PI/2)
+                    const rotation = -Math.PI/2 + (car.needleCurrentAngle * Math.PI / 180);
+                    car.analogNeedle.setRotation(rotation);
                 }
             }
         }
