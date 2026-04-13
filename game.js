@@ -32,6 +32,8 @@
             // Gate properties
             this.gateLeftDoor = null;           // Left gate door sprite
             this.gateRightDoor = null;          // Right gate door sprite
+            this.gateLeftPole = null;           // Left pole/hinge circle
+            this.gateRightPole = null;          // Right pole/hinge circle
             this.gateOpen = false;              // Current gate state
             this.gateAnimating = false;         // Whether gate is currently animating
             this.gateCheckRadius = CONFIG.GATE.PROXIMITY_RADIUS; // Distance to check for nearby vehicles
@@ -634,6 +636,14 @@
                 this.gateRightDoor.destroy();
                 this.gateRightDoor = null;
             }
+            if (this.gateLeftPole) {
+                this.gateLeftPole.destroy();
+                this.gateLeftPole = null;
+            }
+            if (this.gateRightPole) {
+                this.gateRightPole.destroy();
+                this.gateRightPole = null;
+            }
             this.gatePosition = null;
             this.gateOpen = false;
             this.gateAnimating = false;
@@ -784,39 +794,62 @@
             const gateY = exitTailStart - (exitTailLength * CONFIG.GATE.POSITION_Y_FACTOR);
             
             // Gate dimensions from CONFIG
-            const gateLength = roadWidth * CONFIG.GATE.LENGTH_PERCENT; // Each gate extends from edge toward center
+            const pivotOffset = CONFIG.GATE.PIVOT_OFFSET; // How far pivot extends beyond road edge
+            const gateLength = roadWidth * CONFIG.GATE.LENGTH_PERCENT + pivotOffset; // Extended to reach from pole to road
             const gateThickness = roadWidth * CONFIG.GATE.THICKNESS_PERCENT; // Gate thickness
             const centerGap = roadWidth * CONFIG.GATE.CENTER_GAP_PERCENT; // Gap documented for reference
             
-            // Create left gate door (starts at left edge of road, extends toward center)
+            // Create left pole/hinge (circle in top view)
+            const leftPoleX = gateX - roadWidth / 2 - pivotOffset;
+            this.gateLeftPole = this.add.circle(
+                leftPoleX,
+                gateY,
+                CONFIG.GATE.POLE_RADIUS,
+                CONFIG.GATE.POLE_COLOR
+            );
+            this.gateLeftPole.setStrokeStyle(CONFIG.GATE.POLE_BORDER_WIDTH, CONFIG.GATE.POLE_BORDER_COLOR);
+            this.gateLeftPole.setDepth(11); // Above gates
+            
+            // Create right pole/hinge (circle in top view)
+            const rightPoleX = gateX + roadWidth / 2 + pivotOffset;
+            this.gateRightPole = this.add.circle(
+                rightPoleX,
+                gateY,
+                CONFIG.GATE.POLE_RADIUS,
+                CONFIG.GATE.POLE_COLOR
+            );
+            this.gateRightPole.setStrokeStyle(CONFIG.GATE.POLE_BORDER_WIDTH, CONFIG.GATE.POLE_BORDER_COLOR);
+            this.gateRightPole.setDepth(11); // Above gates
+            
+            // Create left gate door (starts at left pole, extends toward center)
             // Both gates aligned on same horizontal line
             // When closed: horizontal (perpendicular to upward road)
-            // Pivots on its outer (left) edge
+            // Pivots on its outer (left) edge at the pole
             this.gateLeftDoor = this.add.rectangle(
-                gateX - roadWidth / 2, // Left edge of road
+                leftPoleX, // Pivot at pole position
                 gateY, // Same Y as right gate - horizontally aligned
-                gateLength, // Width extends toward center
+                gateLength, // Width extends to road edge + beyond
                 gateThickness, // Thickness
                 CONFIG.GATE.COLOR // Brown color for gate
             );
             this.gateLeftDoor.setStrokeStyle(CONFIG.GATE.BORDER_WIDTH, CONFIG.GATE.BORDER_COLOR);
             this.gateLeftDoor.setDepth(10); // Above road
-            this.gateLeftDoor.setOrigin(0, 0.5); // Pivot on left edge (outer edge)
+            this.gateLeftDoor.setOrigin(0, 0.5); // Pivot on left edge (outer edge at pole)
             
-            // Create right gate door (starts at right edge of road, extends toward center)
+            // Create right gate door (starts at right pole, extends toward center)
             // Both gates aligned on same horizontal line
             // When closed: horizontal (perpendicular to upward road)
-            // Pivots on its outer (right) edge
+            // Pivots on its outer (right) edge at the pole
             this.gateRightDoor = this.add.rectangle(
-                gateX + roadWidth / 2, // Right edge of road
+                rightPoleX, // Pivot at pole position
                 gateY, // Same Y as left gate - horizontally aligned
-                gateLength, // Width extends toward center
+                gateLength, // Width extends to road edge + beyond
                 gateThickness, // Thickness
                 CONFIG.GATE.COLOR // Brown color for gate
             );
             this.gateRightDoor.setStrokeStyle(CONFIG.GATE.BORDER_WIDTH, CONFIG.GATE.BORDER_COLOR);
             this.gateRightDoor.setDepth(10); // Above road
-            this.gateRightDoor.setOrigin(1, 0.5); // Pivot on right edge (outer edge)
+            this.gateRightDoor.setOrigin(1, 0.5); // Pivot on right edge (outer edge at pole)
             
             // Store gate position for proximity checks
             this.gatePosition = { x: gateX, y: gateY };
@@ -828,8 +861,10 @@
                 roadWidth: roadWidth,
                 doorSize: { length: gateLength, thickness: gateThickness },
                 centerGap: centerGap,
-                leftDoorX: gateX - roadWidth / 2,
-                rightDoorX: gateX + roadWidth / 2,
+                pivotOffset: pivotOffset,
+                leftPoleX: leftPoleX,
+                rightPoleX: rightPoleX,
+                poleRadius: CONFIG.GATE.POLE_RADIUS,
                 state: 'closed'
             });
         }
