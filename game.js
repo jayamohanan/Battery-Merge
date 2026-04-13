@@ -420,12 +420,23 @@
                 level: level,
                 chargePerMinute: chargePerMinute,
                 batteryData: batteryData,
-                assignedCar: preserveAssignedCar  // Preserve existing car assignment if provided
+                assignedCar: preserveAssignedCar,  // Preserve existing car assignment if provided
+                assignedAt: preserveAssignedCar ? this.time.now : null  // Set timestamp if car already assigned
             };
             
             // Only assign a new car if no car was preserved
             if (preserveAssignedCar === null) {
                 this.assignCarToSlot(slotIndex);
+            } else {
+                // If car was preserved, show its battery display at current charge
+                const car = preserveAssignedCar;
+                if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
+                    if (car.batteryContainer) car.batteryContainer.setVisible(true);
+                } else {
+                    if (car.chargeBar) car.chargeBar.setVisible(true);
+                    if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
+                }
+                this.updateCarChargeBar(car);
             }
             this.updateChargingSystem();
         }
@@ -496,7 +507,19 @@
                 if (!alreadyAssigned) {
                     // Assign this car to the slot
                     this.chargingSlots[slotIndex].assignedCar = car;
+                    this.chargingSlots[slotIndex].assignedAt = this.time.now; // Track when car was assigned
                     console.log(`Slot ${slotIndex} assigned to car ${this.cars.indexOf(car)}`);
+                    
+                    // Immediately show battery and meter at current charge (usually 0)
+                    // This gives visual feedback before first charge pulse
+                    if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
+                        if (car.batteryContainer) car.batteryContainer.setVisible(true);
+                    } else {
+                        if (car.chargeBar) car.chargeBar.setVisible(true);
+                        if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
+                    }
+                    // Update displays to show current state (0%)
+                    this.updateCarChargeBar(car);
                     
                     // Start line tracing animation if enabled
                     if (CONFIG.CHARGING_CONNECTION.ANIMATE_ENABLED) {
@@ -1479,6 +1502,7 @@
                 isCharging: false,
                 isMovingOut: false,
                 waitingToExit: false,
+                waitingForAnimationComplete: false,  // Waiting for charge animation after final pulse
                 // Grid position data
                 gridRow: carData.gridRow,
                 gridCol: carData.gridCol,
@@ -1837,6 +1861,16 @@
                 
                 const car = slot.assignedCar;
                 if (car.isMovingOut) continue; // Skip cars that are leaving
+                if (car.waitingForAnimationComplete) continue; // Skip cars waiting for animation
+                
+                // Check if at least 1 second has passed since car was assigned
+                // This ensures player sees battery/meter at 0% before first charge
+                const timeSinceAssignment = this.time.now - (slot.assignedAt || 0);
+                if (timeSinceAssignment < 1000) {
+                    // Update displays even when not charging yet (to show 0%)
+                    this.updateCarChargeBar(car);
+                    continue; // Skip charging on first pulse (t=0), wait until t=1000ms
+                }
                 
                 // If this is the first time charging this car, spawn reward coins
                 if (!car.isCharging && !car.rewardCoinsSpawned) {
@@ -1848,7 +1882,7 @@
                 car.currentCharge += chargeAmount;
                 car.isCharging = true;
                 
-                // Show charge display when charging begins
+                // Show charge display when charging begins (in case it was hidden)
                 if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
                     if (car.batteryContainer) car.batteryContainer.setVisible(true);
                 } else {
@@ -1873,10 +1907,22 @@
                 
                 // Check if car is fully charged
                 if (car.currentCharge >= car.chargeRequired) {
-                    // Unassign car from slot before moving it out
+                    // Mark car as waiting for animation to complete
+                    car.waitingForAnimationComplete = true;
+                    
+                    // Unassign car from slot immediately so next car can be assigned
                     slot.assignedCar = null;
+                    slot.assignedAt = null; // Clear timestamp
                     this.chargingAnimationProgress[i] = 0; // Reset animation progress
-                    this.moveOutCar(car);
+                    
+                    // Wait for battery fill and meter animations to complete before moving car
+                    // This allows player to see the final charge animation (0% -> 100%)
+                    // 1000ms gives enough time for smooth fill + needle overshoot/settle
+                    this.time.delayedCall(1000, () => {
+                        car.waitingForAnimationComplete = false;
+                        this.moveOutCar(car);
+                    });
+                    
                     // Try to assign next car to this slot
                     this.assignCarToSlot(i);
                 }
