@@ -1964,13 +1964,7 @@
                 car.currentCharge += chargeAmount;
                 car.isCharging = true;
                 
-                // Show charge display when charging begins (in case it was hidden)
-                if (CONFIG.PARKING_CAR.CHARGE_DISPLAY_MODE === 'value') {
-                    if (car.batteryContainer) car.batteryContainer.setVisible(true);
-                } else {
-                    if (car.chargeBar) car.chargeBar.setVisible(true);
-                    if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
-                }
+                // Battery/meter is already visible from assignCarToSlot - no need to show again
                 
                 // Decrease remaining charge for the level
                 this.remainingCharge = Math.max(0, this.remainingCharge - chargeAmount);
@@ -1992,9 +1986,8 @@
                     // Mark car as waiting for animation to complete
                     car.waitingForAnimationComplete = true;
                     
-                    // Unassign car from slot immediately so next car can be assigned
-                    slot.assignedCar = null;
-                    slot.assignedAt = null; // Clear timestamp
+                    // DON'T unassign car from slot yet - keep it assigned during animation
+                    // This prevents updateChargingSystem() from assigning next car prematurely
                     this.chargingAnimationProgress[i] = 0; // Reset animation progress
                     
                     // Wait for battery fill and meter animations to complete before moving car
@@ -2002,11 +1995,16 @@
                     // 1000ms gives enough time for smooth fill + needle overshoot/settle
                     this.time.delayedCall(1000, () => {
                         car.waitingForAnimationComplete = false;
-                        this.moveOutCar(car);
+                        
+                        // NOW unassign car from slot (before moveOutCar hides battery/meter)
+                        slot.assignedCar = null;
+                        slot.assignedAt = null;
+                        
+                        this.moveOutCar(car); // This hides the battery/meter
+                        
+                        // NO need to call assignCarToSlot here - moveOutCar calls updateMovableCars
+                        // which calls updateChargingSystem, which already assigns the next car
                     });
-                    
-                    // Try to assign next car to this slot
-                    this.assignCarToSlot(i);
                 }
             }
         }

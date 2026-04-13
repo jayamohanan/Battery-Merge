@@ -379,7 +379,7 @@ var CONFIG = {
         THICKNESS_PERCENT: 0.12,        // Gate thickness as percentage of road width (0.12 = 12%)
         CENTER_GAP_PERCENT: 0.16,       // Gap between gates in center as percentage of road width (0.16 = 16%)
         PIVOT_OFFSET: 15,               // Distance pivot point extends beyond road edge (pixels)
-        POLE_RADIUS: 8,                 // Radius of the pole/hinge circle (pixels)
+        POLE_RADIUS: 4,                 // Radius of the pole/hinge circle (pixels)
         POLE_COLOR: 0x555555,           // Gray color for pole
         POLE_BORDER_COLOR: 0x333333,    // Dark gray border for pole
         POLE_BORDER_WIDTH: 2,           // Pole border width (pixels)
