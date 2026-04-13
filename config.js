@@ -313,7 +313,11 @@ var CONFIG = {
         BATTERY_BORDER_WIDTH: 3,        // Border thickness (pixels)
         BATTERY_BORDER_COLOR: 0x333333, // Dark border color
         BATTERY_EMPTY_COLOR: 0xFFFFFF,  // White background for empty area
-        BATTERY_FILL_COLOR: 0x4CAF50,   // Green color for filled area
+        BATTERY_FILL_COLOR: 0x4CAF50,   // Green color for filled area (used when gradient is disabled)
+        BATTERY_USE_GRADIENT: true,     // Use gradient color from red (low) to green (high)
+        BATTERY_GRADIENT_LOW_COLOR: 0xF44336,  // Red color for low charge (0-33%)
+        BATTERY_GRADIENT_MID_COLOR: 0xFFC107,  // Yellow/orange for medium charge (33-66%)
+        BATTERY_GRADIENT_HIGH_COLOR: 0x4CAF50, // Green color for high charge (66-100%)
         BATTERY_CAP_WIDTH: 6,           // Width of battery terminal/cap on right side
         BATTERY_CAP_HEIGHT: 16,         // Height of battery terminal/cap
         BATTERY_CORNER_RADIUS: 4,       // Rounded corner radius for battery body

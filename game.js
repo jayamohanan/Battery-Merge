@@ -1776,10 +1776,37 @@
                 const batteryHeight = CONFIG.PARKING_CAR.BATTERY_ICON_HEIGHT;
                 const fillWidth = (batteryWidth - CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH * 2) * progress;
                 
+                // Determine fill color based on progress
+                let fillColor;
+                if (CONFIG.PARKING_CAR.BATTERY_USE_GRADIENT) {
+                    // Gradient: red (low) -> yellow (mid) -> green (high)
+                    if (progress < 0.33) {
+                        // 0-33%: Red to Yellow
+                        fillColor = this.interpolateColor(
+                            CONFIG.PARKING_CAR.BATTERY_GRADIENT_LOW_COLOR,
+                            CONFIG.PARKING_CAR.BATTERY_GRADIENT_MID_COLOR,
+                            progress / 0.33
+                        );
+                    } else if (progress < 0.66) {
+                        // 33-66%: Yellow to Green
+                        fillColor = this.interpolateColor(
+                            CONFIG.PARKING_CAR.BATTERY_GRADIENT_MID_COLOR,
+                            CONFIG.PARKING_CAR.BATTERY_GRADIENT_HIGH_COLOR,
+                            (progress - 0.33) / 0.33
+                        );
+                    } else {
+                        // 66-100%: Green
+                        fillColor = CONFIG.PARKING_CAR.BATTERY_GRADIENT_HIGH_COLOR;
+                    }
+                } else {
+                    // Use solid color
+                    fillColor = CONFIG.PARKING_CAR.BATTERY_FILL_COLOR;
+                }
+                
                 // Redraw the fill
                 car.batteryFill.clear();
                 if (fillWidth > 0) {
-                    car.batteryFill.fillStyle(CONFIG.PARKING_CAR.BATTERY_FILL_COLOR, 1);
+                    car.batteryFill.fillStyle(fillColor, 1);
                     car.batteryFill.fillRoundedRect(
                         -batteryWidth / 2 + CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH,
                         -batteryHeight / 2 + CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH,
@@ -1816,6 +1843,26 @@
             } else {
                 this.levelChargeText.setColor('#2C5F8D'); // Blue when in progress
             }
+        }
+
+        // Helper function to interpolate between two hex colors
+        interpolateColor(color1, color2, factor) {
+            // Extract RGB components from hex colors
+            const r1 = (color1 >> 16) & 0xFF;
+            const g1 = (color1 >> 8) & 0xFF;
+            const b1 = color1 & 0xFF;
+            
+            const r2 = (color2 >> 16) & 0xFF;
+            const g2 = (color2 >> 8) & 0xFF;
+            const b2 = color2 & 0xFF;
+            
+            // Interpolate each component
+            const r = Math.round(r1 + (r2 - r1) * factor);
+            const g = Math.round(g1 + (g2 - g1) * factor);
+            const b = Math.round(b1 + (b2 - b1) * factor);
+            
+            // Combine back into hex
+            return (r << 16) | (g << 8) | b;
         }
 
         updateMovableCars() {
