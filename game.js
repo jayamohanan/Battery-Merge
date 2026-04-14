@@ -106,6 +106,7 @@
             });
             this.load.image('bolt', 'graphics/bolt_64.png');
             this.load.image('road', 'graphics/road_80.png');
+            this.load.image('boomgate', 'graphics/boomgate.png');
             
             // Load vehicle sound
             this.load.audio('car_idle', 'sounds/car_idle.wav');
@@ -750,6 +751,9 @@
             
             console.log('Road rope created with pre-scaled texture - no rope scaling needed');
             
+            // Add road markings for visual clarity
+            this.drawRoadMarkings(roadWidth, numPoints);
+            
             // Create exit gate at the end of the road
             this.createExitGate(centerX, centerY, halfW, halfH, offset, roadWidth);
             
@@ -835,24 +839,24 @@
             const gateThickness = roadWidth * CONFIG.GATE.THICKNESS_PERCENT; // Gate thickness
             const centerGap = roadWidth * CONFIG.GATE.CENTER_GAP_PERCENT; // Gap documented for reference
             
-            // Create left pole/hinge (circle in top view)
+            // Create left pole/hinge (circle in top view) - orange color
             const leftPoleX = gateX - roadWidth / 2 - pivotOffset;
             this.gateLeftPole = this.add.circle(
                 leftPoleX,
                 gateY,
                 CONFIG.GATE.POLE_RADIUS,
-                CONFIG.GATE.POLE_COLOR
+                0xFF8C00 // Orange color
             );
             this.gateLeftPole.setStrokeStyle(CONFIG.GATE.POLE_BORDER_WIDTH, CONFIG.GATE.POLE_BORDER_COLOR);
             this.gateLeftPole.setDepth(11); // Above gates
             
-            // Create right pole/hinge (circle in top view)
+            // Create right pole/hinge (circle in top view) - orange color
             const rightPoleX = gateX + roadWidth / 2 + pivotOffset;
             this.gateRightPole = this.add.circle(
                 rightPoleX,
                 gateY,
                 CONFIG.GATE.POLE_RADIUS,
-                CONFIG.GATE.POLE_COLOR
+                0xFF8C00 // Orange color
             );
             this.gateRightPole.setStrokeStyle(CONFIG.GATE.POLE_BORDER_WIDTH, CONFIG.GATE.POLE_BORDER_COLOR);
             this.gateRightPole.setDepth(11); // Above gates
@@ -861,14 +865,12 @@
             // Both gates aligned on same horizontal line
             // When closed: horizontal (perpendicular to upward road)
             // Pivots on its outer (left) edge at the pole
-            this.gateLeftDoor = this.add.rectangle(
+            this.gateLeftDoor = this.add.image(
                 leftPoleX, // Pivot at pole position
                 gateY, // Same Y as right gate - horizontally aligned
-                gateLength, // Width extends to road edge + beyond
-                gateThickness, // Thickness
-                CONFIG.GATE.COLOR // Brown color for gate
+                'boomgate' // Use boomgate texture
             );
-            this.gateLeftDoor.setStrokeStyle(CONFIG.GATE.BORDER_WIDTH, CONFIG.GATE.BORDER_COLOR);
+            this.gateLeftDoor.setDisplaySize(gateLength, gateThickness); // Scale to fit dimensions
             this.gateLeftDoor.setDepth(10); // Above road
             this.gateLeftDoor.setOrigin(0, 0.5); // Pivot on left edge (outer edge at pole)
             
@@ -876,14 +878,12 @@
             // Both gates aligned on same horizontal line
             // When closed: horizontal (perpendicular to upward road)
             // Pivots on its outer (right) edge at the pole
-            this.gateRightDoor = this.add.rectangle(
+            this.gateRightDoor = this.add.image(
                 rightPoleX, // Pivot at pole position
                 gateY, // Same Y as left gate - horizontally aligned
-                gateLength, // Width extends to road edge + beyond
-                gateThickness, // Thickness
-                CONFIG.GATE.COLOR // Brown color for gate
+                'boomgate' // Use boomgate texture
             );
-            this.gateRightDoor.setStrokeStyle(CONFIG.GATE.BORDER_WIDTH, CONFIG.GATE.BORDER_COLOR);
+            this.gateRightDoor.setDisplaySize(gateLength, gateThickness); // Scale to fit dimensions
             this.gateRightDoor.setDepth(10); // Above road
             this.gateRightDoor.setOrigin(1, 0.5); // Pivot on right edge (outer edge at pole)
             
@@ -1400,6 +1400,142 @@
             // No top-left corner - the path ends with an exit going upward
             
             return path;
+        }
+
+        // Draw road markings (yellow edge lines and white dashed center line)
+        drawRoadMarkings(roadWidth, numPoints) {
+            const graphics = this.add.graphics();
+            graphics.setDepth(6); // Above road but below cars
+            
+            // Yellow edge line properties
+            const edgeLineWidth = Math.max(2, roadWidth * 0.04); // Scale with road width
+            const edgeInset = roadWidth * 0.08; // Slight inset from road edge
+            const yellowColor = 0xFFD700; // Gold/yellow color
+            
+            // White center line properties
+            const centerLineWidth = Math.max(2, roadWidth * 0.03);
+            const dashLength = roadWidth * 0.3;
+            const gapLength = roadWidth * 0.2;
+            
+            // Use more points for smoother curves (3x the road rope density)
+            const markingPoints = numPoints * 3;
+            
+            // Sample points along the path for drawing markings
+            const points = [];
+            const rawPoints = [];
+            for (let i = 0; i <= markingPoints; i++) {
+                const t = i / markingPoints;
+                const point = this.roadPath.getPoint(t);
+                rawPoints.push(point);
+            }
+            
+            // Calculate normals from consecutive points
+            for (let i = 0; i < rawPoints.length; i++) {
+                const point = rawPoints[i];
+                let tangent;
+                
+                if (i < rawPoints.length - 1) {
+                    // Calculate tangent from current to next point
+                    const nextPoint = rawPoints[i + 1];
+                    tangent = new Phaser.Math.Vector2(
+                        nextPoint.x - point.x,
+                        nextPoint.y - point.y
+                    ).normalize();
+                } else {
+                    // For last point, use tangent from previous to current
+                    const prevPoint = rawPoints[i - 1];
+                    tangent = new Phaser.Math.Vector2(
+                        point.x - prevPoint.x,
+                        point.y - prevPoint.y
+                    ).normalize();
+                }
+                
+                // Calculate perpendicular vector (normal to the path)
+                const normal = new Phaser.Math.Vector2(-tangent.y, tangent.x);
+                
+                points.push({ point, normal });
+            }
+            
+            // Draw outer yellow edge line
+            graphics.lineStyle(edgeLineWidth, yellowColor, 1);
+            const outerOffset = roadWidth / 2 - edgeInset;
+            graphics.beginPath();
+            for (let i = 0; i < points.length; i++) {
+                const { point, normal } = points[i];
+                const outerPoint = new Phaser.Math.Vector2(
+                    point.x + normal.x * outerOffset,
+                    point.y + normal.y * outerOffset
+                );
+                if (i === 0) {
+                    graphics.moveTo(outerPoint.x, outerPoint.y);
+                } else {
+                    graphics.lineTo(outerPoint.x, outerPoint.y);
+                }
+            }
+            graphics.strokePath();
+            
+            // Draw inner yellow edge line
+            graphics.lineStyle(edgeLineWidth, yellowColor, 1);
+            const innerOffset = -roadWidth / 2 + edgeInset;
+            graphics.beginPath();
+            for (let i = 0; i < points.length; i++) {
+                const { point, normal } = points[i];
+                const innerPoint = new Phaser.Math.Vector2(
+                    point.x + normal.x * innerOffset,
+                    point.y + normal.y * innerOffset
+                );
+                if (i === 0) {
+                    graphics.moveTo(innerPoint.x, innerPoint.y);
+                } else {
+                    graphics.lineTo(innerPoint.x, innerPoint.y);
+                }
+            }
+            graphics.strokePath();
+            
+            // Draw dashed white center line
+            graphics.lineStyle(centerLineWidth, 0xFFFFFF, 1);
+            let dashProgress = 0;
+            let isDash = true;
+            let lastPoint = null;
+            
+            for (let i = 0; i < points.length; i++) {
+                const { point } = points[i];
+                
+                if (lastPoint) {
+                    const segmentLength = Phaser.Math.Distance.Between(
+                        lastPoint.x, lastPoint.y, point.x, point.y
+                    );
+                    dashProgress += segmentLength;
+                    
+                    const currentPhaseLength = isDash ? dashLength : gapLength;
+                    
+                    if (dashProgress >= currentPhaseLength) {
+                        isDash = !isDash;
+                        dashProgress = 0;
+                    }
+                }
+                
+                if (isDash) {
+                    if (!lastPoint || !isDash) {
+                        graphics.beginPath();
+                        graphics.moveTo(point.x, point.y);
+                    } else {
+                        graphics.lineTo(point.x, point.y);
+                    }
+                    if (i === points.length - 1 || dashProgress >= dashLength) {
+                        graphics.strokePath();
+                    }
+                }
+                
+                lastPoint = point;
+            }
+            
+            console.log('Road markings drawn:', {
+                edgeLineWidth: edgeLineWidth.toFixed(2),
+                centerLineWidth: centerLineWidth.toFixed(2),
+                dashLength: dashLength.toFixed(2),
+                gapLength: gapLength.toFixed(2)
+            });
         }
 
         getOccupiedCellsForGame(anchorRow, anchorCol, orientation, width, length) {
