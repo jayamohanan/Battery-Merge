@@ -247,6 +247,7 @@ var CONFIG = {
     
     // Charging connection line settings
     CHARGING_CONNECTION: {
+        SLOT_SWITCH_DELAY: 500,         // Delay in milliseconds before a slot switches to charge the next vehicle after completing one (allows player to see completion)
         CORNER_RADIUS: 10,              // Radius for rounded corners in charging connection lines (pixels)
         LINE_WIDTH: 5,                  // Width of charging connection lines (pixels)
         LINE_COLOR: 0x888888,           // Grey color for charging lines

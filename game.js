@@ -24,6 +24,7 @@
             this.chargingAnimationProgress = [0, 0, 0]; // Animation progress for each slot (0 to 1)
             this.chargingPlugHeads = []; // Plug head sprites for each slot
             this.chargingPulseTimestamps = [0, 0, 0]; // Track last charge time for pulse effect
+            this.slotCooldownUntil = [0, 0, 0]; // Timestamp when each slot can be reassigned (0 = no cooldown)
             
             // Vehicle sound management
             this.activeSounds = [];             // Track currently playing vehicle sounds
@@ -483,6 +484,11 @@
             // Each slot works independently - no total rate needed
             // Just ensure all slots with batteries have cars assigned
             for (let i = 0; i < this.chargingSlots.length; i++) {
+                // Skip slots that are on cooldown (waiting for switch delay)
+                if (this.time.now < this.slotCooldownUntil[i]) {
+                    continue;
+                }
+                
                 if (this.chargingSlots[i] !== null && this.chargingSlots[i].assignedCar === null) {
                     this.assignCarToSlot(i);
                 }
@@ -2158,24 +2164,43 @@
                     // Mark car as waiting for animation to complete
                     car.waitingForAnimationComplete = true;
                     
-                    // DON'T unassign car from slot yet - keep it assigned during animation
-                    // This prevents updateChargingSystem() from assigning next car prematurely
-                    this.chargingAnimationProgress[i] = 0; // Reset animation progress
+                    // KEEP CONNECTION VISIBLE - wait for final visual feedback to show
+                    // (battery showing 100%, meter needle reaching max position)
+                    // The updateCarChargeBar will show the final 100% state
                     
-                    // Wait for battery fill and meter animations to complete before moving car
+                    // Wait for battery fill and meter animations to complete (1000ms)
                     // This allows player to see the final charge animation (0% -> 100%)
-                    // 1000ms gives enough time for smooth fill + needle overshoot/settle
+                    // and needle overshoot/settle at max position
                     this.time.delayedCall(1000, () => {
-                        car.waitingForAnimationComplete = false;
+                        // NOW the connection is complete - disconnect everything together
+                        // CONNECTION DISCONNECTION: Remove all connection elements as one unit
+                        // (wire + battery progress bar + meter are all parts of the connection)
                         
-                        // NOW unassign car from slot (before moveOutCar hides battery/meter)
+                        // 1. Hide connection wire
+                        this.chargingAnimationProgress[i] = 0;
+                        
+                        // 2. Hide battery progress bar/icon (part of connection)
+                        if (car.batteryContainer) car.batteryContainer.setVisible(false);
+                        if (car.chargeBar) car.chargeBar.setVisible(false);
+                        if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
+                        
+                        // 3. Unassign car from slot
                         slot.assignedCar = null;
                         slot.assignedAt = null;
                         
-                        this.moveOutCar(car); // This hides the battery/meter
+                        // Set cooldown - slot waits SLOT_SWITCH_DELAY before connecting to next vehicle
+                        this.slotCooldownUntil[i] = this.time.now + CONFIG.CHARGING_CONNECTION.SLOT_SWITCH_DELAY;
                         
-                        // NO need to call assignCarToSlot here - moveOutCar calls updateMovableCars
-                        // which calls updateChargingSystem, which already assigns the next car
+                        // NOW car can move out (connection is fully disconnected)
+                        car.waitingForAnimationComplete = false;
+                        this.moveOutCar(car);
+                        
+                        // Schedule next car assignment after cooldown expires
+                        // This ensures the slot connects to the next vehicle exactly after SLOT_SWITCH_DELAY
+                        // rather than waiting for the next chargeCycle (which runs every 1000ms)
+                        this.time.delayedCall(CONFIG.CHARGING_CONNECTION.SLOT_SWITCH_DELAY, () => {
+                            this.assignCarToSlot(i);
+                        });
                     });
                 }
             }
@@ -2415,10 +2440,8 @@
             // Update movable cars immediately so next car can start charging
             this.updateMovableCars();
             
-            // Hide charge display
-            if (car.chargeBar) car.chargeBar.setVisible(false);
-            if (car.chargeBarBg) car.chargeBarBg.setVisible(false);
-            if (car.batteryContainer) car.batteryContainer.setVisible(false);
+            // Note: Battery/meter/connection already hidden when charging completed
+            // No need to hide again here
             
             // Calculate exit options in both directions BEFORE making any move
             const stepsToExitForward = this.calculateStepsToExit(car);
