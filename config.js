@@ -19,8 +19,8 @@ var CONFIG = {
     // Game Area Background Colors
     BACKGROUND: {
         // Vibrant Poki-style casual game colors with gradient
-        GRADIENT_START_COLOR: "#c7a8ff",  // Light purple at top
-        GRADIENT_END_COLOR: "#be9dff",    // Bright turquoise at bottom
+        GRADIENT_START_COLOR: "#94E1FF",  // Light purple at top
+        GRADIENT_END_COLOR: "#CFF5FF",    // Bright turquoise at bottom
     },
     
     // UI Button Configuration
@@ -96,7 +96,7 @@ var CONFIG = {
     // The parking jam grid uses responsive sizing based on GRID.WIDTH_PERCENTAGE
     CELL: {
         SIZE: 110,                      // Cell width and height in pixels (used for merge game grid)
-        GAP: 5,                        // Gap between cells (used for merge game grid)
+        GAP: 2,                        // Gap between cells (used for merge game grid)
         RADIUS: 15,                     // Rounded corner radius (used for merge game grid)
         
         // Inset look styling (creates recessed appearance)
