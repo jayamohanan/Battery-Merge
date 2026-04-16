@@ -7,6 +7,14 @@ var CONFIG = {
     BATTERY_START_LEVEL: 1,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
     BATTERY_IMAGE_EXTENSIONS: ['svg', 'png', 'jpg', 'webp'],  // Priority order for battery image extensions
     
+    // Game Area Background Colors
+    BACKGROUND: {
+        // TOP_HALF_COLOR: 0x5fa061,      // Parking jam area background (top 50%)
+        // TOP_HALF_COLOR: 0x6d926d,      // Parking jam area background (top 50%)
+        TOP_HALF_COLOR: "#5c7f5c",      // Parking jam area background (top 50%)
+        BOTTOM_HALF_COLOR: "#6d7c92",   // Merge game area background (bottom 50%)
+    },
+    
     // UI Button Configuration
     BUTTON: {
         // Spawn button
@@ -83,9 +91,16 @@ var CONFIG = {
         SIZE: 110,                      // Cell width and height in pixels (used for merge game grid)
         GAP: 5,                        // Gap between cells (used for merge game grid)
         RADIUS: 15,                     // Rounded corner radius (used for merge game grid)
-        BORDER_COLOR: 0xBBDDEE,        // Empty cell border color
+        
+        // Inset look styling (creates recessed appearance)
+        EMPTY_BG_COLOR: 0xE8E8E8,      // Light gray background for empty cells
+        FILLED_BG_COLOR: 0xFAFAFA,     // Almost white for occupied cells (brighter)
+        INSET_SHADOW_COLOR: 0x999999,  // Dark gray for outer shadow (creates depth)
+        INSET_BORDER_WIDTH: 4.5,       // Width of inset border (50% more than original 3)
+        
+        // Legacy border (deprecated - using inset styling instead)
+        BORDER_COLOR: 0xBBDDEE,        // Empty cell border color (not used with inset)
         BORDER_WIDTH: 3,                // Border width
-        FILLED_BG_COLOR: 0xFFFFFF,     // Background color when cell has a battery
         
         // Battery icon configuration
         BATTERY_DISPLAY_SIZE: 64,      // Fixed display size in pixels (all batteries shown at this size regardless of source image dimensions)

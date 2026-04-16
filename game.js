@@ -127,7 +127,7 @@
             
             // Top half: Parking Jam area (0 to 50%)
             const parkingHeight = sceneHeight * 0.5;
-            const parkingBg = this.add.rectangle(sceneWidth / 2, parkingHeight / 2, sceneWidth, parkingHeight, 0xE8F4F8);
+            const parkingBg = this.add.rectangle(sceneWidth / 2, parkingHeight / 2, sceneWidth, parkingHeight, CONFIG.BACKGROUND.TOP_HALF_COLOR);
             parkingBg.setDepth(0); // Background layer
             
             // Title for parking area - showing remaining charge
@@ -140,7 +140,7 @@
             this.levelChargeText.setDepth(100);
             
             // Bottom half: Merge section background (50% to 100%)
-            const mergeBg = this.add.rectangle(sceneWidth / 2, sceneHeight * 0.75, sceneWidth, sceneHeight * 0.5, 0xEEF5F8);
+            const mergeBg = this.add.rectangle(sceneWidth / 2, sceneHeight * 0.75, sceneWidth, sceneHeight * 0.5, CONFIG.BACKGROUND.BOTTOM_HALF_COLOR);
             mergeBg.setDepth(0); // Background layer
             
             // Create 3 charging slots (moved to top of bottom half, just below parking area)
@@ -3978,10 +3978,12 @@ for (let t = 0; t <= 1; t += 0.002) {
                     const x = this.gridStartX + col * (this.CELL_SIZE + this.CELL_GAP);
                     const y = this.gridStartY + row * (this.CELL_SIZE + this.CELL_GAP);
                     
-                    // Empty cell background (rounded rectangle)
-                    const cell = this.add.graphics();
-                    cell.lineStyle(CONFIG.CELL.BORDER_WIDTH, CONFIG.CELL.BORDER_COLOR, 1);
-                    cell.strokeRoundedRect(
+                    // Create inset look for empty cell
+                    const emptyCell = this.add.graphics();
+                    
+                    // Outer shadow border (creates recessed/inset effect)
+                    emptyCell.fillStyle(CONFIG.CELL.INSET_SHADOW_COLOR, 1);
+                    emptyCell.fillRoundedRect(
                         x - this.CELL_SIZE / 2,
                         y - this.CELL_SIZE / 2,
                         this.CELL_SIZE,
@@ -3989,9 +3991,22 @@ for (let t = 0; t <= 1; t += 0.002) {
                         this.CELL_RADIUS
                     );
                     
-                    // Filled cell background (hidden initially)
+                    // Inner fill (lighter, creating depth)
+                    const inset = CONFIG.CELL.INSET_BORDER_WIDTH;
+                    emptyCell.fillStyle(CONFIG.CELL.EMPTY_BG_COLOR, 1);
+                    emptyCell.fillRoundedRect(
+                        x - this.CELL_SIZE / 2 + inset,
+                        y - this.CELL_SIZE / 2 + inset,
+                        this.CELL_SIZE - inset * 2,
+                        this.CELL_SIZE - inset * 2,
+                        this.CELL_RADIUS - inset
+                    );
+                    
+                    // Create inset look for filled cell (when battery is present)
                     const filledBg = this.add.graphics();
-                    filledBg.fillStyle(CONFIG.CELL.FILLED_BG_COLOR, 1);
+                    
+                    // Outer shadow border (same as empty for consistency)
+                    filledBg.fillStyle(CONFIG.CELL.INSET_SHADOW_COLOR, 1);
                     filledBg.fillRoundedRect(
                         x - this.CELL_SIZE / 2,
                         y - this.CELL_SIZE / 2,
@@ -3999,6 +4014,17 @@ for (let t = 0; t <= 1; t += 0.002) {
                         this.CELL_SIZE,
                         this.CELL_RADIUS
                     );
+                    
+                    // Inner fill (brighter almost-white for occupied cells)
+                    filledBg.fillStyle(CONFIG.CELL.FILLED_BG_COLOR, 1);
+                    filledBg.fillRoundedRect(
+                        x - this.CELL_SIZE / 2 + inset,
+                        y - this.CELL_SIZE / 2 + inset,
+                        this.CELL_SIZE - inset * 2,
+                        this.CELL_SIZE - inset * 2,
+                        this.CELL_RADIUS - inset
+                    );
+                    
                     filledBg.setVisible(false);
                     
                     this.gridCells[row][col] = {
@@ -4007,7 +4033,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                         row: row,
                         col: col,
                         isEmpty: true,
-                        cell: cell,
+                        cell: emptyCell,
                         filledBg: filledBg
                     };
                 }
@@ -5057,7 +5083,8 @@ for (let t = 0; t <= 1; t += 0.002) {
     const config = {
         type: Phaser.AUTO,
         parent: 'game-container',
-        backgroundColor: '#EEF5F8',
+        // backgroundColor: '#EEF5F8',
+        backgroundColor: '#6381bd',
         scene: [GameScene],
         
         physics: {
