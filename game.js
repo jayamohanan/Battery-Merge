@@ -108,6 +108,7 @@
             this.load.image('bolt', 'graphics/bolt_64.png');
             this.load.image('road', 'graphics/road_80.png');
             this.load.image('boomgate', 'graphics/boomgate.png');
+            // this.load.image('parking_tile', 'graphics/parking_tile.png'); // Disabled - using solid color
             
             // Load vehicle sound
             this.load.audio('car_idle', 'sounds/car_idle.wav');
@@ -763,38 +764,16 @@
             // Create exit gate at the end of the road
             this.createExitGate(centerX, centerY, halfW, halfH, offset, roadWidth);
             
-            // Draw parking area with subtle checkerboard pattern for visual texture
-            // Define two subtle color variations - noticeable texture but not stark chessboard
-            const baseColor = 0xF4F8FC;        // Very light blue-white (lighter cell)
-            const altColor = 0xEEF4FA;         // Subtle variation - about 4-6 RGB units different
-            
-            // Draw individual cells with alternating pattern
-            const cellSize = this.gridConfig.cellSize;
-            const cols = this.gridConfig.cols;
-            const rows = this.gridConfig.rows;
-            
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < cols; col++) {
-                    // Checkerboard pattern: alternate based on row + col
-                    const isEvenCell = (row + col) % 2 === 0;
-                    const cellColor = isEvenCell ? baseColor : altColor;
-                    
-                    // Calculate cell position
-                    const cellX = this.parkingLeft + col * cellSize + cellSize / 2;
-                    const cellY = this.parkingTop + row * cellSize + cellSize / 2;
-                    
-                    // Draw cell background with subtle color variation
-                    const cell = this.add.rectangle(
-                        cellX,
-                        cellY,
-                        cellSize,
-                        cellSize,
-                        cellColor,
-                        parkingData.alpha
-                    );
-                    cell.setDepth(3);
-                }
-            }
+            // Draw parking area with solid color from CONFIG
+            const parkingFloor = this.add.rectangle(
+                centerX,
+                centerY,
+                parkingWidth,
+                parkingHeight,
+                CONFIG.GRID.PARKING_AREA_COLOR,
+                parkingData.alpha
+            );
+            parkingFloor.setDepth(3);
             
             // Draw border around entire parking area
             const parkingBorder = this.add.rectangle(
@@ -808,12 +787,10 @@
             parkingBorder.setStrokeStyle(parkingData.borderWidth, parkingData.borderColor);
             parkingBorder.setDepth(3);
             
-            console.log('Parking area created with checkerboard pattern:', {
+            console.log('Parking area created with solid color:', {
                 position: { x: centerX, y: centerY },
                 dimensions: { width: parkingWidth, height: parkingHeight },
-                cells: { cols, rows },
-                cellSize: cellSize.toFixed(2),
-                colors: { base: baseColor.toString(16), alt: altColor.toString(16) },
+                color: '0x' + CONFIG.GRID.PARKING_AREA_COLOR.toString(16),
                 depth: 3,
                 alpha: parkingData.alpha
             });
@@ -3862,7 +3839,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                 fontSize: CONFIG.COIN_COUNTER.TEXT_SIZE,
                 fontFamily: CONFIG.FONT_FAMILY,
                 color: CONFIG.COIN_COUNTER.TEXT_COLOR,
-                fontStyle: 'bold'
+                fontStyle: 'bold',
+                stroke: CONFIG.COIN_COUNTER.TEXT_STROKE_COLOR,
+                strokeThickness: CONFIG.COIN_COUNTER.TEXT_STROKE_THICKNESS
             }).setOrigin(1, 0.5);  // Right-aligned
         }
         

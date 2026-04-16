@@ -56,6 +56,11 @@ var CONFIG = {
         // Grid dimensions
         PARKING_COLS: 6,               // Number of columns in parking jam grid (can be overridden by level data)
         PARKING_ROWS: 6,               // Number of rows in parking jam grid (can be overridden by level data)
+        
+        // Parking area appearance
+        // PARKING_AREA_COLOR: 0xF4F8FC,  // Solid color for parking area floor (0xF4F8FC = light blue-white)
+        PARKING_AREA_COLOR: 0xCAD3E2,  // Solid color for parking area floor (0xCAD3E2 = light blue-gray)
+        TILE_TO_GRID_RATIO: 1,         // Number of tiles per grid cell (used when texture is enabled)
     },
     
     // Coin Counter Display (above grid, top-right)
@@ -64,6 +69,8 @@ var CONFIG = {
         PADDING_FROM_SCREEN_RIGHT: 20, // Padding from right edge of screen (pixels) - ensures visibility on mobile
         TEXT_SIZE: '48px',             // Font size for coin count text
         TEXT_COLOR: '#FFD700',         // Gold color for text
+        TEXT_STROKE_COLOR: '#000000',  // Black outline color for text
+        TEXT_STROKE_THICKNESS: 6,      // Outline thickness (pixels)
         COIN_ICON_WIDTH: 40,           // Coin icon display width (pixels)
         COIN_ICON_HEIGHT: 40,          // Coin icon display height (pixels)
         TEXT_ICON_SPACING: 10,         // Spacing between text and coin icon (pixels)
@@ -377,7 +384,7 @@ var CONFIG = {
     GATE: {
         POSITION_Y_FACTOR: 0.2,         // Gate position along exit tail (0 = bottom of tail, 0.5 = middle, 1 = top of tail)
         LENGTH_PERCENT: 0.42,           // Each gate length as percentage of road width (0.42 = 42%, leaves 16% gap)
-        THICKNESS_PERCENT: 0.12,        // Gate thickness as percentage of road width (0.12 = 12%)
+        THICKNESS_PERCENT: 0.24,        // Gate thickness as percentage of road width (0.24 = 24%, doubled from 0.12)
         CENTER_GAP_PERCENT: 0.16,       // Gap between gates in center as percentage of road width (0.16 = 16%)
         PIVOT_OFFSET: 15,               // Distance pivot point extends beyond road edge (pixels)
         POLE_RADIUS: 4,                 // Radius of the pole/hinge circle (pixels)
