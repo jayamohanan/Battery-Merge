@@ -1,3 +1,12 @@
+// Helper function to convert CSS hex color to Phaser hex format
+// Usage: hexColor("#RRGGBB") returns 0xRRGGBB
+function hexColor(cssColor) {
+    if (typeof cssColor === 'string' && cssColor.startsWith('#')) {
+        return parseInt(cssColor.substring(1), 16);
+    }
+    return cssColor; // Return as-is if not a CSS color string
+}
+
 // Shared config for dimensions and layout
 var CONFIG = {
     FONT_FAMILY: 'Arial',
@@ -12,7 +21,7 @@ var CONFIG = {
         // TOP_HALF_COLOR: 0x5fa061,      // Parking jam area background (top 50%)
         // TOP_HALF_COLOR: 0x6d926d,      // Parking jam area background (top 50%)
         TOP_HALF_COLOR: "#5c7f5c",      // Parking jam area background (top 50%)
-        BOTTOM_HALF_COLOR: "#6d7c92",   // Merge game area background (bottom 50%)
+        BOTTOM_HALF_COLOR: "#6480BD",   // Merge game area background (bottom 50%)
     },
     
     // UI Button Configuration
@@ -20,15 +29,15 @@ var CONFIG = {
         // Spawn button
         SPAWN_WIDTH: 250,              // Width of spawn button
         SPAWN_HEIGHT: 90,              // Height of spawn button
-        SPAWN_COLOR: 0x4CAF50,         // Green background color
-        SPAWN_BORDER_COLOR: 0x2E7D32,  // Dark green border
+        SPAWN_COLOR: "#4CAF50",         // Green background color
+        SPAWN_BORDER_COLOR: "#2E7D32",  // Dark green border
         SPAWN_BORDER_WIDTH: 8,         // Border width
         
         // Level-up button
         LEVELUP_WIDTH: 180,            // Width of level-up button
         LEVELUP_HEIGHT: 70,            // Height of level-up button
-        LEVELUP_COLOR: 0xFF9800,       // Orange background color
-        LEVELUP_BORDER_COLOR: 0xE65100, // Dark orange border
+        LEVELUP_COLOR: "#FF9800",       // Orange background color
+        LEVELUP_BORDER_COLOR: "#E65100", // Dark orange border
         LEVELUP_BORDER_WIDTH: 4,       // Border width
         
         // Button positioning
@@ -67,7 +76,7 @@ var CONFIG = {
         
         // Parking area appearance
         // PARKING_AREA_COLOR: 0xF4F8FC,  // Solid color for parking area floor (0xF4F8FC = light blue-white)
-        PARKING_AREA_COLOR: 0xCAD3E2,  // Solid color for parking area floor (0xCAD3E2 = light blue-gray)
+        PARKING_AREA_COLOR: "#CAD3E2",  // Solid color for parking area floor
         TILE_TO_GRID_RATIO: 1,         // Number of tiles per grid cell (used when texture is enabled)
     },
     
@@ -93,13 +102,13 @@ var CONFIG = {
         RADIUS: 15,                     // Rounded corner radius (used for merge game grid)
         
         // Inset look styling (creates recessed appearance)
-        EMPTY_BG_COLOR: 0xE8E8E8,      // Light gray background for empty cells
-        FILLED_BG_COLOR: 0xFAFAFA,     // Almost white for occupied cells (brighter)
-        INSET_SHADOW_COLOR: 0x999999,  // Dark gray for outer shadow (creates depth)
+        EMPTY_BG_COLOR: "#E8E8E8",      // Light gray background for empty cells
+        FILLED_BG_COLOR: "#FAFAFA",     // Almost white for occupied cells (brighter)
+        INSET_SHADOW_COLOR: "#999999",  // Dark gray for outer shadow (creates depth)
         INSET_BORDER_WIDTH: 4.5,       // Width of inset border (50% more than original 3)
         
         // Legacy border (deprecated - using inset styling instead)
-        BORDER_COLOR: 0xBBDDEE,        // Empty cell border color (not used with inset)
+        BORDER_COLOR: "#BBDDEE",        // Empty cell border color (not used with inset)
         BORDER_WIDTH: 3,                // Border width
         
         // Battery icon configuration
@@ -113,7 +122,7 @@ var CONFIG = {
         LEVEL_TEXT_Y_OFFSET: -40,      // Offset from battery center (negative = above)
         
         // Draggable background for cell contents (debug)
-        DRAGGABLE_BG_COLOR: 0xffffff,  // Color of draggable area (0xffffff = white, 0xff0000 = red)
+        DRAGGABLE_BG_COLOR: "#FFFFFF",  // Color of draggable area
         DRAGGABLE_BG_ALPHA: 0,         // Transparency (0 = invisible, 0.3 = semi-transparent, 1 = opaque)
     },
     
@@ -191,8 +200,8 @@ var CONFIG = {
         FRICTION: 0.8,              // Friction between box and ground (0-1, higher = more resistance)
         BOX_FRICTION: 0.5,          // Box surface friction (affects how easily it slides)
         OFFSET_X: 200,              // Distance in front of car (from car's starting position)
-        COLOR: 0x8B4513,            // Brown color for the box
-        BORDER_COLOR: 0x654321,     // Darker brown for border
+        COLOR: "#8B4513",            // Brown color for the box
+        BORDER_COLOR: "#654321",     // Darker brown for border
         BORDER_WIDTH: 3,            // Border width in pixels
     },
     
@@ -250,7 +259,7 @@ var CONFIG = {
     // Pointer animation settings (for tutorial overlay)
     POINTER: {
         SCALE: 1,                   // Scale of point.png image
-        TINT: 0x808080,                // Grey tint color (0x808080 = grey)
+        TINT: "#808080",                // Grey tint color
         OFFSET_Y: 20,                  // Pixels below button center where top of pointer appears
         ANIMATION_MOVE_UP: 8,          // Pixels to move up during click animation
         ANIMATION_SCALE_DOWN: 0.9,     // Scale multiplier during click (0.9 = 10% smaller)
@@ -272,7 +281,7 @@ var CONFIG = {
         SLOT_SWITCH_DELAY: 500,         // Delay in milliseconds before a slot switches to charge the next vehicle after completing one (allows player to see completion)
         CORNER_RADIUS: 10,              // Radius for rounded corners in charging connection lines (pixels)
         LINE_WIDTH: 5,                  // Width of charging connection lines (pixels)
-        LINE_COLOR: 0x888888,           // Grey color for charging lines
+        LINE_COLOR: "#888888",           // Grey color for charging lines
         LINE_ALPHA: 0.5,                // Transparency of charging lines (0-1, 0.5 = 50%)
         SLOT_DISTANCES: [20, 35, 50],   // Vertical step distance for each slot (slot 0, 1, 2)
         
@@ -334,13 +343,13 @@ var CONFIG = {
         BATTERY_ICON_WIDTH: 80,         // Width of battery icon (pixels)
         BATTERY_ICON_HEIGHT: 30,        // Height of battery icon (pixels)
         BATTERY_BORDER_WIDTH: 3,        // Border thickness (pixels)
-        BATTERY_BORDER_COLOR: 0x333333, // Dark border color
-        BATTERY_EMPTY_COLOR: 0xFFFFFF,  // White background for empty area
-        BATTERY_FILL_COLOR: 0x4CAF50,   // Green color for filled area (used when gradient is disabled)
+        BATTERY_BORDER_COLOR: "#333333", // Dark border color
+        BATTERY_EMPTY_COLOR: "#FFFFFF",  // White background for empty area
+        BATTERY_FILL_COLOR: "#4CAF50",   // Green color for filled area (used when gradient is disabled)
         BATTERY_USE_GRADIENT: true,     // Use gradient color from red (low) to green (high)
-        BATTERY_GRADIENT_LOW_COLOR: 0xF44336,  // Red color for low charge (0-33%)
-        BATTERY_GRADIENT_MID_COLOR: 0xFFC107,  // Yellow/orange for medium charge (33-66%)
-        BATTERY_GRADIENT_HIGH_COLOR: 0x4CAF50, // Green color for high charge (66-100%)
+        BATTERY_GRADIENT_LOW_COLOR: "#F44336",  // Red color for low charge (0-33%)
+        BATTERY_GRADIENT_MID_COLOR: "#FFC107",  // Yellow/orange for medium charge (33-66%)
+        BATTERY_GRADIENT_HIGH_COLOR: "#4CAF50", // Green color for high charge (66-100%)
         BATTERY_CAP_WIDTH: 6,           // Width of battery terminal/cap on right side
         BATTERY_CAP_HEIGHT: 16,         // Height of battery terminal/cap
         BATTERY_CORNER_RADIUS: 4,       // Rounded corner radius for battery body
@@ -351,10 +360,10 @@ var CONFIG = {
         ANALOG_METER_RADIUS: 35,        // Radius of the meter arc (pixels)
         ANALOG_METER_OFFSET_Y: -30,     // Offset above battery icon (negative = above)
         ANALOG_METER_ARC_WIDTH: 3,      // Width of the semi-circle arc line
-        ANALOG_METER_ARC_COLOR: 0x333333, // Color of the arc
+        ANALOG_METER_ARC_COLOR: "#333333", // Color of the arc
         ANALOG_METER_NEEDLE_LENGTH: 28, // Length of the needle (slightly shorter than radius)
         ANALOG_METER_NEEDLE_WIDTH: 2,   // Width of the needle line
-        ANALOG_METER_NEEDLE_COLOR: 0xE53935, // Red color for needle
+        ANALOG_METER_NEEDLE_COLOR: "#E53935", // Red color for needle
         ANALOG_METER_MAX_ANGLE: 160,    // Maximum angle for full charge (degrees, 0=left, 180=right)
         ANALOG_METER_MARKER_INTERVAL: 20, // Interval between scale markers (degrees)
         ANALOG_METER_MARKER_LENGTH: 6,  // Length of scale markers
@@ -370,7 +379,7 @@ var CONFIG = {
         SCALE_X: 0.85,                  // Horizontal scale relative to car width (0.85 = slightly smaller than car)
         SCALE_Y: 0.85,                  // Vertical scale relative to car length (0.85 = slightly smaller than car)
         ALPHA: 0.3,                    // Shadow transparency (0.08 = very transparent, higher = darker)
-        COLOR: 0x555555,                // Shadow color (gray)
+        COLOR: "#555555",                // Shadow color (gray)
         OFFSET_X: -5,                   // Horizontal offset from car center (sun from SE: negative = shadow to west)
         OFFSET_Y: -5,                   // Vertical offset from car center (sun from SE: negative = shadow to north)
         DEPTH: 4,                       // Render depth (4 = below road at 5, below cars at 10)
@@ -383,7 +392,7 @@ var CONFIG = {
         ENABLED: true,                  // Enable tire track rendering
         SHOW_FORWARD_TURN: false,       // Show tire marks during forward exit turn (if false, only show during reverse turn)
         LINE_WIDTH: 6,                  // Thickness of tire track lines
-        COLOR: 0x888888,                // Gray color for tire marks
+        COLOR: "#888888",                // Gray color for tire marks
         ALPHA: 0.3,                     // Transparency (0.4 = 40% visible, like faded mud marks)
         WHEEL_OFFSET: 10,               // Distance from car center to each tire track (perpendicular to car direction)
         MAX_POINTS: 200,                // Maximum number of points to track per tire (prevents memory issues)
@@ -403,13 +412,13 @@ var CONFIG = {
         CENTER_GAP_PERCENT: 0.16,       // Gap between gates in center as percentage of road width (0.16 = 16%)
         PIVOT_OFFSET: 15,               // Distance pivot point extends beyond road edge (pixels)
         POLE_RADIUS: 4,                 // Radius of the pole/hinge circle (pixels)
-        POLE_COLOR: 0x555555,           // Gray color for pole
-        POLE_BORDER_COLOR: 0x333333,    // Dark gray border for pole
+        POLE_COLOR: "#555555",           // Gray color for pole
+        POLE_BORDER_COLOR: "#333333",    // Dark gray border for pole
         POLE_BORDER_WIDTH: 2,           // Pole border width (pixels)
         OPEN_DURATION: 400,             // Animation duration for opening/closing (milliseconds)
         PROXIMITY_RADIUS: 150,          // Distance to detect vehicles approaching gate (pixels)
-        COLOR: 0x8B4513,                // Gate color (brown)
-        BORDER_COLOR: 0x654321,         // Gate border color (dark brown)
+        COLOR: "#8B4513",                // Gate color (brown)
+        BORDER_COLOR: "#654321",         // Gate border color (dark brown)
         BORDER_WIDTH: 3,                // Gate border width (pixels)
     },
     
@@ -424,20 +433,20 @@ var CONFIG = {
         GRID_COLS: 12,                  // Number of columns in parking grid
         GRID_ROWS: 12,                  // Number of rows in parking grid
         // NOTE: CELL_SIZE is calculated dynamically as (screenWidth * GRID_WIDTH_PERCENT * ZOOM_FACTOR) / GRID_COLS
-        GRID_LINE_COLOR: 0xCCCCCC,     // Grid line color
+        GRID_LINE_COLOR: "#CCCCCC",     // Grid line color
         GRID_LINE_WIDTH: 2,            // Grid line thickness
         GRID_LINE_ALPHA: 0.5,          // Grid line transparency
         
         // Parking area (automatically calculated from grid)
-        PARKING_COLOR: 0xEEEEEE,       // Light grey color for parking area
+        PARKING_COLOR: "#EEEEEE",       // Light grey color for parking area
         PARKING_ALPHA: 1.0,            // Parking area transparency (0-1)
-        PARKING_BORDER_COLOR: 0x666666, // Dark grey border
+        PARKING_BORDER_COLOR: "#666666", // Dark grey border
         PARKING_BORDER_WIDTH: 3,       // Border thickness
         
         // Road (automatically calculated from cell size)
         // NOTE: ROAD_WIDTH is calculated as cellSize * ROAD_WIDTH_CELL_PERCENT * ZOOM_FACTOR
-        ROAD_COLOR: 0x555555,          // Dark grey color for road center line
-        ROAD_FILL_COLOR: 0x777777,     // Road surface color
+        ROAD_COLOR: "#555555",          // Dark grey color for road center line
+        ROAD_FILL_COLOR: "#777777",     // Road surface color
         ROAD_FILL_ALPHA: 0.7,          // Road transparency
         
         // Road corner radii (for curved corners)

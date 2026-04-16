@@ -127,7 +127,7 @@
             
             // Top half: Parking Jam area (0 to 50%)
             const parkingHeight = sceneHeight * 0.5;
-            const parkingBg = this.add.rectangle(sceneWidth / 2, parkingHeight / 2, sceneWidth, parkingHeight, CONFIG.BACKGROUND.TOP_HALF_COLOR);
+            const parkingBg = this.add.rectangle(sceneWidth / 2, parkingHeight / 2, sceneWidth, parkingHeight, hexColor(CONFIG.BACKGROUND.TOP_HALF_COLOR));
             parkingBg.setDepth(0); // Background layer
             
             // Title for parking area - showing remaining charge
@@ -140,7 +140,7 @@
             this.levelChargeText.setDepth(100);
             
             // Bottom half: Merge section background (50% to 100%)
-            const mergeBg = this.add.rectangle(sceneWidth / 2, sceneHeight * 0.75, sceneWidth, sceneHeight * 0.5, CONFIG.BACKGROUND.BOTTOM_HALF_COLOR);
+            const mergeBg = this.add.rectangle(sceneWidth / 2, sceneHeight * 0.75, sceneWidth, sceneHeight * 0.5, hexColor(CONFIG.BACKGROUND.BOTTOM_HALF_COLOR));
             mergeBg.setDepth(0); // Background layer
             
             // Create 3 charging slots (moved to top of bottom half, just below parking area)
@@ -304,7 +304,7 @@
                 plugHead.setDisplaySize(plugSize, plugSize);
                 plugHead.setOrigin(0.5, 1); // Origin at bottom center (so bottom is at line end)
                 plugHead.setDepth(9); // Above charging lines (8), below cars (10)
-                plugHead.setTint(CONFIG.CHARGING_CONNECTION.LINE_COLOR); // Same color as charging line
+                plugHead.setTint(hexColor(CONFIG.CHARGING_CONNECTION.LINE_COLOR)); // Same color as charging line
                 plugHead.setAlpha(CONFIG.CHARGING_CONNECTION.LINE_ALPHA); // Same transparency as line
                 plugHead.setVisible(false);
                 this.chargingPlugHeads.push(plugHead);
@@ -770,7 +770,7 @@
                 centerY,
                 parkingWidth,
                 parkingHeight,
-                CONFIG.GRID.PARKING_AREA_COLOR,
+                hexColor(CONFIG.GRID.PARKING_AREA_COLOR),
                 parkingData.alpha
             );
             parkingFloor.setDepth(3);
@@ -790,7 +790,7 @@
             console.log('Parking area created with solid color:', {
                 position: { x: centerX, y: centerY },
                 dimensions: { width: parkingWidth, height: parkingHeight },
-                color: '0x' + CONFIG.GRID.PARKING_AREA_COLOR.toString(16),
+                color: CONFIG.GRID.PARKING_AREA_COLOR,
                 depth: 3,
                 alpha: parkingData.alpha
             });
@@ -828,9 +828,9 @@
                 leftPoleX,
                 gateY,
                 CONFIG.GATE.POLE_RADIUS,
-                0xFF8C00 // Orange color
+                hexColor(CONFIG.GATE.POLE_COLOR) // Orange color
             );
-            this.gateLeftPole.setStrokeStyle(CONFIG.GATE.POLE_BORDER_WIDTH, CONFIG.GATE.POLE_BORDER_COLOR);
+            this.gateLeftPole.setStrokeStyle(CONFIG.GATE.POLE_BORDER_WIDTH, hexColor(CONFIG.GATE.POLE_BORDER_COLOR));
             this.gateLeftPole.setDepth(11); // Above gates
             
             // Create right pole/hinge (circle in top view) - orange color
@@ -839,9 +839,9 @@
                 rightPoleX,
                 gateY,
                 CONFIG.GATE.POLE_RADIUS,
-                0xFF8C00 // Orange color
+                hexColor(CONFIG.GATE.POLE_COLOR) // Orange color
             );
-            this.gateRightPole.setStrokeStyle(CONFIG.GATE.POLE_BORDER_WIDTH, CONFIG.GATE.POLE_BORDER_COLOR);
+            this.gateRightPole.setStrokeStyle(CONFIG.GATE.POLE_BORDER_WIDTH, hexColor(CONFIG.GATE.POLE_BORDER_COLOR));
             this.gateRightPole.setDepth(11); // Above gates
             
             // Create left gate door (starts at left pole, extends toward center)
@@ -1068,7 +1068,7 @@
                 // Set line style from config with pulsing alpha
                 this.chargingConnectionsGraphics.lineStyle(
                     CONFIG.CHARGING_CONNECTION.LINE_WIDTH, 
-                    CONFIG.CHARGING_CONNECTION.LINE_COLOR, 
+                    hexColor(CONFIG.CHARGING_CONNECTION.LINE_COLOR), 
                     lineAlpha
                 );
                 
@@ -1309,7 +1309,7 @@
                     // Position plug head at adjusted point B (bottom of plug at end of line)
                     plugHead.x = adjustedPointB.x;
                     plugHead.y = adjustedPointB.y; // Origin is at bottom, so this puts bottom at line end
-                    plugHead.setTint(CONFIG.CHARGING_CONNECTION.LINE_COLOR); // Ensure tint matches line color
+                    plugHead.setTint(hexColor(CONFIG.CHARGING_CONNECTION.LINE_COLOR)); // Ensure tint matches line color
                     plugHead.setAlpha(plugAlpha); // Apply pulse alpha (matches line alpha)
                     plugHead.setVisible(true);
                 } else if (plugHead) {
@@ -1663,7 +1663,7 @@
                     const layerAlpha = (CONFIG.VEHICLE_SHADOW.ALPHA * falloff) / Math.sqrt(totalLayers);
                     
                     const layerRadius = CONFIG.VEHICLE_SHADOW.CORNER_RADIUS + (i * 0.5); // Corner radius grows slightly with blur
-                    shadowGraphics.fillStyle(CONFIG.VEHICLE_SHADOW.COLOR, layerAlpha);
+                    shadowGraphics.fillStyle(hexColor(CONFIG.VEHICLE_SHADOW.COLOR), layerAlpha);
                     shadowGraphics.fillRoundedRect(
                         -(shadowWidth + expansion) / 2, 
                         -(shadowHeight + expansion) / 2, 
@@ -1761,7 +1761,7 @@
                 
                 // Battery body background (white)
                 const batteryBody = this.add.graphics();
-                batteryBody.fillStyle(CONFIG.PARKING_CAR.BATTERY_EMPTY_COLOR, 1);
+                batteryBody.fillStyle(hexColor(CONFIG.PARKING_CAR.BATTERY_EMPTY_COLOR), 1);
                 batteryBody.fillRoundedRect(
                     -batteryWidth / 2,
                     -batteryHeight / 2,
@@ -1771,7 +1771,7 @@
                 );
                 
                 // Battery border
-                batteryBody.lineStyle(CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH, CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR, 1);
+                batteryBody.lineStyle(CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH, hexColor(CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR), 1);
                 batteryBody.strokeRoundedRect(
                     -batteryWidth / 2,
                     -batteryHeight / 2,
@@ -1781,7 +1781,7 @@
                 );
                 
                 // Battery cap/terminal (on right side)
-                batteryBody.fillStyle(CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR, 1);
+                batteryBody.fillStyle(hexColor(CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR), 1);
                 batteryBody.fillRoundedRect(
                     batteryWidth / 2,
                     -CONFIG.PARKING_CAR.BATTERY_CAP_HEIGHT / 2,
@@ -1827,13 +1827,13 @@
                     analogMeter = this.add.graphics();
                     
                     // Draw semi-circle arc at TOP (above the horizontal line)
-                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
                     analogMeter.beginPath();
                     analogMeter.arc(0, meterOffsetY, radius, -Math.PI, 0, false); // From left (-PI) to right (0), going upward
                     analogMeter.strokePath();
                     
                     // Draw straight line at bottom to close the semicircle
-                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
                     analogMeter.beginPath();
                     analogMeter.moveTo(-radius, meterOffsetY);
                     analogMeter.lineTo(radius, meterOffsetY);
@@ -1850,7 +1850,7 @@
                         const endX = Math.cos(angle) * radius;
                         const endY = meterOffsetY + Math.sin(angle) * radius;
                         
-                        analogMeter.lineStyle(meterConfig.ANALOG_METER_MARKER_WIDTH, meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                        analogMeter.lineStyle(meterConfig.ANALOG_METER_MARKER_WIDTH, hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
                         analogMeter.beginPath();
                         analogMeter.moveTo(startX, startY);
                         analogMeter.lineTo(endX, endY);
@@ -1869,7 +1869,7 @@
                     const needleBaseWidth = 8; // Width at the base (center)
                     const needleTipWidth = 2;  // Width at the tip
                     
-                    analogNeedle.fillStyle(meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                    analogNeedle.fillStyle(hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
                     analogNeedle.beginPath();
                     // Draw trapezoid pointing up (wide at center, narrow at tip)
                     analogNeedle.moveTo(-needleBaseWidth/2, 0); // Left base at center
@@ -1880,7 +1880,7 @@
                     analogNeedle.fillPath();
                     
                     // Draw center dot
-                    analogNeedle.fillStyle(meterConfig.ANALOG_METER_ARC_COLOR, 1);
+                    analogNeedle.fillStyle(hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
                     analogNeedle.fillCircle(0, 0, 5);
                     
                     // Initialize needle at 5 degrees (slightly right from left edge of top arc)
@@ -1973,24 +1973,24 @@
                     if (progress < 0.33) {
                         // 0-33%: Red to Yellow
                         fillColor = this.interpolateColor(
-                            CONFIG.PARKING_CAR.BATTERY_GRADIENT_LOW_COLOR,
-                            CONFIG.PARKING_CAR.BATTERY_GRADIENT_MID_COLOR,
+                            hexColor(CONFIG.PARKING_CAR.BATTERY_GRADIENT_LOW_COLOR),
+                            hexColor(CONFIG.PARKING_CAR.BATTERY_GRADIENT_MID_COLOR),
                             progress / 0.33
                         );
                     } else if (progress < 0.66) {
                         // 33-66%: Yellow to Green
                         fillColor = this.interpolateColor(
-                            CONFIG.PARKING_CAR.BATTERY_GRADIENT_MID_COLOR,
-                            CONFIG.PARKING_CAR.BATTERY_GRADIENT_HIGH_COLOR,
+                            hexColor(CONFIG.PARKING_CAR.BATTERY_GRADIENT_MID_COLOR),
+                            hexColor(CONFIG.PARKING_CAR.BATTERY_GRADIENT_HIGH_COLOR),
                             (progress - 0.33) / 0.33
                         );
                     } else {
                         // 66-100%: Green
-                        fillColor = CONFIG.PARKING_CAR.BATTERY_GRADIENT_HIGH_COLOR;
+                        fillColor = hexColor(CONFIG.PARKING_CAR.BATTERY_GRADIENT_HIGH_COLOR);
                     }
                 } else {
                     // Use solid color
-                    fillColor = CONFIG.PARKING_CAR.BATTERY_FILL_COLOR;
+                    fillColor = hexColor(CONFIG.PARKING_CAR.BATTERY_FILL_COLOR);
                 }
                 
                 // Redraw the fill
@@ -3129,7 +3129,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             car.tireTrackGraphics.clear();
             car.tireTrackGraphics.lineStyle(
                 CONFIG.TIRE_TRACKS.LINE_WIDTH,
-                CONFIG.TIRE_TRACKS.COLOR,
+                hexColor(CONFIG.TIRE_TRACKS.COLOR),
                 CONFIG.TIRE_TRACKS.ALPHA
             );
             
@@ -3982,7 +3982,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     const emptyCell = this.add.graphics();
                     
                     // Outer shadow border (creates recessed/inset effect)
-                    emptyCell.fillStyle(CONFIG.CELL.INSET_SHADOW_COLOR, 1);
+                    emptyCell.fillStyle(hexColor(CONFIG.CELL.INSET_SHADOW_COLOR), 1);
                     emptyCell.fillRoundedRect(
                         x - this.CELL_SIZE / 2,
                         y - this.CELL_SIZE / 2,
@@ -3993,7 +3993,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     
                     // Inner fill (lighter, creating depth)
                     const inset = CONFIG.CELL.INSET_BORDER_WIDTH;
-                    emptyCell.fillStyle(CONFIG.CELL.EMPTY_BG_COLOR, 1);
+                    emptyCell.fillStyle(hexColor(CONFIG.CELL.EMPTY_BG_COLOR), 1);
                     emptyCell.fillRoundedRect(
                         x - this.CELL_SIZE / 2 + inset,
                         y - this.CELL_SIZE / 2 + inset,
@@ -4006,7 +4006,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     const filledBg = this.add.graphics();
                     
                     // Outer shadow border (same as empty for consistency)
-                    filledBg.fillStyle(CONFIG.CELL.INSET_SHADOW_COLOR, 1);
+                    filledBg.fillStyle(hexColor(CONFIG.CELL.INSET_SHADOW_COLOR), 1);
                     filledBg.fillRoundedRect(
                         x - this.CELL_SIZE / 2,
                         y - this.CELL_SIZE / 2,
@@ -4016,7 +4016,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     );
                     
                     // Inner fill (brighter almost-white for occupied cells)
-                    filledBg.fillStyle(CONFIG.CELL.FILLED_BG_COLOR, 1);
+                    filledBg.fillStyle(hexColor(CONFIG.CELL.FILLED_BG_COLOR), 1);
                     filledBg.fillRoundedRect(
                         x - this.CELL_SIZE / 2 + inset,
                         y - this.CELL_SIZE / 2 + inset,
@@ -4081,8 +4081,8 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Level-up button (left of spawn button)
             const levelUpButton = this.add.container(sceneWidth / 2 - CONFIG.BUTTON.BUTTON_SPACING, buttonY);
             
-            const levelUpBg = this.add.rectangle(0, 0, CONFIG.BUTTON.LEVELUP_WIDTH, CONFIG.BUTTON.LEVELUP_HEIGHT, CONFIG.BUTTON.LEVELUP_COLOR);
-            levelUpBg.setStrokeStyle(CONFIG.BUTTON.LEVELUP_BORDER_WIDTH, CONFIG.BUTTON.LEVELUP_BORDER_COLOR);
+            const levelUpBg = this.add.rectangle(0, 0, CONFIG.BUTTON.LEVELUP_WIDTH, CONFIG.BUTTON.LEVELUP_HEIGHT, hexColor(CONFIG.BUTTON.LEVELUP_COLOR));
+            levelUpBg.setStrokeStyle(CONFIG.BUTTON.LEVELUP_BORDER_WIDTH, hexColor(CONFIG.BUTTON.LEVELUP_BORDER_COLOR));
             levelUpBg.setInteractive({ useHandCursor: true });
             
             const levelUpText = this.add.text(0, 0, '📺 Level Up\nAll', {
@@ -4281,7 +4281,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 cellData.y, 
                 this.CELL_SIZE, 
                 this.CELL_SIZE, 
-                CONFIG.CELL.DRAGGABLE_BG_COLOR, 
+                hexColor(CONFIG.CELL.DRAGGABLE_BG_COLOR), 
                 CONFIG.CELL.DRAGGABLE_BG_ALPHA
             );
             draggableBg.setInteractive({
