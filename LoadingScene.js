@@ -14,7 +14,8 @@ class LoadingScene extends Phaser.Scene {
         const loadingText = this.add.text(centerX, centerY - 50, 'Loading...', {
             fontFamily: 'Arial, sans-serif',
             fontSize: '32px',
-            color: '#333333'
+            color: '#9B7FFF',
+            fontStyle: 'bold'
         });
         loadingText.setOrigin(0.5, 0.5);
 
@@ -34,7 +35,7 @@ class LoadingScene extends Phaser.Scene {
         // Update progress bar as assets load
         this.load.on('progress', (value) => {
             progressBar.clear();
-            progressBar.fillStyle(0x4CAF50, 1); // Green progress bar
+            progressBar.fillStyle(0x00E676, 1); // Bright green progress bar
             progressBar.fillRect(progressBarX, progressBarY, progressBarWidth * value, progressBarHeight);
         });
 

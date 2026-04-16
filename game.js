@@ -125,23 +125,28 @@
             const sceneWidth = this.cameras.main.width;
             const sceneHeight = this.cameras.main.height;
             
-            // Top half: Parking Jam area (0 to 50%)
-            const parkingHeight = sceneHeight * 0.5;
-            const parkingBg = this.add.rectangle(sceneWidth / 2, parkingHeight / 2, sceneWidth, parkingHeight, hexColor(CONFIG.BACKGROUND.TOP_HALF_COLOR));
-            parkingBg.setDepth(0); // Background layer
+            // Create gradient background (full screen)
+            const bgGraphics = this.add.graphics();
+            
+            // Parse hex colors for gradient
+            const startColor = parseInt(CONFIG.BACKGROUND.GRADIENT_START_COLOR.substring(1), 16);
+            const endColor = parseInt(CONFIG.BACKGROUND.GRADIENT_END_COLOR.substring(1), 16);
+            
+            // Fill with vertical gradient (top to bottom)
+            bgGraphics.fillGradientStyle(startColor, startColor, endColor, endColor, 1);
+            bgGraphics.fillRect(0, 0, sceneWidth, sceneHeight);
+            bgGraphics.setDepth(0); // Background layer
             
             // Title for parking area - showing remaining charge
             this.levelChargeText = this.add.text(sceneWidth / 2, 20, '⚡ 0', {
                 fontSize: '32px',
                 fontFamily: CONFIG.FONT_FAMILY,
-                color: '#2C5F8D',
-                fontStyle: 'bold'
+                color: '#FFFFFF',
+                fontStyle: 'bold',
+                stroke: '#5E35B1',
+                strokeThickness: 4
             }).setOrigin(0.5);
             this.levelChargeText.setDepth(100);
-            
-            // Bottom half: Merge section background (50% to 100%)
-            const mergeBg = this.add.rectangle(sceneWidth / 2, sceneHeight * 0.75, sceneWidth, sceneHeight * 0.5, hexColor(CONFIG.BACKGROUND.BOTTOM_HALF_COLOR));
-            mergeBg.setDepth(0); // Background layer
             
             // Create 3 charging slots (moved to top of bottom half, just below parking area)
             this.createChargingSlots();
@@ -185,8 +190,10 @@
                 this.add.text(sceneWidth / 2, parkingHeight / 2, 'No level data loaded\nUse Level Editor to create levels', {
                     fontSize: '20px',
                     fontFamily: CONFIG.FONT_FAMILY,
-                    color: '#666666',
-                    align: 'center'
+                    color: '#FFFFFF',
+                    align: 'center',
+                    stroke: '#5E35B1',
+                    strokeThickness: 3
                 }).setOrigin(0.5);
             }
         }
@@ -253,7 +260,7 @@
                 
                 // Slot background (rounded rectangle)
                 const slotBg = this.add.graphics();
-                slotBg.lineStyle(4, 0x6B9BD1, 1);
+                slotBg.lineStyle(4, 0x5E35B1, 1);
                 slotBg.strokeRoundedRect(
                     slotX - slotSize / 2,
                     slotY - slotSize / 2,
@@ -264,7 +271,7 @@
                 
                 // Slot filled background (hidden initially)
                 const slotFilledBg = this.add.graphics();
-                slotFilledBg.fillStyle(0x8BC6EC, 1);
+                slotFilledBg.fillStyle(0xFFB3E6, 1);
                 slotFilledBg.fillRoundedRect(
                     slotX - slotSize / 2,
                     slotY - slotSize / 2,
@@ -278,7 +285,7 @@
                 const chargeText = this.add.text(slotX, slotY - slotSize / 2 - 20, '', {
                     fontSize: '18px',
                     fontFamily: CONFIG.FONT_FAMILY,
-                    color: '#2C5F8D',
+                    color: '#1A237E',
                     fontStyle: 'bold'
                 }).setOrigin(0.5).setVisible(false);
                 
@@ -2029,9 +2036,9 @@
             
             // Change color based on remaining charge
             if (this.remainingCharge === 0) {
-                this.levelChargeText.setColor('#4CAF50'); // Green when complete
+                this.levelChargeText.setColor('#00E676'); // Bright green when complete
             } else {
-                this.levelChargeText.setColor('#2C5F8D'); // Blue when in progress
+                this.levelChargeText.setColor('#FFFFFF'); // White when in progress
             }
         }
 
@@ -5084,7 +5091,7 @@ for (let t = 0; t <= 1; t += 0.002) {
         type: Phaser.AUTO,
         parent: 'game-container',
         // backgroundColor: '#EEF5F8',
-        backgroundColor: '#6381bd',
+        backgroundColor: '#7B68EE',
         scene: [GameScene],
         
         physics: {

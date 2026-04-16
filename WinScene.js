@@ -43,8 +43,8 @@ class WinScene extends Phaser.Scene {
         // Background panel
         const panelWidth = width * 0.8;
         const panelHeight = 400;
-        const panel = this.add.rectangle(0, 0, panelWidth, panelHeight, 0xffffff);
-        panel.setStrokeStyle(4, 0x4a90e2);
+        const panel = this.add.rectangle(0, 0, panelWidth, panelHeight, 0xFFFFFF);
+        panel.setStrokeStyle(6, 0x9B7FFF);
 
         // Random win message
         const randomMessage = Phaser.Utils.Array.GetRandom(this.winMessages);
@@ -53,13 +53,13 @@ class WinScene extends Phaser.Scene {
         const messageText = this.add.text(0, -80, randomMessage, {
             fontFamily: 'Arial, sans-serif',
             fontSize: '56px',
-            color: '#4a90e2',
+            color: '#9B7FFF',
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
         // Next button
-        const nextButton = this.add.rectangle(0, 80, 200, 60, 0x4a90e2);
-        nextButton.setStrokeStyle(3, 0x333333);
+        const nextButton = this.add.rectangle(0, 80, 200, 60, 0xFF6B9D);
+        nextButton.setStrokeStyle(4, 0xE91E63);
         nextButton.setInteractive({ useHandCursor: true });
 
         const nextText = this.add.text(0, 80, 'NEXT', {
@@ -71,10 +71,10 @@ class WinScene extends Phaser.Scene {
 
         // Next button hover effect
         nextButton.on('pointerover', () => {
-            nextButton.setFillStyle(0x3a7bc2);
+            nextButton.setFillStyle(0xE91E63);
         });
         nextButton.on('pointerout', () => {
-            nextButton.setFillStyle(0x4a90e2);
+            nextButton.setFillStyle(0xFF6B9D);
         });
 
         // Next button click - go to next level
