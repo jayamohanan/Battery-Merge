@@ -73,8 +73,8 @@ var CONFIG = {
     // These values are used directly for the merge game grid (3x3) and charging slots
     // The parking jam grid uses responsive sizing based on GRID.WIDTH_PERCENTAGE
     CELL: {
-        SIZE: 100,                      // Cell width and height in pixels (used for merge game grid)
-        GAP: 15,                        // Gap between cells (used for merge game grid)
+        SIZE: 110,                      // Cell width and height in pixels (used for merge game grid)
+        GAP: 5,                        // Gap between cells (used for merge game grid)
         RADIUS: 15,                     // Rounded corner radius (used for merge game grid)
         BORDER_COLOR: 0xBBDDEE,        // Empty cell border color
         BORDER_WIDTH: 3,                // Border width
