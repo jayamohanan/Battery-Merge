@@ -59,12 +59,10 @@ var CONFIG = {
         COIN_ICON_Y: 0,                // Y position offset from button center
     },
     
-    // Grid Layout Configuration
+    // Grid Layout Configuration (for Parking Jam grid only - top section)
     GRID: {
-        PADDING_FROM_BUTTON_TOP: 40,   // Padding between top of spawn button and bottom of grid (pixels)
-        
         // Responsive sizing for PARKING JAM GRID ONLY (top section with cars)
-        // Battery merge grid (bottom section) uses hardcoded CELL.SIZE values
+        // Battery merge grid (bottom section) positioning is controlled by MERGE_GRID section below
         WIDTH_PERCENTAGE: 0.6,         // Parking grid width as percentage of screen width (0.6 = 60%)
         SIZE_FACTOR: 1.0,              // Global size multiplier for parking grid (1.0 = normal, 1.5 = 150%, etc.)
         ROAD_WIDTH_FACTOR: 4 / 3,      // Road width as a factor of parking cell size (4/3 means road width = cellSize * 1.33)
@@ -78,9 +76,28 @@ var CONFIG = {
         TILE_TO_GRID_RATIO: 1,         // Number of tiles per grid cell (used when texture is enabled)
     },
     
-    // Coin Counter Display (above grid, top-right)
+    // Battery Merge Grid Positioning (controls overall grid position)
+    // The merge grid (3x3 battery grid at bottom) is positioned relative to the spawn button.
+    // You can control where the grid appears by adjusting these values:
+    MERGE_GRID: {
+        // POSITIONING EXPLANATION:
+        // Grid is built from BOTTOM-UP (like building a tower):
+        // 1. Bottom edge is calculated: spawn button top - PADDING_FROM_BUTTON_TOP
+        // 2. Grid rows are stacked upward from this bottom edge
+        // 3. Bottom row (row 2) is lowest, middle row (row 1) is center, top row (row 0) is highest
+        //
+        // To move grid DOWN: increase PADDING_FROM_BUTTON_TOP (more space between button and grid)
+        // To move grid UP: decrease PADDING_FROM_BUTTON_TOP (less space between button and grid)
+        // Negative values will make grid overlap with spawn button
+        
+        PADDING_FROM_BUTTON_TOP: 20,   // Space between spawn button top edge and grid bottom edge (pixels)
+                                        // Increase this to push grid DOWN (away from button)
+                                        // Decrease this to pull grid UP (closer to button)
+    },
+    
+    // Coin Counter Display (right side, aligned with middle row of grid)
     COIN_COUNTER: {
-        PADDING_FROM_GRID_TOP: 50,     // Padding above the grid (pixels)
+        ALIGN_WITH_GRID_ROW: 1,        // Which row to align with (0=top, 1=middle, 2=bottom for 3x3 grid)
         PADDING_FROM_SCREEN_RIGHT: 20, // Padding from right edge of screen (pixels) - ensures visibility on mobile
         TEXT_SIZE: '48px',             // Font size for coin count text
         TEXT_COLOR: '#FFEB3B',         // Bright yellow color for text

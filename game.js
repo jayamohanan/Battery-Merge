@@ -3921,9 +3921,11 @@ for (let t = 0; t <= 1; t += 0.002) {
         createCoinDisplay() {
             const sceneWidth = this.cameras.main.width;
             
-            // Position above the top edge of the grid (gridStartY is center of top row cells)
-            const gridTopEdge = this.gridStartY - this.CELL_SIZE / 2;
-            const coinY = gridTopEdge - CONFIG.COIN_COUNTER.PADDING_FROM_GRID_TOP;
+            // Position aligned with a specific grid row (configurable)
+            // gridStartY is center of top row (row 0)
+            // Each row down adds (CELL_SIZE + CELL_GAP)
+            const alignRowIndex = CONFIG.COIN_COUNTER.ALIGN_WITH_GRID_ROW;
+            const coinY = this.gridStartY + alignRowIndex * (this.CELL_SIZE + this.CELL_GAP);
             
             // Position coin icon at right edge with padding
             const coinIconX = sceneWidth - CONFIG.COIN_COUNTER.PADDING_FROM_SCREEN_RIGHT - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
@@ -4060,9 +4062,12 @@ for (let t = 0; t <= 1; t += 0.002) {
             const gridWidth = this.GRID_COLS * this.CELL_SIZE + (this.GRID_COLS - 1) * this.CELL_GAP;
             const gridHeight = this.GRID_ROWS * this.CELL_SIZE + (this.GRID_ROWS - 1) * this.CELL_GAP;
             
-            // Calculate grid position: above spawn button with padding
+            // Calculate grid position: above spawn button with configurable padding
+            // Grid is built from BOTTOM-UP:
+            // 1. Calculate bottom edge of grid (above spawn button)
+            // 2. Calculate starting Y (top row center) by subtracting grid height
             const buttonY = sceneHeight - CONFIG.BUTTON.BOTTOM_PADDING;
-            const gridBottomY = buttonY - CONFIG.BUTTON.SPAWN_HEIGHT / 2 - CONFIG.GRID.PADDING_FROM_BUTTON_TOP;
+            const gridBottomY = buttonY - CONFIG.BUTTON.SPAWN_HEIGHT / 2 - CONFIG.MERGE_GRID.PADDING_FROM_BUTTON_TOP;
             const gridStartY = gridBottomY - gridHeight + this.CELL_SIZE / 2;
             
             // Store grid boundaries for coin display
