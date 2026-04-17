@@ -100,6 +100,9 @@
             this.load.image('button', 'graphics/Button.png');
             this.load.image('plug', 'graphics/plug.png');
             this.load.image('ev_charger_left', 'graphics/ev_charger.png');
+            this.load.image('charger_bolt', 'graphics/charger_bolt.png');
+            this.load.image('charger_on', 'graphics/charger_on.png');
+            this.load.image('charger_off', 'graphics/charger_off.png');
             
             // Load parking jam assets - dynamically load all vehicles from CONFIG.VEHICLES
             CONFIG.VEHICLES.forEach(vehicle => {
@@ -258,10 +261,10 @@
             for (let i = 0; i < 3; i++) {
                 const slotX = startX + i * (chargerSize + slotGap) + chargerSize / 2;
                 
-                // EV Charger sprite (replaces the old slot background)
+                // Base EV Charger sprite
                 const chargerSprite = this.add.sprite(slotX, slotY, 'ev_charger_left');
                 chargerSprite.setDisplaySize(chargerSize, chargerSize);
-                chargerSprite.setDepth(1); // Below batteries and UI elements
+                chargerSprite.setDepth(1); // Base layer
                 // Start with grey/inactive appearance (empty slot)
                 chargerSprite.setTint(0x888888); // Grey tint
                 chargerSprite.setAlpha(0.6); // Slightly transparent
@@ -282,6 +285,27 @@
                 );
                 dropZoneBg.setDepth(2); // Above charger sprite
                 
+                // Bolt sub-image (shows charging status) - overlay on charger, above drop zone
+                const boltSprite = this.add.sprite(
+                    slotX + CONFIG.EV_CHARGER.BOLT_OFFSET_X,
+                    slotY + CONFIG.EV_CHARGER.BOLT_OFFSET_Y,
+                    'charger_bolt'
+                );
+                boltSprite.setDisplaySize(CONFIG.EV_CHARGER.BOLT_WIDTH, CONFIG.EV_CHARGER.BOLT_HEIGHT);
+                boltSprite.setAlpha(CONFIG.EV_CHARGER.BOLT_ALPHA);
+                boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE); // Start grey (not charging)
+                boltSprite.setDepth(3); // Above drop zone, visible on top
+                
+                // On/Off switch sub-image (shows battery presence) - overlay on charger, above drop zone
+                const switchSprite = this.add.sprite(
+                    slotX + CONFIG.EV_CHARGER.SWITCH_OFFSET_X,
+                    slotY + CONFIG.EV_CHARGER.SWITCH_OFFSET_Y,
+                    'charger_off' // Start with OFF (no battery)
+                );
+                switchSprite.setDisplaySize(CONFIG.EV_CHARGER.SWITCH_WIDTH, CONFIG.EV_CHARGER.SWITCH_HEIGHT);
+                switchSprite.setAlpha(CONFIG.EV_CHARGER.SWITCH_ALPHA);
+                switchSprite.setDepth(3); // Above drop zone, visible on top
+                
                 // Charge rate text (above charger, hidden initially)
                 const chargeText = this.add.text(slotX, slotY - chargerSize / 2 - 20, '', {
                     fontSize: '18px',
@@ -299,7 +323,9 @@
                 this.chargingSlotsUI.push({
                     x: dropZoneX,  // Use drop zone position for battery placement
                     y: dropZoneY,  // Use drop zone position for battery placement
-                    chargerSprite: chargerSprite,
+                    chargerSprite: chargerSprite,  // Base charger sprite
+                    boltSprite: boltSprite,  // Bolt sub-image
+                    switchSprite: switchSprite,  // On/Off switch sub-image
                     chargerX: slotX,  // Store charger center position
                     chargerY: slotY,  // Store charger center position
                     chargerSize: chargerSize,  // Store charger size for wire connection
@@ -432,6 +458,9 @@
             slot.chargerSprite.clearTint();
             slot.chargerSprite.setAlpha(1);
             
+            // Switch to ON sprite (battery present)
+            slot.switchSprite.setTexture('charger_on');
+            
             // Store battery data
             slot.batterySprite = batterySprite;
             slot.batteryLevelText = levelText;
@@ -471,6 +500,9 @@
                     if (car.chargeBarBg) car.chargeBarBg.setVisible(true);
                 }
                 this.updateCarChargeBar(car);
+                
+                // Make bolt neon green (car is still being charged)
+                slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_ACTIVE);
             }
             this.updateChargingSystem();
         }
@@ -492,6 +524,12 @@
             // Make charger sprite grey/inactive (empty slot)
             slot.chargerSprite.setTint(0x888888); // Grey tint
             slot.chargerSprite.setAlpha(0.6); // Slightly transparent
+            
+            // Switch to OFF sprite (no battery)
+            slot.switchSprite.setTexture('charger_off');
+            
+            // Make bolt grey (not charging)
+            slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
             
             // If this slot had an assigned car, hide its charge display
             const slotData = this.chargingSlots[slotIndex];
@@ -551,6 +589,12 @@
                     this.chargingSlots[slotIndex].assignedCar = car;
                     this.chargingSlots[slotIndex].assignedAt = this.time.now; // Track when car was assigned
                     console.log(`Slot ${slotIndex} assigned to car ${this.cars.indexOf(car)}`);
+                    
+                    // Make bolt neon green (actively charging a vehicle)
+                    const slotUI = this.chargingSlotsUI[slotIndex];
+                    if (slotUI && slotUI.boltSprite) {
+                        slotUI.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_ACTIVE);
+                    }
                     
                     // Immediately show battery and meter at current charge (usually 0)
                     // This gives visual feedback before first charge pulse
@@ -2211,6 +2255,12 @@
                         // 3. Unassign car from slot
                         slot.assignedCar = null;
                         slot.assignedAt = null;
+                        
+                        // Make bolt grey (no longer charging)
+                        const slotUI = this.chargingSlotsUI[i];
+                        if (slotUI && slotUI.boltSprite) {
+                            slotUI.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
+                        }
                         
                         // Set cooldown - slot waits SLOT_SWITCH_DELAY before connecting to next vehicle
                         this.slotCooldownUntil[i] = this.time.now + CONFIG.CHARGING_CONNECTION.SLOT_SWITCH_DELAY;
@@ -4468,6 +4518,16 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Hide charge rate text
                 slot.chargeText.setVisible(false);
                 
+                // Switch to OFF sprite (no battery in slot)
+                slot.switchSprite.setTexture('charger_off');
+                
+                // Make charger grey/inactive (empty slot)
+                slot.chargerSprite.setTint(0x888888);
+                slot.chargerSprite.setAlpha(0.6);
+                
+                // Make bolt grey (not charging)
+                slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
+                
                 // Update charging system (may stop charging if this was the last battery)
                 this.updateChargingSystem();
             }
@@ -4627,6 +4687,17 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.chargeText.setVisible(false);
                 slot.batterySprite = null;
                 slot.batteryLevelText = null;
+                
+                // Switch to OFF sprite (no battery in slot)
+                slot.switchSprite.setTexture('charger_off');
+                
+                // Make charger grey/inactive (empty slot)
+                slot.chargerSprite.setTint(0x888888);
+                slot.chargerSprite.setAlpha(0.6);
+                
+                // Make bolt grey (not charging)
+                slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
+                
                 this.updateChargingSystem();
             }
             
@@ -4720,6 +4791,16 @@ for (let t = 0; t <= 1; t += 0.002) {
                 oldSlot.chargeText.setVisible(false);
                 oldSlot.batterySprite = null;
                 oldSlot.batteryLevelText = null;
+                
+                // Switch to OFF sprite (no battery in old slot)
+                oldSlot.switchSprite.setTexture('charger_off');
+                
+                // Make old charger grey/inactive (empty slot)
+                oldSlot.chargerSprite.setTint(0x888888);
+                oldSlot.chargerSprite.setAlpha(0.6);
+                
+                // Make old bolt grey (not charging)
+                oldSlot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
                 
                 // Destroy old sprites to prevent duplicates
                 if (batteryData.sprite) {
@@ -4831,6 +4912,16 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.chargeText.setVisible(false);
                 slot.batterySprite = null;
                 slot.batteryLevelText = null;
+                
+                // Switch to OFF sprite (no battery in slot)
+                slot.switchSprite.setTexture('charger_off');
+                
+                // Make charger grey/inactive (empty slot)
+                slot.chargerSprite.setTint(0x888888);
+                slot.chargerSprite.setAlpha(0.6);
+                
+                // Make bolt grey (not charging)
+                slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
             }
             
             // Save car assignment before removing battery from charging slot
@@ -4879,6 +4970,17 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.chargeText.setVisible(false);
                 slot.batterySprite = null;
                 slot.batteryLevelText = null;
+                
+                // Switch to OFF sprite (no battery in slot)
+                slot.switchSprite.setTexture('charger_off');
+                
+                // Make charger grey/inactive (empty slot)
+                slot.chargerSprite.setTint(0x888888);
+                slot.chargerSprite.setAlpha(0.6);
+                
+                // Make bolt grey (not charging)
+                slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
+                
                 this.updateChargingSystem();
             }
             

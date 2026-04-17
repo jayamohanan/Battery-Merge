@@ -304,6 +304,12 @@ var CONFIG = {
     },
     
     // EV Charger Unit settings (replaces old slot backgrounds)
+    // MANUAL ADJUSTMENT GUIDE:
+    // - All positions are relative to the charger center (0, 0)
+    // - X offset: negative = left, positive = right
+    // - Y offset: negative = up, positive = down
+    // - Colors: 0xRRGGBB format (e.g., 0x00FF41 = neon green)
+    // - Alpha: 0 = transparent, 1.0 = fully opaque
     EV_CHARGER: {
         SIZE_MULTIPLIER: 1.5,           // EV charger size relative to original slot (1.5 = 150%)
         SLOT_Y_OFFSET: 80,              // Vertical position offset from center of screen (adjust to move slots up/down)
@@ -314,6 +320,24 @@ var CONFIG = {
         DROP_ZONE_BG_COLOR: 0xFFFFFF,   // Background color of drop zone (white)
         // DROP_ZONE_BG_COLOR: 0xFF0000,   // Background color of drop zone (white)
         DROP_ZONE_BG_ALPHA: 1.0,        // Transparency of drop zone (0-1, 1.0 = 100% opaque)
+        
+        // Charger bolt sub-image (overlay on charger)
+        // Shows charging status: grey when idle, neon green when charging a vehicle
+        BOLT_WIDTH: 25,                 // Display width of bolt icon (pixels) - adjust to resize
+        BOLT_HEIGHT: 25,                // Display height of bolt icon (pixels) - adjust to resize
+        BOLT_OFFSET_X: -25,             // Horizontal offset from charger center (negative = left, positive = right)
+        BOLT_OFFSET_Y: -50,             // Vertical offset from charger center (negative = up, positive = down)
+        BOLT_COLOR_INACTIVE: 0xCCCCCC,  // Grey color when not charging any vehicle (format: 0xRRGGBB)
+        BOLT_COLOR_ACTIVE: 0x00FF41,    // Neon green color when charging a vehicle (format: 0xRRGGBB)
+        BOLT_ALPHA: 1.0,                // Transparency (0 = invisible, 1.0 = fully opaque)
+        
+        // Charger on/off switch sub-image (overlay on charger)
+        // Shows battery presence: charger_off.png when empty, charger_on.png when battery present
+        SWITCH_WIDTH:41,               // Display width of on/off switch (pixels) - adjust to resize
+        SWITCH_HEIGHT: 18,              // Display height of on/off switch (pixels) - adjust to resize
+        SWITCH_OFFSET_X: 20,            // Horizontal offset from charger center (negative = left, positive = right)
+        SWITCH_OFFSET_Y: -53,           // Vertical offset from charger center (negative = up, positive = down)
+        SWITCH_ALPHA: 1.0,              // Transparency (0 = invisible, 1.0 = fully opaque)
     },
     
     // Lightning bolt charging effect settings
