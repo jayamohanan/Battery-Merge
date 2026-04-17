@@ -61,9 +61,13 @@ var CONFIG = {
     
     // Grid Layout Configuration (for Parking Jam grid only - top section)
     GRID: {
+        // Parking area horizontal positioning
+        PARKING_HORIZONTAL_OFFSET: 0.15,  // Shift parking area to right (0.15 = 15% of screen width to the right)
+                                           // 0 = centered, positive = shift right, negative = shift left
+        
         // Responsive sizing for PARKING JAM GRID ONLY (top section with cars)
         // Battery merge grid (bottom section) positioning is controlled by MERGE_GRID section below
-        WIDTH_PERCENTAGE: 0.6,         // Parking grid width as percentage of screen width (0.6 = 60%)
+        WIDTH_PERCENTAGE: 0.5,         // Parking grid width as percentage of screen width (reduced from 0.6 to 0.5 to fit chargers)
         SIZE_FACTOR: 1.0,              // Global size multiplier for parking grid (1.0 = normal, 1.5 = 150%, etc.)
         ROAD_WIDTH_FACTOR: 4 / 3,      // Road width as a factor of parking cell size (4/3 means road width = cellSize * 1.33)
         
@@ -298,11 +302,16 @@ var CONFIG = {
         LINE_WIDTH: 5,                  // Width of charging connection lines (pixels)
         LINE_COLOR: "#FF6B9D",           // Bright pink color for charging lines
         LINE_ALPHA: 0.7,                // Transparency of charging lines (0-1, 0.7 = 70%)
-        SLOT_DISTANCES: [20, 35, 50],   // Vertical step distance for each slot (slot 0, 1, 2)
+        START_OFFSET_X: -16,            // Horizontal offset for connection start point (negative = shift left to compensate for transparent space in charger image)
+        SLOT_DISTANCES: [20, 35, 50],   // Fixed horizontal "stem" distance from each charger before first turn (pixels)
+                                         // Different for each slot (0, 1, 2) to prevent line overlap and avoid turning at road
+                                         // Connection always starts with this horizontal segment, then routes to vehicle
+        VERTICAL_ALIGN_THRESHOLD: 20,   // Deprecated - kept for backward compatibility (no longer used in logic)
+        MAX_START_OFFSET: 15,            // Deprecated - kept for backward compatibility (no longer used in logic)
         
         // Plug head icon settings (electrical connector at car end)
         PLUG_HEAD_SIZE: 24,             // Size of plug head sprite (width and height in pixels)
-        PLUG_HEAD_OFFSET_Y: 25,          // Vertical offset from car bottom (positive = move down, negative = move up)
+        PLUG_HEAD_OFFSET_Y: 25,         // Vertical offset from car bottom for vertical plug orientation (positive = move down, negative = move up)
         
         // Charging station icon (displayed to the left of charging slots)
         STATION_ICON_SIZE: 112,         // Size of charging station icon (width and height in pixels) - 40% bigger than original 80
@@ -320,7 +329,8 @@ var CONFIG = {
         PULSE_BATTERY_SCALE: 0.15,      // Battery scale pulse amount (0.15 = 15% larger at peak)
     },
     
-    // EV Charger Unit settings (replaces old slot backgrounds)
+    // EV Charger Unit settings
+    // LAYOUT: Chargers are positioned VERTICALLY on the LEFT side of the parking area
     // MANUAL ADJUSTMENT GUIDE:
     // - All positions are relative to the charger center (0, 0)
     // - X offset: negative = left, positive = right
@@ -329,23 +339,28 @@ var CONFIG = {
     // - Alpha: 0 = transparent, 1.0 = fully opaque
     EV_CHARGER: {
         SIZE_MULTIPLIER: 1.5,           // EV charger size relative to original slot (1.5 = 150%)
-        SLOT_Y_OFFSET: 80,              // Vertical position offset from center of screen (adjust to move slots up/down)
-        DROP_ZONE_SIZE: 95,             // Size of white rounded square drop zone inside charger (pixels) - large enough for battery + text
-        DROP_ZONE_OFFSET_X: 1,          // Horizontal offset of drop zone from charger center (adjust to align with sprite)
-        DROP_ZONE_OFFSET_Y: 16,          // Vertical offset of drop zone from charger center (adjust to align with sprite)
-        DROP_ZONE_RADIUS: 5,           // Corner radius for the white drop zone (pixels)
+        
+        // Vertical layout positioning (chargers stacked vertically on left side)
+        // Middle charger (index 1) is centered with parking area center
+        // Top (index 0) and bottom (index 2) are equally spaced from middle
+        HORIZONTAL_POSITION: 80,        // Horizontal position from left edge of screen (pixels)
+        VERTICAL_SPACING: 180,          // Vertical spacing between chargers (pixels) - must be > SIZE * 100 to avoid overlap
+        
+        DROP_ZONE_SIZE: 95,             // Size of white rounded square drop zone inside charger (pixels)
+        DROP_ZONE_OFFSET_X: 1,          // Horizontal offset of drop zone from charger center
+        DROP_ZONE_OFFSET_Y: 16,         // Vertical offset of drop zone from charger center
+        DROP_ZONE_RADIUS: 5,            // Corner radius for the white drop zone (pixels)
         DROP_ZONE_BG_COLOR: 0xFFFFFF,   // Background color of drop zone (white)
-        // DROP_ZONE_BG_COLOR: 0xFF0000,   // Background color of drop zone (white)
         DROP_ZONE_BG_ALPHA: 1.0,        // Transparency of drop zone (0-1, 1.0 = 100% opaque)
         
         // Charger bolt sub-image (overlay on charger)
         // Shows charging status: grey when idle, neon green when charging a vehicle
-        BOLT_WIDTH: 25,                 // Display width of bolt icon (pixels) - adjust to resize
-        BOLT_HEIGHT: 25,                // Display height of bolt icon (pixels) - adjust to resize
-        BOLT_OFFSET_X: -25,             // Horizontal offset from charger center (negative = left, positive = right)
-        BOLT_OFFSET_Y: -50,             // Vertical offset from charger center (negative = up, positive = down)
-        BOLT_COLOR_INACTIVE: 0xCCCCCC,  // Grey color when not charging any vehicle (format: 0xRRGGBB)
-        BOLT_COLOR_ACTIVE: 0x00FF41,    // Neon green color when charging a vehicle (format: 0xRRGGBB)
+        BOLT_WIDTH: 25,                 // Display width of bolt icon (pixels)
+        BOLT_HEIGHT: 25,                // Display height of bolt icon (pixels)
+        BOLT_OFFSET_X: -25,             // Horizontal offset from charger center
+        BOLT_OFFSET_Y: -50,             // Vertical offset from charger center
+        BOLT_COLOR_INACTIVE: 0xCCCCCC,  // Grey color when not charging any vehicle
+        BOLT_COLOR_ACTIVE: 0x00FF41,    // Neon green color when charging a vehicle
         BOLT_ALPHA: 1.0,                // Transparency (0 = invisible, 1.0 = fully opaque)
         
         // Charger on/off switch sub-image (overlay on charger)

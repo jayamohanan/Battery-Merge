@@ -244,30 +244,40 @@
             const sceneWidth = this.cameras.main.width;
             const sceneHeight = this.cameras.main.height;
             
-            // Position slots at top of bottom half (just below the parking area)
-            const slotY = sceneHeight * 0.5 + CONFIG.EV_CHARGER.SLOT_Y_OFFSET; // Configurable Y position
-            const originalSlotSize = 100; // Original slot size for reference
-            const chargerSize = originalSlotSize * CONFIG.EV_CHARGER.SIZE_MULTIPLIER; // EV charger size from config
-            const slotGap = 15; // Same as grid cell gap
-            const totalWidth = 3 * chargerSize + 2 * slotGap;
-            const startX = (sceneWidth - totalWidth) / 2;
+            // Position chargers vertically on the LEFT side of parking area
+            // Wait for parking bounds to be set (they're set in loadLevel)
+            // For now, estimate based on screen dimensions
+            const parkingAreaHeight = sceneHeight * 0.5;
+            const originalSlotSize = 100;
+            const chargerSize = originalSlotSize * CONFIG.EV_CHARGER.SIZE_MULTIPLIER;
             
-            // Drop zone settings from config (white circle/rounded square inside the charger)
+            // Position chargers on the left side of screen, aligned vertically
+            // Horizontal position: fixed distance from left screen edge
+            const chargerX = CONFIG.EV_CHARGER.HORIZONTAL_POSITION;
+            
+            // Vertical positioning: center middle charger (index 1) with parking area center
+            // Parking area center Y = parkingAreaHeight / 2
+            const parkingCenterY = parkingAreaHeight / 2;
+            
+            // Drop zone settings from config
             const dropZoneSize = CONFIG.EV_CHARGER.DROP_ZONE_SIZE;
             const dropZoneOffsetX = CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_X;
             const dropZoneOffsetY = CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_Y;
             const dropZoneRadius = CONFIG.EV_CHARGER.DROP_ZONE_RADIUS;
             
             for (let i = 0; i < 3; i++) {
-                const slotX = startX + i * (chargerSize + slotGap) + chargerSize / 2;
+                // Position chargers: i=0 (top), i=1 (middle/center), i=2 (bottom)
+                // Middle charger (i=1) aligns with parking center
+                const slotY = parkingCenterY + (i - 1) * CONFIG.EV_CHARGER.VERTICAL_SPACING;
+                const slotX = chargerX;
                 
                 // Base EV Charger sprite
                 const chargerSprite = this.add.sprite(slotX, slotY, 'ev_charger_left');
                 chargerSprite.setDisplaySize(chargerSize, chargerSize);
-                chargerSprite.setDepth(1); // Base layer
+                chargerSprite.setDepth(1);
                 // Start with grey/inactive appearance (empty slot)
-                chargerSprite.setTint(0x888888); // Grey tint
-                chargerSprite.setAlpha(0.6); // Slightly transparent
+                chargerSprite.setTint(0x888888);
+                chargerSprite.setAlpha(0.6);
                 
                 // White rounded rectangle drop zone inside the charger
                 const dropZoneX = slotX + dropZoneOffsetX;
@@ -343,7 +353,7 @@
                 const plugSize = CONFIG.CHARGING_CONNECTION.PLUG_HEAD_SIZE;
                 const plugHead = this.add.sprite(0, 0, 'plug');
                 plugHead.setDisplaySize(plugSize, plugSize);
-                plugHead.setOrigin(0.5, 1); // Origin at bottom center (so bottom is at line end)
+                plugHead.setOrigin(0.5, 1); // Default: bottom center for vertical orientation
                 plugHead.setDepth(9); // Above charging lines (8), below cars (10)
                 plugHead.setTint(hexColor(CONFIG.CHARGING_CONNECTION.LINE_COLOR)); // Same color as charging line
                 plugHead.setAlpha(CONFIG.CHARGING_CONNECTION.LINE_ALPHA); // Same transparency as line
@@ -739,8 +749,9 @@
             console.log('Scene dimensions:', sceneWidth, 'x', sceneHeight);
             console.log('Parking area height:', parkingAreaHeight);
             
-            // Center position for parking area (in top half)
-            const centerX = sceneWidth / 2;
+            // Center position for parking area (in top half) - shifted to the right
+            const horizontalShift = sceneWidth * (CONFIG.GRID.PARKING_HORIZONTAL_OFFSET || 0);
+            const centerX = sceneWidth / 2 + horizontalShift;
             const centerY = parkingAreaHeight / 2 + 30; // Slightly below center to account for title
             
             // Calculate parking dimensions from grid
@@ -1090,24 +1101,42 @@
                 
                 const slotUI = this.chargingSlotsUI[i];
                 
-                // Point A: midpoint of top side of EV charger sprite (not battery)
-                const pointA = {
-                    x: slotUI.chargerX,
-                    y: slotUI.chargerY - slotUI.chargerSize / 2
-                };
-                
-                // Point B: midpoint of bottom side of vehicle
+                // Determine best connection point: choose nearest point on vehicle rectangle
+                // Strategy: Pure merit-based - calculate Manhattan distance and choose shortest path
                 const carBounds = car.sprite.getBounds();
-                const pointB = {
-                    x: carBounds.centerX,
-                    y: carBounds.bottom
-                };
+                const chargerCenterY = slotUI.chargerY;
+                const chargerRightX = slotUI.chargerX + slotUI.chargerSize / 2;
                 
-                // Apply offset for plug head - line ends above actual car bottom
-                const plugOffset = CONFIG.CHARGING_CONNECTION.PLUG_HEAD_OFFSET_Y;
-                const adjustedPointB = {
+                // Get slot-specific horizontal offset distance (different for each slot to avoid overlap)
+                const slotDistance = CONFIG.CHARGING_CONNECTION.SLOT_DISTANCES[i] || 30;
+                
+                // Apply X offset to compensate for transparent space in charger image
+                const startOffsetX = CONFIG.CHARGING_CONNECTION.START_OFFSET_X || 0;
+                
+                // Point A: Starting point at charger (right edge + offset, centered vertically)
+                const pointA = { x: chargerRightX + startOffsetX, y: chargerCenterY };
+                
+                // Point A2: First turn point - fixed distance from charger (avoids turning at road)
+                const pointA2 = { x: chargerRightX + startOffsetX + slotDistance, y: chargerCenterY };
+                
+                // Vehicle candidate connection points
+                const leftPoint = { x: carBounds.left, y: carBounds.centerY };      // Left midpoint
+                const bottomPoint = { x: carBounds.centerX, y: carBounds.bottom };  // Bottom midpoint
+                
+                // Calculate Manhattan distance from first turn point (A2) to each vehicle point
+                const distToLeft = Math.abs(leftPoint.x - pointA2.x) + Math.abs(leftPoint.y - pointA2.y);
+                const distToBottom = Math.abs(bottomPoint.x - pointA2.x) + Math.abs(bottomPoint.y - pointA2.y);
+                
+                // Choose connection based purely on shortest Manhattan distance (no priority to left)
+                const useLeftConnection = distToLeft < distToBottom;
+                
+                // Point B: Connection point on car (chosen based on distance)
+                const pointB = useLeftConnection ? leftPoint : bottomPoint;
+                
+                // Apply plug offset for vertical connections (bottom connection only)
+                const adjustedPointB = useLeftConnection ? pointB : {
                     x: pointB.x,
-                    y: pointB.y + plugOffset // positive offset moves down, negative moves up
+                    y: pointB.y + CONFIG.CHARGING_CONNECTION.PLUG_HEAD_OFFSET_Y // Offset for vertical plug
                 };
                 
                 // Calculate pulse effect (flash on charge)
@@ -1163,19 +1192,6 @@
                     lineAlpha
                 );
                 
-                // Corner radius from config
-                const cornerRadius = CONFIG.CHARGING_CONNECTION.CORNER_RADIUS;
-                
-                // Different vertical distances for each slot from config
-                const slotDistances = CONFIG.CHARGING_CONNECTION.SLOT_DISTANCES;
-                const verticalStep = slotDistances[i] || 20;
-                
-                // Calculate intermediate points for Manhattan routing
-                const midY = pointA.y - verticalStep;
-                
-                // Check if points are aligned vertically (same x)
-                const isAligned = Math.abs(adjustedPointB.x - pointA.x) < 1;
-                
                 // Get animation progress for this slot (0 to 1)
                 // If animation is disabled or progress not set, show full line
                 let progress = this.chargingAnimationProgress[i];
@@ -1192,201 +1208,81 @@
                 this.chargingConnectionsGraphics.beginPath();
                 this.chargingConnectionsGraphics.moveTo(pointA.x, pointA.y);
                 
-                if (isAligned) {
-                    // Simple case: straight vertical line with animation
-                    if (progress > 0) {
-                        const totalDist = pointA.y - adjustedPointB.y;
-                        const currentY = pointA.y - (totalDist * progress);
-                        this.chargingConnectionsGraphics.lineTo(pointA.x, currentY);
-                    }
-                } else {
-                    // Manhattan routing with animated tracing
-                    const goingRight = adjustedPointB.x > pointA.x;
+                // Segment 0: Always draw fixed horizontal segment from charger first (avoids turning at road)
+                // This segment uses slot-specific distance to prevent overlap between the 3 chargers
+                
+                if (useLeftConnection) {
+                    // Route to LEFT side of vehicle
+                    // Path: charger → horizontal stem → vertical → horizontal → vehicle left
                     
-                    // Calculate path segment lengths for animation
-                    const vert1Dist = Math.abs(pointA.y - (midY + cornerRadius));
-                    const arcDist = (Math.PI / 2) * cornerRadius; // Quarter circle arc length
-                    const horizDist = Math.abs(adjustedPointB.x - pointA.x) - 2 * cornerRadius;
-                    const vert2Dist = Math.abs(midY - cornerRadius - adjustedPointB.y);
-                    const totalDist = vert1Dist + arcDist + horizDist + arcDist + vert2Dist;
+                    const stem = slotDistance; // Fixed horizontal segment
+                    const vertDist = Math.abs(adjustedPointB.y - pointA2.y);
+                    const horizDist = adjustedPointB.x - pointA2.x; // Keep direction (negative if going left)
+                    const totalDist = stem + vertDist + Math.abs(horizDist);
                     
-                    // Calculate distances at each segment boundary (cumulative)
-                    const dist1 = vert1Dist;
-                    const dist2 = dist1 + arcDist;
-                    const dist3 = dist2 + horizDist;
-                    const dist4 = dist3 + arcDist;
-                    const dist5 = dist4 + vert2Dist;
-                    
+                    const dist1 = stem;
+                    const dist2 = dist1 + vertDist;
                     const currentDist = totalDist * progress;
                     
-                    // Segment 1: First vertical line
+                    // Segment 1: Horizontal stem from charger
                     if (currentDist <= dist1) {
-                        // Partial first vertical segment
-                        const segProgress = currentDist / vert1Dist;
-                        const currentY = pointA.y - (vert1Dist * segProgress);
-                        this.chargingConnectionsGraphics.lineTo(pointA.x, currentY);
+                        const segProgress = currentDist / stem;
+                        const currentX = pointA.x + (stem * segProgress);
+                        this.chargingConnectionsGraphics.lineTo(currentX, pointA.y);
                     }
-                    // Segment 2: First corner arc
+                    // Segment 2: Vertical to vehicle height
                     else if (currentDist <= dist2) {
-                        // Complete first vertical segment
-                        this.chargingConnectionsGraphics.lineTo(pointA.x, midY + cornerRadius);
-                        
-                        // Partial first arc
-                        const segProgress = (currentDist - dist1) / arcDist;
-                        const arcAngle = (Math.PI / 2) * segProgress;
-                        
-                        if (goingRight) {
-                            this.chargingConnectionsGraphics.arc(
-                                pointA.x + cornerRadius,
-                                midY + cornerRadius,
-                                cornerRadius,
-                                Math.PI,
-                                Math.PI - arcAngle,
-                                true
-                            );
+                        this.chargingConnectionsGraphics.lineTo(pointA2.x, pointA2.y);
+                        const segProgress = (currentDist - dist1) / vertDist;
+                        const goingDown = adjustedPointB.y > pointA2.y;
+                        if (goingDown) {
+                            const currentY = pointA2.y + (vertDist * segProgress);
+                            this.chargingConnectionsGraphics.lineTo(pointA2.x, currentY);
                         } else {
-                            this.chargingConnectionsGraphics.arc(
-                                pointA.x - cornerRadius,
-                                midY + cornerRadius,
-                                cornerRadius,
-                                0,
-                                arcAngle,
-                                false
-                            );
+                            const currentY = pointA2.y - (vertDist * segProgress);
+                            this.chargingConnectionsGraphics.lineTo(pointA2.x, currentY);
                         }
                     }
-                    // Segment 3: Horizontal line
-                    else if (currentDist <= dist3) {
-                        // Complete first vertical and first arc
-                        this.chargingConnectionsGraphics.lineTo(pointA.x, midY + cornerRadius);
-                        
-                        if (goingRight) {
-                            this.chargingConnectionsGraphics.arc(
-                                pointA.x + cornerRadius,
-                                midY + cornerRadius,
-                                cornerRadius,
-                                Math.PI,
-                                Math.PI * 1.5,
-                                false
-                            );
-                        } else {
-                            this.chargingConnectionsGraphics.arc(
-                                pointA.x - cornerRadius,
-                                midY + cornerRadius,
-                                cornerRadius,
-                                0,
-                                Math.PI * 1.5,
-                                true
-                            );
-                        }
-                        
-                        // Partial horizontal segment
-                        const segProgress = (currentDist - dist2) / horizDist;
-                        if (goingRight) {
-                            const currentX = (pointA.x + cornerRadius) + (horizDist * segProgress);
-                            this.chargingConnectionsGraphics.lineTo(currentX, midY);
-                        } else {
-                            const currentX = (pointA.x - cornerRadius) - (horizDist * segProgress);
-                            this.chargingConnectionsGraphics.lineTo(currentX, midY);
-                        }
-                    }
-                    // Segment 4: Second corner arc
-                    else if (currentDist <= dist4) {
-                        // Complete first vertical, first arc, and horizontal
-                        this.chargingConnectionsGraphics.lineTo(pointA.x, midY + cornerRadius);
-                        
-                        if (goingRight) {
-                            this.chargingConnectionsGraphics.arc(
-                                pointA.x + cornerRadius,
-                                midY + cornerRadius,
-                                cornerRadius,
-                                Math.PI,
-                                Math.PI * 1.5,
-                                false
-                            );
-                            this.chargingConnectionsGraphics.lineTo(adjustedPointB.x - cornerRadius, midY);
-                        } else {
-                            this.chargingConnectionsGraphics.arc(
-                                pointA.x - cornerRadius,
-                                midY + cornerRadius,
-                                cornerRadius,
-                                0,
-                                Math.PI * 1.5,
-                                true
-                            );
-                            this.chargingConnectionsGraphics.lineTo(adjustedPointB.x + cornerRadius, midY);
-                        }
-                        
-                        // Partial second arc
-                        const segProgress = (currentDist - dist3) / arcDist;
-                        const arcAngle = (Math.PI / 2) * segProgress;
-                        
-                        if (goingRight) {
-                            this.chargingConnectionsGraphics.arc(
-                                adjustedPointB.x - cornerRadius,
-                                midY - cornerRadius,
-                                cornerRadius,
-                                Math.PI / 2,
-                                Math.PI / 2 - arcAngle,
-                                true
-                            );
-                        } else {
-                            this.chargingConnectionsGraphics.arc(
-                                adjustedPointB.x + cornerRadius,
-                                midY - cornerRadius,
-                                cornerRadius,
-                                Math.PI / 2,
-                                Math.PI / 2 + arcAngle,
-                                false
-                            );
-                        }
-                    }
-                    // Segment 5: Final vertical line
+                    // Segment 3: Horizontal to vehicle left (preserve direction)
                     else {
-                        // Complete all previous segments
-                        this.chargingConnectionsGraphics.lineTo(pointA.x, midY + cornerRadius);
-                        
-                        if (goingRight) {
-                            this.chargingConnectionsGraphics.arc(
-                                pointA.x + cornerRadius,
-                                midY + cornerRadius,
-                                cornerRadius,
-                                Math.PI,
-                                Math.PI * 1.5,
-                                false
-                            );
-                            this.chargingConnectionsGraphics.lineTo(adjustedPointB.x - cornerRadius, midY);
-                            this.chargingConnectionsGraphics.arc(
-                                adjustedPointB.x - cornerRadius,
-                                midY - cornerRadius,
-                                cornerRadius,
-                                Math.PI / 2,
-                                0,
-                                true
-                            );
-                        } else {
-                            this.chargingConnectionsGraphics.arc(
-                                pointA.x - cornerRadius,
-                                midY + cornerRadius,
-                                cornerRadius,
-                                0,
-                                Math.PI * 1.5,
-                                true
-                            );
-                            this.chargingConnectionsGraphics.lineTo(adjustedPointB.x + cornerRadius, midY);
-                            this.chargingConnectionsGraphics.arc(
-                                adjustedPointB.x + cornerRadius,
-                                midY - cornerRadius,
-                                cornerRadius,
-                                Math.PI / 2,
-                                Math.PI,
-                                false
-                            );
-                        }
-                        
-                        // Partial final vertical segment
-                        const segProgress = (currentDist - dist4) / vert2Dist;
-                        const currentY = (midY - cornerRadius) - (vert2Dist * segProgress);
+                        this.chargingConnectionsGraphics.lineTo(pointA2.x, pointA2.y);
+                        this.chargingConnectionsGraphics.lineTo(pointA2.x, adjustedPointB.y);
+                        const segProgress = (currentDist - dist2) / Math.abs(horizDist);
+                        const currentX = pointA2.x + (horizDist * segProgress); // horizDist preserves direction
+                        this.chargingConnectionsGraphics.lineTo(currentX, adjustedPointB.y);
+                    }
+                } else {
+                    // Route to BOTTOM of vehicle
+                    // Path: charger → horizontal stem → continue horizontal to vehicle X → vertical down to vehicle bottom
+                    
+                    const stem = slotDistance; // Fixed horizontal segment
+                    const horizDist = adjustedPointB.x - pointA2.x; // Keep direction (negative if going left)
+                    const vertDist = adjustedPointB.y - pointA2.y; // Keep direction
+                    const totalDist = stem + Math.abs(horizDist) + Math.abs(vertDist);
+                    
+                    const dist1 = stem;
+                    const dist2 = dist1 + Math.abs(horizDist);
+                    const currentDist = totalDist * progress;
+                    
+                    // Segment 1: Horizontal stem from charger
+                    if (currentDist <= dist1) {
+                        const segProgress = currentDist / stem;
+                        const currentX = pointA.x + (stem * segProgress);
+                        this.chargingConnectionsGraphics.lineTo(currentX, pointA.y);
+                    }
+                    // Segment 2: Continue horizontal to vehicle X position (preserve direction)
+                    else if (currentDist <= dist2) {
+                        this.chargingConnectionsGraphics.lineTo(pointA2.x, pointA2.y);
+                        const segProgress = (currentDist - dist1) / Math.abs(horizDist);
+                        const currentX = pointA2.x + (horizDist * segProgress); // horizDist preserves direction
+                        this.chargingConnectionsGraphics.lineTo(currentX, pointA2.y);
+                    }
+                    // Segment 3: Vertical to vehicle bottom (preserve direction)
+                    else {
+                        this.chargingConnectionsGraphics.lineTo(pointA2.x, pointA2.y);
+                        this.chargingConnectionsGraphics.lineTo(adjustedPointB.x, pointA2.y);
+                        const segProgress = (currentDist - dist2) / Math.abs(vertDist);
+                        const currentY = pointA2.y + (vertDist * segProgress); // vertDist preserves direction
                         this.chargingConnectionsGraphics.lineTo(adjustedPointB.x, currentY);
                     }
                 }
@@ -1394,14 +1290,26 @@
                 // Stroke the path
                 this.chargingConnectionsGraphics.strokePath();
                 
-                // Position and show plug head sprite at end of line (original pointB, not adjusted)
+                // Position and show plug head sprite at end of line
+                // Rotate plug based on connection type and final line segment direction
                 const plugHead = this.chargingPlugHeads[i];
                 if (plugHead && progress >= 1) {
-                    // Position plug head at adjusted point B (bottom of plug at end of line)
-                    plugHead.x = adjustedPointB.x;
-                    plugHead.y = adjustedPointB.y; // Origin is at bottom, so this puts bottom at line end
-                    plugHead.setTint(hexColor(CONFIG.CHARGING_CONNECTION.LINE_COLOR)); // Ensure tint matches line color
-                    plugHead.setAlpha(plugAlpha); // Apply pulse alpha (matches line alpha)
+                    if (useLeftConnection) {
+                        // Connects to LEFT side of car - plug points RIGHT
+                        plugHead.setOrigin(0, 0.5); // Left center origin
+                        plugHead.setAngle(90); // Point right
+                        plugHead.x = adjustedPointB.x; // Left side of car
+                        plugHead.y = adjustedPointB.y;
+                    } else {
+                        // Final segment is VERTICAL (connects to BOTTOM of car)
+                        // Plug points UP (normal orientation)
+                        plugHead.setOrigin(0.5, 1); // Bottom center origin
+                        plugHead.setAngle(0); // Point up
+                        plugHead.x = adjustedPointB.x;
+                        plugHead.y = adjustedPointB.y; // Bottom at line end
+                    }
+                    plugHead.setTint(hexColor(CONFIG.CHARGING_CONNECTION.LINE_COLOR));
+                    plugHead.setAlpha(plugAlpha);
                     plugHead.setVisible(true);
                 } else if (plugHead) {
                     plugHead.setVisible(false);
