@@ -311,7 +311,11 @@ var CONFIG = {
         
         // Plug head icon settings (electrical connector at car end)
         PLUG_HEAD_SIZE: 24,             // Size of plug head sprite (width and height in pixels)
-        PLUG_HEAD_OFFSET_Y: 25,         // Vertical offset from car bottom for vertical plug orientation (positive = move down, negative = move up)
+        PLUG_X_OFFSET: 24,              // X offset for left connection point calculation (negative = move left to accommodate plug)
+                                         // Applied BEFORE choosing between left/bottom connection for fair Manhattan distance comparison
+        PLUG_Y_OFFSET: 24,              // Y offset for bottom connection point calculation (positive = move down to accommodate plug)
+                                         // Applied BEFORE choosing between left/bottom connection for fair Manhattan distance comparison
+        PLUG_HEAD_OFFSET_Y: 25,         // Deprecated - offset now handled by PLUG_Y_OFFSET during connection point calculation
         
         // Charging station icon (displayed to the left of charging slots)
         STATION_ICON_SIZE: 112,         // Size of charging station icon (width and height in pixels) - 40% bigger than original 80

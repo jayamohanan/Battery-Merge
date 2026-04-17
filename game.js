@@ -1120,8 +1120,11 @@
                 const pointA2 = { x: chargerRightX + startOffsetX + slotDistance, y: chargerCenterY };
                 
                 // Vehicle candidate connection points
-                const leftPoint = { x: carBounds.left, y: carBounds.centerY };      // Left midpoint
-                const bottomPoint = { x: carBounds.centerX, y: carBounds.bottom };  // Bottom midpoint
+                // Apply offsets to both points BEFORE distance calculation to accommodate plug
+                const plugXOffset = CONFIG.CHARGING_CONNECTION.PLUG_X_OFFSET || 0;
+                const plugYOffset = CONFIG.CHARGING_CONNECTION.PLUG_Y_OFFSET || 0;
+                const leftPoint = { x: carBounds.left - plugXOffset, y: carBounds.centerY };      // Left midpoint - X offset (move left)
+                const bottomPoint = { x: carBounds.centerX, y: carBounds.bottom + plugYOffset };  // Bottom midpoint + Y offset (move down)
                 
                 // Calculate Manhattan distance from first turn point (A2) to each vehicle point
                 const distToLeft = Math.abs(leftPoint.x - pointA2.x) + Math.abs(leftPoint.y - pointA2.y);
@@ -1133,11 +1136,9 @@
                 // Point B: Connection point on car (chosen based on distance)
                 const pointB = useLeftConnection ? leftPoint : bottomPoint;
                 
-                // Apply plug offset for vertical connections (bottom connection only)
-                const adjustedPointB = useLeftConnection ? pointB : {
-                    x: pointB.x,
-                    y: pointB.y + CONFIG.CHARGING_CONNECTION.PLUG_HEAD_OFFSET_Y // Offset for vertical plug
-                };
+                // For bottom connections, pointB already includes PLUG_Y_OFFSET
+                // No additional adjustment needed since offset was applied before distance calculation
+                const adjustedPointB = pointB;
                 
                 // Calculate pulse effect (flash on charge)
                 let lineAlpha = CONFIG.CHARGING_CONNECTION.LINE_ALPHA;
@@ -1296,15 +1297,17 @@
                 if (plugHead && progress >= 1) {
                     if (useLeftConnection) {
                         // Connects to LEFT side of car - plug points RIGHT
-                        plugHead.setOrigin(0, 0.5); // Left center origin
-                        plugHead.setAngle(90); // Point right
+                        // Keep origin at (0.5, 1) - the base/connection point in original image
+                        // When rotated, this automatically aligns correctly
+                        plugHead.setOrigin(0.5, 1); // Bottom center origin (base of plug in original image)
+                        plugHead.setAngle(90); // Rotate 90° clockwise to point right
                         plugHead.x = adjustedPointB.x; // Left side of car
                         plugHead.y = adjustedPointB.y;
                     } else {
                         // Final segment is VERTICAL (connects to BOTTOM of car)
                         // Plug points UP (normal orientation)
-                        plugHead.setOrigin(0.5, 1); // Bottom center origin
-                        plugHead.setAngle(0); // Point up
+                        plugHead.setOrigin(0.5, 1); // Bottom center origin (base of plug)
+                        plugHead.setAngle(0); // Point up (no rotation)
                         plugHead.x = adjustedPointB.x;
                         plugHead.y = adjustedPointB.y; // Bottom at line end
                     }
