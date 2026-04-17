@@ -316,13 +316,14 @@
                 switchSprite.setAlpha(CONFIG.EV_CHARGER.SWITCH_ALPHA);
                 switchSprite.setDepth(3); // Above drop zone, visible on top
                 
-                // Charge rate text (above charger, hidden initially)
-                const chargeText = this.add.text(slotX, slotY - chargerSize / 2 - 20, '', {
+                // Charge rate text (to the right of charger, near connection start, hidden initially)
+                // Positioned close to charger with vertical offset to avoid overlapping with charging line
+                const chargeText = this.add.text(slotX + chargerSize / 2 - 10, slotY - 20, '', {
                     fontSize: '18px',
                     fontFamily: CONFIG.FONT_FAMILY,
                     color: '#1A237E',
                     fontStyle: 'bold'
-                }).setOrigin(0.5).setVisible(false);
+                }).setOrigin(0, 0.5).setVisible(false);
                 chargeText.setDepth(10);
                 
                 // Drop zone for batteries (positioned at the white square location)
@@ -664,7 +665,37 @@
             const parkingGridWidth = baseGridWidth * CONFIG.GRID.SIZE_FACTOR * levelSizeFactor;
             
             // Calculate cell size from grid width and number of columns (cells must be square)
-            const calculatedCellSize = parkingGridWidth / this.gridConfig.cols;
+            let calculatedCellSize = parkingGridWidth / this.gridConfig.cols;
+            
+            // Apply constraint square if enabled
+            if (CONFIG.GRID.CONSTRAINT_SQUARE_ENABLED) {
+                const constraintSize = CONFIG.GRID.CONSTRAINT_SQUARE_SIZE;
+                
+                // Calculate road width based on initial cell size
+                const roadWidth = calculatedCellSize * this.roadWidthFactor;
+                
+                // Calculate total area needed (parking + roads on 3 sides: left, right, bottom)
+                const parkingWidth = this.gridConfig.cols * calculatedCellSize;
+                const parkingHeight = this.gridConfig.rows * calculatedCellSize;
+                const totalWidth = parkingWidth + 2 * roadWidth;   // Left + parking + right
+                const totalHeight = parkingHeight + 2 * roadWidth;  // Top + parking + bottom (not including upward exit)
+                
+                // Find the larger dimension
+                const maxDimension = Math.max(totalWidth, totalHeight);
+                
+                // Always scale to fit constraint square (scale up OR down to maximize usage)
+                const scaleFactor = constraintSize / maxDimension;
+                calculatedCellSize = calculatedCellSize * scaleFactor;
+                
+                console.log('Constraint square applied:', {
+                    originalCellSize: (parkingGridWidth / this.gridConfig.cols).toFixed(2),
+                    scaleFactor: scaleFactor.toFixed(3),
+                    newCellSize: calculatedCellSize.toFixed(2),
+                    constraintSize: constraintSize,
+                    maxDimension: maxDimension.toFixed(2),
+                    scaledDimension: (maxDimension * scaleFactor).toFixed(2)
+                });
+            }
             
             // Set calculated cellSize
             this.gridConfig.cellSize = calculatedCellSize;
@@ -751,8 +782,16 @@
             
             // Center position for parking area (in top half) - shifted to the right
             const horizontalShift = sceneWidth * (CONFIG.GRID.PARKING_HORIZONTAL_OFFSET || 0);
-            const centerX = sceneWidth / 2 + horizontalShift;
-            const centerY = parkingAreaHeight / 2 + 30; // Slightly below center to account for title
+            let centerX = sceneWidth / 2 + horizontalShift;
+            let centerY = parkingAreaHeight / 2 + 30; // Slightly below center to account for title
+            
+            // Apply constraint square position offset if enabled
+            if (CONFIG.GRID.CONSTRAINT_SQUARE_ENABLED) {
+                const offsetX = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_X || 0;
+                const offsetY = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_Y || 0;
+                centerX += offsetX;
+                centerY += offsetY;
+            }
             
             // Calculate parking dimensions from grid
             const parkingWidth = this.gridConfig.cols * this.gridConfig.cellSize;
@@ -881,6 +920,34 @@
                 depth: 3,
                 alpha: parkingData.alpha
             });
+            
+            // Draw constraint square if enabled and visible
+            if (CONFIG.GRID.CONSTRAINT_SQUARE_ENABLED && CONFIG.GRID.CONSTRAINT_SQUARE_VISIBLE) {
+                const constraintSize = CONFIG.GRID.CONSTRAINT_SQUARE_SIZE;
+                const offsetX = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_X || 0;
+                const offsetY = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_Y || 0;
+                
+                const constraintGraphics = this.add.graphics();
+                constraintGraphics.lineStyle(3, 0xFF0000, 1); // Red outline, 3px thick
+                constraintGraphics.strokeRect(
+                    centerX - constraintSize / 2,
+                    centerY - constraintSize / 2,
+                    constraintSize,
+                    constraintSize
+                );
+                constraintGraphics.setDepth(100); // On top of everything for debugging
+                
+                console.log('Constraint square drawn:', {
+                    size: constraintSize,
+                    centerX: centerX,
+                    centerY: centerY,
+                    offsetX: offsetX,
+                    offsetY: offsetY,
+                    parkingPlusRoadsWidth: (parkingWidth + 2 * roadWidth).toFixed(2),
+                    parkingPlusRoadsHeight: (parkingHeight + 2 * roadWidth).toFixed(2)
+                });
+            }
+            
             console.log('=== DRAW PARKING AND ROAD COMPLETE ===');
         }
         

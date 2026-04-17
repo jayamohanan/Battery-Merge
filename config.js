@@ -65,6 +65,21 @@ var CONFIG = {
         PARKING_HORIZONTAL_OFFSET: 0.15,  // Shift parking area to right (0.15 = 15% of screen width to the right)
                                            // 0 = centered, positive = shift right, negative = shift left
         
+        // Constraint square for parking area sizing
+        // POSITION CALCULATION:
+        // Center X = (screenWidth / 2) + (screenWidth × PARKING_HORIZONTAL_OFFSET) + CONSTRAINT_SQUARE_OFFSET_X
+        // Center Y = (parkingAreaHeight / 2) + 30 + CONSTRAINT_SQUARE_OFFSET_Y
+        // Where parkingAreaHeight = screenHeight × 0.5
+        //
+        // OPTIMAL VALUES (maximizes parking area without clipping or overlapping chargers):
+        // These values have been tuned for best visual layout - adjust only if needed
+        CONSTRAINT_SQUARE_ENABLED: true,   // Enable constraint square to limit parking area size
+        CONSTRAINT_SQUARE_VISIBLE: false,  // Show constraint square for debugging (red outline)
+        CONSTRAINT_SQUARE_SIZE: 500,       // Size of constraint square (pixels) - OPTIMIZED VALUE
+                                           // Parking area + surrounding roads scale to fit inside this square
+        CONSTRAINT_SQUARE_OFFSET_X: -40,   // Horizontal offset from calculated center (pixels, positive = shift right) - OPTIMIZED VALUE
+        CONSTRAINT_SQUARE_OFFSET_Y: 0,     // Vertical offset from calculated center (pixels, positive = shift down) - OPTIMIZED VALUE
+        
         // Responsive sizing for PARKING JAM GRID ONLY (top section with cars)
         // Battery merge grid (bottom section) positioning is controlled by MERGE_GRID section below
         WIDTH_PERCENTAGE: 0.5,         // Parking grid width as percentage of screen width (reduced from 0.6 to 0.5 to fit chargers)
@@ -300,7 +315,7 @@ var CONFIG = {
         SLOT_SWITCH_DELAY: 500,         // Delay in milliseconds before a slot switches to charge the next vehicle after completing one (allows player to see completion)
         CORNER_RADIUS: 10,              // Radius for rounded corners in charging connection lines (pixels)
         LINE_WIDTH: 5,                  // Width of charging connection lines (pixels)
-        LINE_COLOR: "#FF6B9D",           // Bright pink color for charging lines
+        LINE_COLOR: "#666666",           // Grey color for charging lines
         LINE_ALPHA: 0.7,                // Transparency of charging lines (0-1, 0.7 = 70%)
         START_OFFSET_X: -16,            // Horizontal offset for connection start point (negative = shift left to compensate for transparent space in charger image)
         SLOT_DISTANCES: [20, 35, 50],   // Fixed horizontal "stem" distance from each charger before first turn (pixels)
@@ -450,7 +465,7 @@ var CONFIG = {
         SCALE_X: 0.85,                  // Horizontal scale relative to car width (0.85 = slightly smaller than car)
         SCALE_Y: 0.85,                  // Vertical scale relative to car length (0.85 = slightly smaller than car)
         ALPHA: 0.3,                    // Shadow transparency (0.08 = very transparent, higher = darker)
-        COLOR: "#5E35B1",                // Deep purple shadow color
+        COLOR: "#666666",                // Grey shadow color
         OFFSET_X: -5,                   // Horizontal offset from car center (sun from SE: negative = shadow to west)
         OFFSET_Y: -5,                   // Vertical offset from car center (sun from SE: negative = shadow to north)
         DEPTH: 4,                       // Render depth (4 = below road at 5, below cars at 10)
