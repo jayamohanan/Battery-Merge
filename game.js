@@ -99,7 +99,7 @@
             this.load.image('point', 'graphics/point.png');
             this.load.image('button', 'graphics/Button.png');
             this.load.image('plug', 'graphics/plug.png');
-            this.load.image('charging_station', 'graphics/charging_station.png');
+            this.load.image('ev_charger_left', 'graphics/ev_charger.png');
             
             // Load parking jam assets - dynamically load all vehicles from CONFIG.VEHICLES
             CONFIG.VEHICLES.forEach(vehicle => {
@@ -242,67 +242,75 @@
             const sceneHeight = this.cameras.main.height;
             
             // Position slots at top of bottom half (just below the parking area)
-            const slotY = sceneHeight * 0.5 + 80; // Top of bottom half + some padding
-            const slotSize = 100; // Same as grid cells
+            const slotY = sceneHeight * 0.5 + CONFIG.EV_CHARGER.SLOT_Y_OFFSET; // Configurable Y position
+            const originalSlotSize = 100; // Original slot size for reference
+            const chargerSize = originalSlotSize * CONFIG.EV_CHARGER.SIZE_MULTIPLIER; // EV charger size from config
             const slotGap = 15; // Same as grid cell gap
-            const totalWidth = 3 * slotSize + 2 * slotGap;
+            const totalWidth = 3 * chargerSize + 2 * slotGap;
             const startX = (sceneWidth - totalWidth) / 2;
             
-            // Add charging station icon to the left of the slots
-            const stationIconSize = CONFIG.CHARGING_CONNECTION.STATION_ICON_SIZE;
-            const stationIconX = startX + CONFIG.CHARGING_CONNECTION.STATION_ICON_OFFSET_X;
-            const stationIcon = this.add.sprite(stationIconX, slotY, 'charging_station');
-            stationIcon.setDisplaySize(stationIconSize, stationIconSize);
-            stationIcon.setDepth(1); // Below most UI elements
+            // Drop zone settings from config (white circle/rounded square inside the charger)
+            const dropZoneSize = CONFIG.EV_CHARGER.DROP_ZONE_SIZE;
+            const dropZoneOffsetX = CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_X;
+            const dropZoneOffsetY = CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_Y;
+            const dropZoneRadius = CONFIG.EV_CHARGER.DROP_ZONE_RADIUS;
             
             for (let i = 0; i < 3; i++) {
-                const slotX = startX + i * (slotSize + slotGap) + slotSize / 2;
+                const slotX = startX + i * (chargerSize + slotGap) + chargerSize / 2;
                 
-                // Slot background (rounded rectangle)
-                const slotBg = this.add.graphics();
-                slotBg.lineStyle(4, 0x5E35B1, 1);
-                slotBg.strokeRoundedRect(
-                    slotX - slotSize / 2,
-                    slotY - slotSize / 2,
-                    slotSize,
-                    slotSize,
-                    15
+                // EV Charger sprite (replaces the old slot background)
+                const chargerSprite = this.add.sprite(slotX, slotY, 'ev_charger_left');
+                chargerSprite.setDisplaySize(chargerSize, chargerSize);
+                chargerSprite.setDepth(1); // Below batteries and UI elements
+                // Start with grey/inactive appearance (empty slot)
+                chargerSprite.setTint(0x888888); // Grey tint
+                chargerSprite.setAlpha(0.6); // Slightly transparent
+                
+                // White rounded rectangle drop zone inside the charger
+                const dropZoneX = slotX + dropZoneOffsetX;
+                const dropZoneY = slotY + dropZoneOffsetY;
+                
+                // Visual white rounded rectangle (to show where to drop batteries)
+                const dropZoneBg = this.add.graphics();
+                dropZoneBg.fillStyle(CONFIG.EV_CHARGER.DROP_ZONE_BG_COLOR, CONFIG.EV_CHARGER.DROP_ZONE_BG_ALPHA);
+                dropZoneBg.fillRoundedRect(
+                    dropZoneX - dropZoneSize / 2,
+                    dropZoneY - dropZoneSize / 2,
+                    dropZoneSize,
+                    dropZoneSize,
+                    dropZoneRadius
                 );
+                dropZoneBg.setDepth(2); // Above charger sprite
                 
-                // Slot filled background (hidden initially)
-                const slotFilledBg = this.add.graphics();
-                slotFilledBg.fillStyle(0xFFB3E6, 1);
-                slotFilledBg.fillRoundedRect(
-                    slotX - slotSize / 2,
-                    slotY - slotSize / 2,
-                    slotSize,
-                    slotSize,
-                    15
-                );
-                slotFilledBg.setVisible(false);
-                
-                // Charge rate text (above slot, hidden initially)
-                const chargeText = this.add.text(slotX, slotY - slotSize / 2 - 20, '', {
+                // Charge rate text (above charger, hidden initially)
+                const chargeText = this.add.text(slotX, slotY - chargerSize / 2 - 20, '', {
                     fontSize: '18px',
                     fontFamily: CONFIG.FONT_FAMILY,
                     color: '#1A237E',
                     fontStyle: 'bold'
                 }).setOrigin(0.5).setVisible(false);
+                chargeText.setDepth(10);
                 
-                // Drop zone for batteries
-                const dropZone = this.add.zone(slotX, slotY, slotSize, slotSize);
-                dropZone.setRectangleDropZone(slotSize, slotSize);
+                // Drop zone for batteries (positioned at the white square location)
+                const dropZone = this.add.zone(dropZoneX, dropZoneY, dropZoneSize, dropZoneSize);
+                dropZone.setRectangleDropZone(dropZoneSize, dropZoneSize);
                 dropZone.setData('slotIndex', i);
                 
                 this.chargingSlotsUI.push({
-                    x: slotX,
-                    y: slotY,
-                    slotBg: slotBg,
-                    slotFilledBg: slotFilledBg,
+                    x: dropZoneX,  // Use drop zone position for battery placement
+                    y: dropZoneY,  // Use drop zone position for battery placement
+                    chargerSprite: chargerSprite,
+                    chargerX: slotX,  // Store charger center position
+                    chargerY: slotY,  // Store charger center position
+                    chargerSize: chargerSize,  // Store charger size for wire connection
+                    dropZoneBg: dropZoneBg,
                     chargeText: chargeText,
                     dropZone: dropZone,
                     batterySprite: null,
-                    batteryLevelText: null
+                    batteryLevelText: null,
+                    // Store offsets for future adjustments
+                    dropZoneOffsetX: dropZoneOffsetX,
+                    dropZoneOffsetY: dropZoneOffsetY
                 });
                 
                 // Create plug head sprite for this slot (hidden initially)
@@ -379,9 +387,17 @@
             const batteryIconLevel = getBatteryIconLevel(level);
             const batteryIcon = `battery${batteryIconLevel}`;
             
-            // Create battery sprite in slot (using same offset as grid cells)
-            const batterySprite = this.add.image(slot.x, slot.y + CONFIG.CELL.BATTERY_Y_OFFSET, batteryIcon);
-            batterySprite.setDisplaySize(CONFIG.CELL.BATTERY_DISPLAY_SIZE, CONFIG.CELL.BATTERY_DISPLAY_SIZE);
+            // Calculate scale factor based on drop zone size vs grid cell size
+            // This ensures battery and text fit perfectly in the drop zone
+            const dropZoneSize = CONFIG.EV_CHARGER.DROP_ZONE_SIZE;
+            const gridCellSize = CONFIG.CELL.SIZE;
+            const scaleFactor = dropZoneSize / gridCellSize;
+            
+            // Create battery sprite in slot (scaled to fit drop zone)
+            const batterySprite = this.add.image(slot.x, slot.y + CONFIG.CELL.BATTERY_Y_OFFSET * scaleFactor, batteryIcon);
+            const scaledBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE * scaleFactor;
+            batterySprite.setDisplaySize(scaledBatterySize, scaledBatterySize);
+            batterySprite.setDepth(5); // Above charger sprite (1) and pink square (2)
             
             // Make battery draggable
             const hitArea = new Phaser.Geom.Rectangle(
@@ -397,18 +413,24 @@
                 useHandCursor: true
             });
             
-            // Level text at top (using same offset as grid cells)
-            const levelText = this.add.text(slot.x, slot.y + CONFIG.CELL.BATTERY_Y_OFFSET + CONFIG.CELL.LEVEL_TEXT_Y_OFFSET, `LVL ${level}`, {
+            // Level text at top (scaled to fit drop zone)
+            const scaledTextOffset = CONFIG.CELL.LEVEL_TEXT_Y_OFFSET * scaleFactor;
+            const levelText = this.add.text(slot.x, slot.y + CONFIG.CELL.BATTERY_Y_OFFSET * scaleFactor + scaledTextOffset, `LVL ${level}`, {
                 fontSize: CONFIG.CELL.LEVEL_TEXT_SIZE,
                 fontFamily: CONFIG.FONT_FAMILY,
                 color: CONFIG.CELL.LEVEL_TEXT_COLOR,
                 fontStyle: 'bold'
             }).setOrigin(0.5);
+            levelText.setScale(scaleFactor); // Scale the text to match drop zone size
+            levelText.setDepth(6); // Above battery sprite
             
             // Show charge rate
             slot.chargeText.setText(`${chargePerMinute}`);
             slot.chargeText.setVisible(true);
-            slot.slotFilledBg.setVisible(true);
+            
+            // Make charger sprite active/normal (battery is now present)
+            slot.chargerSprite.clearTint();
+            slot.chargerSprite.setAlpha(1);
             
             // Store battery data
             slot.batterySprite = batterySprite;
@@ -466,7 +488,10 @@
             slot.batterySprite = null;
             slot.batteryLevelText = null;
             slot.chargeText.setVisible(false);
-            slot.slotFilledBg.setVisible(false);
+            
+            // Make charger sprite grey/inactive (empty slot)
+            slot.chargerSprite.setTint(0x888888); // Grey tint
+            slot.chargerSprite.setAlpha(0.6); // Slightly transparent
             
             // If this slot had an assigned car, hide its charge display
             const slotData = this.chargingSlots[slotIndex];
@@ -1021,11 +1046,10 @@
                 
                 const slotUI = this.chargingSlotsUI[i];
                 
-                // Point A: midpoint of top side of charging slot
-                const slotSize = 100; // Same as defined in createChargingSlots
+                // Point A: midpoint of top side of EV charger sprite (not battery)
                 const pointA = {
-                    x: slotUI.x,
-                    y: slotUI.y - slotSize / 2
+                    x: slotUI.chargerX,
+                    y: slotUI.chargerY - slotUI.chargerSize / 2
                 };
                 
                 // Point B: midpoint of bottom side of vehicle
@@ -1057,17 +1081,33 @@
                             (CONFIG.CHARGING_CONNECTION.PULSE_ALPHA_MAX - CONFIG.CHARGING_CONNECTION.LINE_ALPHA) * pulseFactor;
                         plugAlpha = lineAlpha;
                         
-                        // Pulse battery sprite in slot (scale up and down in sync with wire pulse)
+                        // Pulse only battery and text (not the EV charger sprite)
+                        const scaleFactor = 1 + CONFIG.CHARGING_CONNECTION.PULSE_BATTERY_SCALE * pulseFactor;
+                        
+                        // Scale the battery sprite (using scaled size based on drop zone)
                         if (slotUI.batterySprite && slotUI.batterySprite.active) {
-                            // Scale pulse: base size -> slightly larger -> base size
-                            const baseSize = CONFIG.CELL.BATTERY_DISPLAY_SIZE;
-                            const batterySize = baseSize * (1 + CONFIG.CHARGING_CONNECTION.PULSE_BATTERY_SCALE * pulseFactor);
-                            slotUI.batterySprite.setDisplaySize(batterySize, batterySize);
+                            const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
+                            const baseBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE * dropZoneScale;
+                            slotUI.batterySprite.setDisplaySize(baseBatterySize * scaleFactor, baseBatterySize * scaleFactor);
+                        }
+                        
+                        // Scale the battery level text (using scaled size based on drop zone)
+                        if (slotUI.batteryLevelText && slotUI.batteryLevelText.active) {
+                            const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
+                            slotUI.batteryLevelText.setScale(dropZoneScale * scaleFactor);
                         }
                     } else {
-                        // Reset battery size to normal when pulse is complete
+                        // Reset battery and text size to normal when pulse is complete
                         if (slotUI.batterySprite && slotUI.batterySprite.active) {
-                            slotUI.batterySprite.setDisplaySize(CONFIG.CELL.BATTERY_DISPLAY_SIZE, CONFIG.CELL.BATTERY_DISPLAY_SIZE);
+                            // Reset to scaled size (not full size, but drop zone size)
+                            const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
+                            const baseBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE * dropZoneScale;
+                            slotUI.batterySprite.setDisplaySize(baseBatterySize, baseBatterySize);
+                        }
+                        if (slotUI.batteryLevelText && slotUI.batteryLevelText.active) {
+                            // Reset to scaled size (not scale 1, but drop zone scale)
+                            const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
+                            slotUI.batteryLevelText.setScale(dropZoneScale);
                         }
                     }
                 }
@@ -4425,9 +4465,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Remove from charging system
                 this.chargingSlots[slotIndex] = null;
                 
-                // Hide charge rate text and filled background
+                // Hide charge rate text
                 slot.chargeText.setVisible(false);
-                slot.slotFilledBg.setVisible(false);
                 
                 // Update charging system (may stop charging if this was the last battery)
                 this.updateChargingSystem();
@@ -4585,7 +4624,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Remove from charging slot
                 this.chargingSlots[batteryData.slotIndex] = null;
                 const slot = this.chargingSlotsUI[batteryData.slotIndex];
-                slot.slotFilledBg.setVisible(false);
                 slot.chargeText.setVisible(false);
                 slot.batterySprite = null;
                 slot.batteryLevelText = null;
@@ -4679,7 +4717,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Remove from old charging slot
                 this.chargingSlots[batteryData.slotIndex] = null;
                 const oldSlot = this.chargingSlotsUI[batteryData.slotIndex];
-                oldSlot.slotFilledBg.setVisible(false);
                 oldSlot.chargeText.setVisible(false);
                 oldSlot.batterySprite = null;
                 oldSlot.batteryLevelText = null;
@@ -4714,7 +4751,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Remove battery2 from charging slot (destroy old sprites)
                 this.chargingSlots[slotIndex] = null;
                 const slot = this.chargingSlotsUI[slotIndex];
-                slot.slotFilledBg.setVisible(false);
                 slot.chargeText.setVisible(false);
                 slot.batterySprite = null;
                 slot.batteryLevelText = null;
@@ -4760,12 +4796,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                 
                 slot1.batterySprite.destroy();
                 slot1.batteryLevelText.destroy();
-                slot1.slotFilledBg.setVisible(false);
                 slot1.chargeText.setVisible(false);
                 
                 slot2.batterySprite.destroy();
                 slot2.batteryLevelText.destroy();
-                slot2.slotFilledBg.setVisible(false);
                 slot2.chargeText.setVisible(false);
                 
                 // Add swapped batteries, preserving each slot's car assignment
@@ -4794,7 +4828,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                 if (draggedBattery.levelText) draggedBattery.levelText.destroy();
                 if (draggedBattery.draggableBg) draggedBattery.draggableBg.destroy();
                 
-                slot.slotFilledBg.setVisible(false);
                 slot.chargeText.setVisible(false);
                 slot.batterySprite = null;
                 slot.batteryLevelText = null;
@@ -4811,7 +4844,6 @@ for (let t = 0; t <= 1; t += 0.002) {
             if (targetBattery.sprite) targetBattery.sprite.destroy();
             if (targetBattery.levelText) targetBattery.levelText.destroy();
             
-            targetSlot.slotFilledBg.setVisible(false);
             targetSlot.chargeText.setVisible(false);
             targetSlot.batterySprite = null;
             targetSlot.batteryLevelText = null;
@@ -4844,7 +4876,6 @@ for (let t = 0; t <= 1; t += 0.002) {
             if (batteryData.inChargingSlot) {
                 this.chargingSlots[batteryData.slotIndex] = null;
                 const slot = this.chargingSlotsUI[batteryData.slotIndex];
-                slot.slotFilledBg.setVisible(false);
                 slot.chargeText.setVisible(false);
                 slot.batterySprite = null;
                 slot.batteryLevelText = null;
@@ -4872,6 +4903,23 @@ for (let t = 0; t <= 1; t += 0.002) {
             batteryData.sprite.setDepth(1);
             batteryData.levelText.setDepth(2);
             
+            // Calculate appropriate scale based on location
+            let targetScale = 1; // Default for grid cells
+            let targetBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE; // Default for grid cells
+            
+            if (batteryData.inChargingSlot) {
+                // Scale down to fit in drop zone
+                const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
+                targetScale = dropZoneScale;
+                targetBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE * dropZoneScale;
+            }
+            
+            // Apply scale to battery sprite
+            batteryData.sprite.setDisplaySize(targetBatterySize, targetBatterySize);
+            
+            // Apply scale to level text
+            batteryData.levelText.setScale(targetScale);
+            
             // If battery is in grid, ensure background is visible
             if (batteryData.inGrid) {
                 this.gridCells[batteryData.row][batteryData.col].filledBg.setVisible(true);
@@ -4894,7 +4942,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Show UI
                 slot.chargeText.setText(`${chargePerMinute}`);
                 slot.chargeText.setVisible(true);
-                slot.slotFilledBg.setVisible(true);
                 
                 // Update charging system
                 this.updateChargingSystem();

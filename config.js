@@ -303,6 +303,19 @@ var CONFIG = {
         PULSE_BATTERY_SCALE: 0.15,      // Battery scale pulse amount (0.15 = 15% larger at peak)
     },
     
+    // EV Charger Unit settings (replaces old slot backgrounds)
+    EV_CHARGER: {
+        SIZE_MULTIPLIER: 1.5,           // EV charger size relative to original slot (1.5 = 150%)
+        SLOT_Y_OFFSET: 80,              // Vertical position offset from center of screen (adjust to move slots up/down)
+        DROP_ZONE_SIZE: 95,             // Size of white rounded square drop zone inside charger (pixels) - large enough for battery + text
+        DROP_ZONE_OFFSET_X: 1,          // Horizontal offset of drop zone from charger center (adjust to align with sprite)
+        DROP_ZONE_OFFSET_Y: 16,          // Vertical offset of drop zone from charger center (adjust to align with sprite)
+        DROP_ZONE_RADIUS: 5,           // Corner radius for the white drop zone (pixels)
+        DROP_ZONE_BG_COLOR: 0xFFFFFF,   // Background color of drop zone (white)
+        // DROP_ZONE_BG_COLOR: 0xFF0000,   // Background color of drop zone (white)
+        DROP_ZONE_BG_ALPHA: 1.0,        // Transparency of drop zone (0-1, 1.0 = 100% opaque)
+    },
+    
     // Lightning bolt charging effect settings
     LIGHTNING_BOLT: {
         SCALE_START: 0.5,              // Starting scale (relative to bolt.png size)
