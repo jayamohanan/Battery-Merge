@@ -357,7 +357,8 @@ var CONFIG = {
     // - Colors: 0xRRGGBB format (e.g., 0x00FF41 = neon green)
     // - Alpha: 0 = transparent, 1.0 = fully opaque
     EV_CHARGER: {
-        SIZE_MULTIPLIER: 1.5,           // EV charger size relative to original slot (1.5 = 150%)
+        BASE_SIZE: 100,                 // Base size reference for charger (pixels)
+        SIZE_MULTIPLIER: 1.8,           // EV charger size relative to BASE_SIZE (1.5 = 150%, so 100 * 1.5 = 150px display height)
         
         // Vertical layout positioning (chargers stacked vertically on left side)
         // Middle charger (index 1) is centered with parking area center
@@ -365,9 +366,9 @@ var CONFIG = {
         HORIZONTAL_POSITION: 80,        // Horizontal position from left edge of screen (pixels)
         VERTICAL_SPACING: 180,          // Vertical spacing between chargers (pixels) - must be > SIZE * 100 to avoid overlap
         
-        DROP_ZONE_SIZE: 95,             // Size of white rounded square drop zone inside charger (pixels)
+        DROP_ZONE_SIZE: 80,             // Size of white rounded square drop zone inside charger (pixels)
         DROP_ZONE_OFFSET_X: 1,          // Horizontal offset of drop zone from charger center
-        DROP_ZONE_OFFSET_Y: 16,         // Vertical offset of drop zone from charger center
+        DROP_ZONE_OFFSET_Y: 0,          // Vertical offset of drop zone from charger center
         DROP_ZONE_RADIUS: 5,            // Corner radius for the white drop zone (pixels)
         DROP_ZONE_BG_COLOR: 0xFFFFFF,   // Background color of drop zone (white)
         DROP_ZONE_BG_ALPHA: 1.0,        // Transparency of drop zone (0-1, 1.0 = 100% opaque)

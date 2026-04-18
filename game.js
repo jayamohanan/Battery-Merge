@@ -248,7 +248,7 @@
             // Wait for parking bounds to be set (they're set in loadLevel)
             // For now, estimate based on screen dimensions
             const parkingAreaHeight = sceneHeight * 0.5;
-            const originalSlotSize = 100;
+            const originalSlotSize = CONFIG.EV_CHARGER.BASE_SIZE;
             const chargerSize = originalSlotSize * CONFIG.EV_CHARGER.SIZE_MULTIPLIER;
             
             // Position chargers on the left side of screen, aligned vertically
@@ -273,7 +273,12 @@
                 
                 // Base EV Charger sprite
                 const chargerSprite = this.add.sprite(slotX, slotY, 'ev_charger_left');
-                chargerSprite.setDisplaySize(chargerSize, chargerSize);
+                // Preserve aspect ratio: scale by height, adjust width accordingly
+                const texture = chargerSprite.texture;
+                const aspectRatio = texture.source[0].width / texture.source[0].height;
+                const displayHeight = chargerSize;
+                const displayWidth = displayHeight * aspectRatio;
+                chargerSprite.setDisplaySize(displayWidth, displayHeight);
                 chargerSprite.setDepth(1);
                 // Start with grey/inactive appearance (empty slot)
                 chargerSprite.setTint(0x888888);
