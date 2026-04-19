@@ -905,10 +905,8 @@
                 textureName: scaledTextureName
             });
             
-            // Apply alpha from level data
-            if (roadData.fillAlpha !== undefined) {
-                this.roadRope.setAlpha(roadData.fillAlpha);
-            }
+            // Roads are always fully opaque (no transparency) to prevent background color bleed-through
+            this.roadRope.setAlpha(1.0);
             
             // Set depth above parking area
             this.roadRope.setDepth(5);
