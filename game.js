@@ -757,6 +757,32 @@
             console.log('Parking data:', parkingData);
             console.log('Road data:', roadData);
             
+            // Clean up existing parking-related graphics
+            if (this.parkingFloor) {
+                this.parkingFloor.destroy();
+                this.parkingFloor = null;
+            }
+            if (this.parkingBorder) {
+                this.parkingBorder.destroy();
+                this.parkingBorder = null;
+            }
+            if (this.parkingLinesGraphics) {
+                this.parkingLinesGraphics.destroy();
+                this.parkingLinesGraphics = null;
+            }
+            if (this.roadMarkingsGraphics) {
+                this.roadMarkingsGraphics.destroy();
+                this.roadMarkingsGraphics = null;
+            }
+            if (this.constraintSquareGraphics) {
+                this.constraintSquareGraphics.destroy();
+                this.constraintSquareGraphics = null;
+            }
+            if (this.roadRope) {
+                this.roadRope.destroy();
+                this.roadRope = null;
+            }
+            
             // Clean up existing gate if any
             if (this.gateLeftDoor) {
                 this.gateLeftDoor.destroy();
@@ -896,7 +922,7 @@
             this.createExitGate(centerX, centerY, halfW, halfH, offset, roadWidth);
             
             // Draw parking area with solid color from CONFIG
-            const parkingFloor = this.add.rectangle(
+            this.parkingFloor = this.add.rectangle(
                 centerX,
                 centerY,
                 parkingWidth,
@@ -904,10 +930,10 @@
                 hexColor(CONFIG.GRID.PARKING_AREA_COLOR),
                 parkingData.alpha
             );
-            parkingFloor.setDepth(3);
+            this.parkingFloor.setDepth(3);
             
             // Draw border around entire parking area
-            const parkingBorder = this.add.rectangle(
+            this.parkingBorder = this.add.rectangle(
                 centerX,
                 centerY,
                 parkingWidth,
@@ -915,8 +941,8 @@
                 0xFFFFFF,
                 0 // Transparent fill, border only
             );
-            parkingBorder.setStrokeStyle(parkingData.borderWidth, parkingData.borderColor);
-            parkingBorder.setDepth(3);
+            this.parkingBorder.setStrokeStyle(parkingData.borderWidth, parkingData.borderColor);
+            this.parkingBorder.setDepth(3);
             
             console.log('Parking area created with solid color:', {
                 position: { x: centerX, y: centerY },
@@ -926,21 +952,24 @@
                 alpha: parkingData.alpha
             });
             
+            // Draw parking lines dynamically
+            this.drawParkingLines(centerX, centerY, parkingWidth, parkingHeight, this.gridConfig.cellSize, this.gridConfig.cols, this.gridConfig.rows);
+            
             // Draw constraint square if enabled and visible
             if (CONFIG.GRID.CONSTRAINT_SQUARE_ENABLED && CONFIG.GRID.CONSTRAINT_SQUARE_VISIBLE) {
                 const constraintSize = CONFIG.GRID.CONSTRAINT_SQUARE_SIZE;
                 const offsetX = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_X || 0;
                 const offsetY = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_Y || 0;
                 
-                const constraintGraphics = this.add.graphics();
-                constraintGraphics.lineStyle(3, 0xFF0000, 1); // Red outline, 3px thick
-                constraintGraphics.strokeRect(
+                this.constraintSquareGraphics = this.add.graphics();
+                this.constraintSquareGraphics.lineStyle(3, 0xFF0000, 1); // Red outline, 3px thick
+                this.constraintSquareGraphics.strokeRect(
                     centerX - constraintSize / 2,
                     centerY - constraintSize / 2,
                     constraintSize,
                     constraintSize
                 );
-                constraintGraphics.setDepth(100); // On top of everything for debugging
+                this.constraintSquareGraphics.setDepth(100); // On top of everything for debugging
                 
                 console.log('Constraint square drawn:', {
                     size: constraintSize,
@@ -1458,11 +1487,140 @@
             
             return path;
         }
+        
+        // Draw parking lines dynamically (white lines, 2 cells long, 1 cell gap)
+        // Like comb teeth - perpendicular to the selected sides
+        // If sides are top/bottom (horizontal), lines are vertical
+        // If sides are left/right (vertical), lines are horizontal
+        drawParkingLines(centerX, centerY, parkingWidth, parkingHeight, cellSize, cols, rows) {
+            this.parkingLinesGraphics = this.add.graphics();
+            this.parkingLinesGraphics.setDepth(4); // Above parking floor but below road
+            
+            // Line properties
+            const lineColor = 0xFFFFFF; // White
+            const lineWidth = Math.max(4, cellSize * 0.08); // Proportional to cell size
+            const lineLength = cellSize * 2; // 2 cells long (perpendicular to side)
+            
+            // T-cap properties (perpendicular line at far end)
+            const tCapPercent = CONFIG.GRID.PARKING_LINE_T_CAP_PERCENT || 0.05;
+            const tCapLength = lineLength * tCapPercent; // Total length of T-cap (5% of line length by default)
+            
+            // Randomly choose which sides: 0 = top/bottom sides (lines are vertical), 1 = left/right sides (lines are horizontal)
+            const orientation = Math.random() < 0.5 ? 0 : 1;
+            
+            // Calculate parking area bounds
+            const left = centerX - parkingWidth / 2;
+            const right = centerX + parkingWidth / 2;
+            const top = centerY - parkingHeight / 2;
+            const bottom = centerY + parkingHeight / 2;
+            
+            if (orientation === 0) {
+                // TOP and BOTTOM sides (horizontal) - draw VERTICAL lines like comb teeth
+                // Lines are spaced 1 cell apart horizontally, extending 2 cells vertically
+                
+                for (let col = 0; col < cols; col += 2) { // Every other column (1 cell gap)
+                    const lineX = left + (col * cellSize) + (cellSize / 2); // Center of the cell
+                    
+                    // Top side - vertical line going DOWN 2 cells
+                    const topStartY = top;
+                    const topEndY = top + lineLength;
+                    
+                    // Draw white line
+                    this.parkingLinesGraphics.lineStyle(lineWidth, lineColor, 1);
+                    this.parkingLinesGraphics.beginPath();
+                    this.parkingLinesGraphics.moveTo(lineX, topStartY);
+                    this.parkingLinesGraphics.lineTo(lineX, topEndY);
+                    this.parkingLinesGraphics.strokePath();
+                    
+                    // Draw T-cap at far end (horizontal line at topEndY)
+                    this.parkingLinesGraphics.beginPath();
+                    this.parkingLinesGraphics.moveTo(lineX - tCapLength / 2, topEndY);
+                    this.parkingLinesGraphics.lineTo(lineX + tCapLength / 2, topEndY);
+                    this.parkingLinesGraphics.strokePath();
+                    
+                    // Bottom side - vertical line going UP 2 cells
+                    const bottomStartY = bottom;
+                    const bottomEndY = bottom - lineLength;
+                    
+                    // Draw white line
+                    this.parkingLinesGraphics.lineStyle(lineWidth, lineColor, 1);
+                    this.parkingLinesGraphics.beginPath();
+                    this.parkingLinesGraphics.moveTo(lineX, bottomStartY);
+                    this.parkingLinesGraphics.lineTo(lineX, bottomEndY);
+                    this.parkingLinesGraphics.strokePath();
+                    
+                    // Draw T-cap at far end (horizontal line at bottomEndY)
+                    this.parkingLinesGraphics.beginPath();
+                    this.parkingLinesGraphics.moveTo(lineX - tCapLength / 2, bottomEndY);
+                    this.parkingLinesGraphics.lineTo(lineX + tCapLength / 2, bottomEndY);
+                    this.parkingLinesGraphics.strokePath();
+                }
+                
+                console.log('Parking lines drawn (VERTICAL teeth from TOP/BOTTOM sides):', {
+                    sides: 'top/bottom (horizontal)',
+                    lineDirection: 'vertical',
+                    numLines: Math.ceil(cols / 2),
+                    lineLength: lineLength.toFixed(2),
+                    lineWidth: lineWidth.toFixed(2),
+                    tCapLength: tCapLength.toFixed(2)
+                });
+            } else {
+                // LEFT and RIGHT sides (vertical) - draw HORIZONTAL lines like comb teeth
+                // Lines are spaced 1 cell apart vertically, extending 2 cells horizontally
+                
+                for (let row = 0; row < rows; row += 2) { // Every other row (1 cell gap)
+                    const lineY = top + (row * cellSize) + (cellSize / 2); // Center of the cell
+                    
+                    // Left side - horizontal line going RIGHT 2 cells
+                    const leftStartX = left;
+                    const leftEndX = left + lineLength;
+                    
+                    // Draw white line
+                    this.parkingLinesGraphics.lineStyle(lineWidth, lineColor, 1);
+                    this.parkingLinesGraphics.beginPath();
+                    this.parkingLinesGraphics.moveTo(leftStartX, lineY);
+                    this.parkingLinesGraphics.lineTo(leftEndX, lineY);
+                    this.parkingLinesGraphics.strokePath();
+                    
+                    // Draw T-cap at far end (vertical line at leftEndX)
+                    this.parkingLinesGraphics.beginPath();
+                    this.parkingLinesGraphics.moveTo(leftEndX, lineY - tCapLength / 2);
+                    this.parkingLinesGraphics.lineTo(leftEndX, lineY + tCapLength / 2);
+                    this.parkingLinesGraphics.strokePath();
+                    
+                    // Right side - horizontal line going LEFT 2 cells
+                    const rightStartX = right;
+                    const rightEndX = right - lineLength;
+                    
+                    // Draw white line
+                    this.parkingLinesGraphics.lineStyle(lineWidth, lineColor, 1);
+                    this.parkingLinesGraphics.beginPath();
+                    this.parkingLinesGraphics.moveTo(rightStartX, lineY);
+                    this.parkingLinesGraphics.lineTo(rightEndX, lineY);
+                    this.parkingLinesGraphics.strokePath();
+                    
+                    // Draw T-cap at far end (vertical line at rightEndX)
+                    this.parkingLinesGraphics.beginPath();
+                    this.parkingLinesGraphics.moveTo(rightEndX, lineY - tCapLength / 2);
+                    this.parkingLinesGraphics.lineTo(rightEndX, lineY + tCapLength / 2);
+                    this.parkingLinesGraphics.strokePath();
+                }
+                
+                console.log('Parking lines drawn (HORIZONTAL teeth from LEFT/RIGHT sides):', {
+                    sides: 'left/right (vertical)',
+                    lineDirection: 'horizontal',
+                    numLines: Math.ceil(rows / 2),
+                    lineLength: lineLength.toFixed(2),
+                    lineWidth: lineWidth.toFixed(2),
+                    tCapLength: tCapLength.toFixed(2)
+                });
+            }
+        }
 
         // Draw road markings (yellow edge lines and white dashed center line)
         drawRoadMarkings(roadWidth, numPoints) {
-            const graphics = this.add.graphics();
-            graphics.setDepth(6); // Above road but below cars
+            this.roadMarkingsGraphics = this.add.graphics();
+            this.roadMarkingsGraphics.setDepth(6); // Above road but below cars
             
             // Yellow edge line properties
             const edgeLineWidth = Math.max(2, roadWidth * 0.04); // Scale with road width
@@ -1514,9 +1672,9 @@
             }
             
             // Draw outer yellow edge line
-            graphics.lineStyle(edgeLineWidth, yellowColor, 1);
+            this.roadMarkingsGraphics.lineStyle(edgeLineWidth, yellowColor, 1);
             const outerOffset = roadWidth / 2 - edgeInset;
-            graphics.beginPath();
+            this.roadMarkingsGraphics.beginPath();
             for (let i = 0; i < points.length; i++) {
                 const { point, normal } = points[i];
                 const outerPoint = new Phaser.Math.Vector2(
@@ -1524,17 +1682,17 @@
                     point.y + normal.y * outerOffset
                 );
                 if (i === 0) {
-                    graphics.moveTo(outerPoint.x, outerPoint.y);
+                    this.roadMarkingsGraphics.moveTo(outerPoint.x, outerPoint.y);
                 } else {
-                    graphics.lineTo(outerPoint.x, outerPoint.y);
+                    this.roadMarkingsGraphics.lineTo(outerPoint.x, outerPoint.y);
                 }
             }
-            graphics.strokePath();
+            this.roadMarkingsGraphics.strokePath();
             
             // Draw inner yellow edge line
-            graphics.lineStyle(edgeLineWidth, yellowColor, 1);
+            this.roadMarkingsGraphics.lineStyle(edgeLineWidth, yellowColor, 1);
             const innerOffset = -roadWidth / 2 + edgeInset;
-            graphics.beginPath();
+            this.roadMarkingsGraphics.beginPath();
             for (let i = 0; i < points.length; i++) {
                 const { point, normal } = points[i];
                 const innerPoint = new Phaser.Math.Vector2(
@@ -1542,15 +1700,15 @@
                     point.y + normal.y * innerOffset
                 );
                 if (i === 0) {
-                    graphics.moveTo(innerPoint.x, innerPoint.y);
+                    this.roadMarkingsGraphics.moveTo(innerPoint.x, innerPoint.y);
                 } else {
-                    graphics.lineTo(innerPoint.x, innerPoint.y);
+                    this.roadMarkingsGraphics.lineTo(innerPoint.x, innerPoint.y);
                 }
             }
-            graphics.strokePath();
+            this.roadMarkingsGraphics.strokePath();
             
             // Draw dashed white center line
-            graphics.lineStyle(centerLineWidth, 0xFFFFFF, 1);
+            this.roadMarkingsGraphics.lineStyle(centerLineWidth, 0xFFFFFF, 1);
             let dashProgress = 0;
             let isDash = true;
             let lastPoint = null;
@@ -1574,13 +1732,13 @@
                 
                 if (isDash) {
                     if (!lastPoint || !isDash) {
-                        graphics.beginPath();
-                        graphics.moveTo(point.x, point.y);
+                        this.roadMarkingsGraphics.beginPath();
+                        this.roadMarkingsGraphics.moveTo(point.x, point.y);
                     } else {
-                        graphics.lineTo(point.x, point.y);
+                        this.roadMarkingsGraphics.lineTo(point.x, point.y);
                     }
                     if (i === points.length - 1 || dashProgress >= dashLength) {
-                        graphics.strokePath();
+                        this.roadMarkingsGraphics.strokePath();
                     }
                 }
                 

@@ -18,9 +18,9 @@ var CONFIG = {
     
     // Game Area Background Colors
     BACKGROUND: {
-        // Vibrant Poki-style casual game colors with gradient
-        GRADIENT_START_COLOR: "#94E1FF",  // Light purple at top
-        GRADIENT_END_COLOR: "#CFF5FF",    // Bright turquoise at bottom
+        // Ground to sea gradient - parking area (top) blends to merge area (bottom)
+        GRADIENT_START_COLOR: "#a3f46f",  // Green at top (ground/parking area)
+        GRADIENT_END_COLOR: "#87ceeb",    // Sky blue at bottom (merge area)
     },
     
     // UI Button Configuration
@@ -91,8 +91,11 @@ var CONFIG = {
         PARKING_ROWS: 6,               // Number of rows in parking jam grid (can be overridden by level data)
         
         // Parking area appearance
-        PARKING_AREA_COLOR: "#e3e3e3",  // Soft pink/lavender for parking area floor
+        PARKING_AREA_COLOR: "#9ab0d7",  // Bluish color for parking area floor
         TILE_TO_GRID_RATIO: 1,         // Number of tiles per grid cell (used when texture is enabled)
+        
+        // Parking line T-cap configuration
+        PARKING_LINE_T_CAP_PERCENT: 0.2,  // Size of perpendicular T-cap at far end of parking lines as percentage of line length (0.05 = 5%)
     },
     
     // Battery Merge Grid Positioning (controls overall grid position)
