@@ -360,38 +360,38 @@ var CONFIG = {
     // - Colors: 0xRRGGBB format (e.g., 0x00FF41 = neon green)
     // - Alpha: 0 = transparent, 1.0 = fully opaque
     EV_CHARGER: {
-        BASE_SIZE: 100,                 // Base size reference for charger (pixels)
-        SIZE_MULTIPLIER: 1.8,           // EV charger size relative to BASE_SIZE (1.5 = 150%, so 100 * 1.5 = 150px display height)
+        CHARGER_SIZE: 150,              // EV charger display size in pixels (width and height) - ADJUST THIS to scale everything!
         
         // Vertical layout positioning (chargers stacked vertically on left side)
         // Middle charger (index 1) is centered with parking area center
         // Top (index 0) and bottom (index 2) are equally spaced from middle
         HORIZONTAL_POSITION: 80,        // Horizontal position from left edge of screen (pixels)
-        VERTICAL_SPACING: 180,          // Vertical spacing between chargers (pixels) - must be > SIZE * 100 to avoid overlap
+        VERTICAL_SPACING: 230,          // Vertical spacing between chargers (pixels) - must be > CHARGER_SIZE to avoid overlap
         
-        DROP_ZONE_SIZE: 80,             // Size of white rounded square drop zone inside charger (pixels)
-        DROP_ZONE_OFFSET_X: 1,          // Horizontal offset of drop zone from charger center
-        DROP_ZONE_OFFSET_Y: 0,          // Vertical offset of drop zone from charger center
-        DROP_ZONE_RADIUS: 5,            // Corner radius for the white drop zone (pixels)
+        // Child elements - sizes and offsets as PERCENTAGES of CHARGER_SIZE (scales automatically!)
+        // When you change CHARGER_SIZE, all these scale proportionally
+        DROP_ZONE_SIZE_PERCENT: 0.7,   // Drop zone size as % of charger (0.36 = 36%, so 220 * 0.36 = 79px)
+        DROP_ZONE_OFFSET_X_PERCENT: 0.005, // Horizontal offset as % of charger (0.005 = 0.5%)
+        DROP_ZONE_OFFSET_Y_PERCENT: 0,  // Vertical offset as % of charger
+        DROP_ZONE_RADIUS_PERCENT: 0.023, // Corner radius as % of charger (0.023 = 2.3%)
         DROP_ZONE_BG_COLOR: 0xFFFFFF,   // Background color of drop zone (white)
         DROP_ZONE_BG_ALPHA: 1.0,        // Transparency of drop zone (0-1, 1.0 = 100% opaque)
         
         // Charger bolt sub-image (overlay on charger)
         // Shows charging status: grey when idle, neon green when charging a vehicle
-        BOLT_WIDTH: 25,                 // Display width of bolt icon (pixels)
-        BOLT_HEIGHT: 25,                // Display height of bolt icon (pixels)
-        BOLT_OFFSET_X: -25,             // Horizontal offset from charger center
-        BOLT_OFFSET_Y: -50,             // Vertical offset from charger center
+        BOLT_SIZE_PERCENT: 0.11,        // Bolt size as % of charger (0.11 = 11%, so 220 * 0.11 = 24px)
+        BOLT_OFFSET_X_PERCENT: -0.11,   // Horizontal offset as % of charger (-0.11 = -11%)
+        BOLT_OFFSET_Y_PERCENT: -0.23,   // Vertical offset as % of charger (-0.23 = -23%)
         BOLT_COLOR_INACTIVE: 0xCCCCCC,  // Grey color when not charging any vehicle
         BOLT_COLOR_ACTIVE: 0x00FF41,    // Neon green color when charging a vehicle
         BOLT_ALPHA: 1.0,                // Transparency (0 = invisible, 1.0 = fully opaque)
         
         // Charger on/off switch sub-image (overlay on charger)
         // Shows battery presence: charger_off.png when empty, charger_on.png when battery present
-        SWITCH_WIDTH:41,               // Display width of on/off switch (pixels) - adjust to resize
-        SWITCH_HEIGHT: 18,              // Display height of on/off switch (pixels) - adjust to resize
-        SWITCH_OFFSET_X: 20,            // Horizontal offset from charger center (negative = left, positive = right)
-        SWITCH_OFFSET_Y: -53,           // Vertical offset from charger center (negative = up, positive = down)
+        SWITCH_WIDTH_PERCENT: 0.19,     // Switch width as % of charger (0.19 = 19%, so 220 * 0.19 = 42px)
+        SWITCH_HEIGHT_PERCENT: 0.08,    // Switch height as % of charger (0.08 = 8%, so 220 * 0.08 = 18px)
+        SWITCH_OFFSET_X_PERCENT: 0.09,  // Horizontal offset as % of charger (0.09 = 9%)
+        SWITCH_OFFSET_Y_PERCENT: -0.24, // Vertical offset as % of charger (-0.24 = -24%)
         SWITCH_ALPHA: 1.0,              // Transparency (0 = invisible, 1.0 = fully opaque)
     },
     
