@@ -290,21 +290,59 @@
                 chargerSprite.setTint(0x888888);
                 chargerSprite.setAlpha(0.6);
                 
-                // White rounded rectangle drop zone inside the charger
+                // Drop zone inside the charger (inset look like merge grid cells)
                 const dropZoneX = slotX + dropZoneOffsetX;
                 const dropZoneY = slotY + dropZoneOffsetY;
                 
-                // Visual white rounded rectangle (to show where to drop batteries)
-                const dropZoneBg = this.add.graphics();
-                dropZoneBg.fillStyle(CONFIG.EV_CHARGER.DROP_ZONE_BG_COLOR, CONFIG.EV_CHARGER.DROP_ZONE_BG_ALPHA);
-                dropZoneBg.fillRoundedRect(
+                // Create inset look for empty drop zone
+                const dropZoneEmpty = this.add.graphics();
+                
+                // Outer shadow border (creates recessed/inset effect)
+                dropZoneEmpty.fillStyle(hexColor(CONFIG.EV_CHARGER.DROP_ZONE_INSET_SHADOW_COLOR), 1);
+                dropZoneEmpty.fillRoundedRect(
                     dropZoneX - dropZoneSize / 2,
                     dropZoneY - dropZoneSize / 2,
                     dropZoneSize,
                     dropZoneSize,
                     dropZoneRadius
                 );
-                dropZoneBg.setDepth(2); // Above charger sprite
+                
+                // Inner fill (lighter, creating depth)
+                const inset = CONFIG.EV_CHARGER.DROP_ZONE_INSET_BORDER_WIDTH;
+                dropZoneEmpty.fillStyle(hexColor(CONFIG.EV_CHARGER.DROP_ZONE_EMPTY_BG_COLOR), 1);
+                dropZoneEmpty.fillRoundedRect(
+                    dropZoneX - dropZoneSize / 2 + inset,
+                    dropZoneY - dropZoneSize / 2 + inset,
+                    dropZoneSize - inset * 2,
+                    dropZoneSize - inset * 2,
+                    dropZoneRadius - inset
+                );
+                dropZoneEmpty.setDepth(2); // Above charger sprite
+                
+                // Create inset look for filled drop zone (when battery is present)
+                const dropZoneFilled = this.add.graphics();
+                
+                // Outer shadow border (same as empty for consistency)
+                dropZoneFilled.fillStyle(hexColor(CONFIG.EV_CHARGER.DROP_ZONE_INSET_SHADOW_COLOR), 1);
+                dropZoneFilled.fillRoundedRect(
+                    dropZoneX - dropZoneSize / 2,
+                    dropZoneY - dropZoneSize / 2,
+                    dropZoneSize,
+                    dropZoneSize,
+                    dropZoneRadius
+                );
+                
+                // Inner fill (brighter white for occupied drop zone)
+                dropZoneFilled.fillStyle(hexColor(CONFIG.EV_CHARGER.DROP_ZONE_FILLED_BG_COLOR), 1);
+                dropZoneFilled.fillRoundedRect(
+                    dropZoneX - dropZoneSize / 2 + inset,
+                    dropZoneY - dropZoneSize / 2 + inset,
+                    dropZoneSize - inset * 2,
+                    dropZoneSize - inset * 2,
+                    dropZoneRadius - inset
+                );
+                dropZoneFilled.setDepth(2); // Above charger sprite
+                dropZoneFilled.setVisible(false); // Start hidden (slot is empty)
                 
                 // Bolt sub-image (shows charging status) - overlay on charger, above drop zone
                 const boltSprite = this.add.sprite(
@@ -351,7 +389,8 @@
                     chargerX: slotX,  // Store charger center position
                     chargerY: slotY,  // Store charger center position
                     chargerSize: chargerSize,  // Store charger size for wire connection
-                    dropZoneBg: dropZoneBg,
+                    dropZoneEmpty: dropZoneEmpty,  // Empty drop zone graphics (visible when slot is empty)
+                    dropZoneFilled: dropZoneFilled,  // Filled drop zone graphics (visible when battery present)
                     chargeText: chargeText,
                     dropZone: dropZone,
                     batterySprite: null,
@@ -483,6 +522,10 @@
             // Switch to ON sprite (battery present)
             slot.switchSprite.setTexture('charger_on');
             
+            // Toggle drop zone appearance (show filled, hide empty)
+            slot.dropZoneEmpty.setVisible(false);
+            slot.dropZoneFilled.setVisible(true);
+            
             // Store battery data
             slot.batterySprite = batterySprite;
             slot.batteryLevelText = levelText;
@@ -549,6 +592,10 @@
             
             // Switch to OFF sprite (no battery)
             slot.switchSprite.setTexture('charger_off');
+            
+            // Toggle drop zone appearance (show empty, hide filled)
+            slot.dropZoneEmpty.setVisible(true);
+            slot.dropZoneFilled.setVisible(false);
             
             // Make bolt grey (not charging)
             slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -4671,6 +4718,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Switch to OFF sprite (no battery in slot)
                 slot.switchSprite.setTexture('charger_off');
                 
+                // Toggle drop zone appearance (show empty, hide filled)
+                slot.dropZoneEmpty.setVisible(true);
+                slot.dropZoneFilled.setVisible(false);
+                
                 // Make charger grey/inactive (empty slot)
                 slot.chargerSprite.setTint(0x888888);
                 slot.chargerSprite.setAlpha(0.6);
@@ -4841,6 +4892,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Switch to OFF sprite (no battery in slot)
                 slot.switchSprite.setTexture('charger_off');
                 
+                // Toggle drop zone appearance (show empty, hide filled)
+                slot.dropZoneEmpty.setVisible(true);
+                slot.dropZoneFilled.setVisible(false);
+                
                 // Make charger grey/inactive (empty slot)
                 slot.chargerSprite.setTint(0x888888);
                 slot.chargerSprite.setAlpha(0.6);
@@ -4944,6 +4999,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                 
                 // Switch to OFF sprite (no battery in old slot)
                 oldSlot.switchSprite.setTexture('charger_off');
+                
+                // Toggle drop zone appearance (show empty, hide filled)
+                oldSlot.dropZoneEmpty.setVisible(true);
+                oldSlot.dropZoneFilled.setVisible(false);
                 
                 // Make old charger grey/inactive (empty slot)
                 oldSlot.chargerSprite.setTint(0x888888);
@@ -5066,6 +5125,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                 // Switch to OFF sprite (no battery in slot)
                 slot.switchSprite.setTexture('charger_off');
                 
+                // Toggle drop zone appearance (show empty, hide filled)
+                slot.dropZoneEmpty.setVisible(true);
+                slot.dropZoneFilled.setVisible(false);
+                
                 // Make charger grey/inactive (empty slot)
                 slot.chargerSprite.setTint(0x888888);
                 slot.chargerSprite.setAlpha(0.6);
@@ -5123,6 +5186,10 @@ for (let t = 0; t <= 1; t += 0.002) {
                 
                 // Switch to OFF sprite (no battery in slot)
                 slot.switchSprite.setTexture('charger_off');
+                
+                // Toggle drop zone appearance (show empty, hide filled)
+                slot.dropZoneEmpty.setVisible(true);
+                slot.dropZoneFilled.setVisible(false);
                 
                 // Make charger grey/inactive (empty slot)
                 slot.chargerSprite.setTint(0x888888);

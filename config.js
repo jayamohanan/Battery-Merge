@@ -372,9 +372,13 @@ var CONFIG = {
         DROP_ZONE_SIZE: 130,            // Drop zone size in pixels
         DROP_ZONE_OFFSET_X: -17,          // Horizontal offset in pixels
         DROP_ZONE_OFFSET_Y: 0,          // Vertical offset in pixels
-        DROP_ZONE_RADIUS: 3,            // Corner radius in pixels
-        DROP_ZONE_BG_COLOR: 0xFFFFFF,   // Background color of drop zone (white)
-        DROP_ZONE_BG_ALPHA: 1.0,        // Transparency of drop zone (0-1, 1.0 = 100% opaque)
+        DROP_ZONE_RADIUS: 15,           // Corner radius in pixels (same as merge grid cell)
+        
+        // Drop zone styling (inset look like merge grid cells)
+        DROP_ZONE_EMPTY_BG_COLOR: "#B4E4FF",      // Light blue for empty drop zone (same as merge cell)
+        DROP_ZONE_FILLED_BG_COLOR: "#FFFFFF",     // Bright white for occupied drop zone (same as merge cell)
+        DROP_ZONE_INSET_SHADOW_COLOR: "#0D7C9D",  // Deep teal for inset shadow (same as merge cell)
+        DROP_ZONE_INSET_BORDER_WIDTH: 4.5,       // Width of inset border (same as merge cell)
         
         // Charger bolt sub-image (overlay on charger)
         // Shows charging status: grey when idle, neon green when charging a vehicle
