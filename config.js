@@ -75,9 +75,9 @@ var CONFIG = {
         // These values have been tuned for best visual layout - adjust only if needed
         CONSTRAINT_SQUARE_ENABLED: true,   // Enable constraint square to limit parking area size
         CONSTRAINT_SQUARE_VISIBLE: false,  // Show constraint square for debugging (red outline)
-        CONSTRAINT_SQUARE_SIZE: 500,       // Size of constraint square (pixels) - OPTIMIZED VALUE
+        CONSTRAINT_SQUARE_SIZE: 450,       // Size of constraint square (pixels) - OPTIMIZED VALUE
                                            // Parking area + surrounding roads scale to fit inside this square
-        CONSTRAINT_SQUARE_OFFSET_X: -40,   // Horizontal offset from calculated center (pixels, positive = shift right) - OPTIMIZED VALUE
+        CONSTRAINT_SQUARE_OFFSET_X: -30,   // Horizontal offset from calculated center (pixels, positive = shift right) - OPTIMIZED VALUE
         CONSTRAINT_SQUARE_OFFSET_Y: 0,     // Vertical offset from calculated center (pixels, positive = shift down) - OPTIMIZED VALUE
         
         // Responsive sizing for PARKING JAM GRID ONLY (top section with cars)
@@ -360,38 +360,37 @@ var CONFIG = {
     // - Colors: 0xRRGGBB format (e.g., 0x00FF41 = neon green)
     // - Alpha: 0 = transparent, 1.0 = fully opaque
     EV_CHARGER: {
-        CHARGER_SIZE: 150,              // EV charger display size in pixels (width and height) - ADJUST THIS to scale everything!
+        CHARGER_SIZE: 200,              // EV charger display size in pixels (width and height) - ADJUST THIS to scale everything!
         
         // Vertical layout positioning (chargers stacked vertically on left side)
         // Middle charger (index 1) is centered with parking area center
         // Top (index 0) and bottom (index 2) are equally spaced from middle
-        HORIZONTAL_POSITION: 80,        // Horizontal position from left edge of screen (pixels)
-        VERTICAL_SPACING: 230,          // Vertical spacing between chargers (pixels) - must be > CHARGER_SIZE to avoid overlap
+        HORIZONTAL_POSITION: 110,        // Horizontal position from left edge of screen (pixels)
+        VERTICAL_SPACING: 210,          // Vertical spacing between chargers (pixels) - must be > CHARGER_SIZE to avoid overlap
         
-        // Child elements - sizes and offsets as PERCENTAGES of CHARGER_SIZE (scales automatically!)
-        // When you change CHARGER_SIZE, all these scale proportionally
-        DROP_ZONE_SIZE_PERCENT: 0.7,   // Drop zone size as % of charger (0.36 = 36%, so 220 * 0.36 = 79px)
-        DROP_ZONE_OFFSET_X_PERCENT: 0.005, // Horizontal offset as % of charger (0.005 = 0.5%)
-        DROP_ZONE_OFFSET_Y_PERCENT: 0,  // Vertical offset as % of charger
-        DROP_ZONE_RADIUS_PERCENT: 0.023, // Corner radius as % of charger (0.023 = 2.3%)
+        // Child elements - sizes and offsets in absolute pixels
+        DROP_ZONE_SIZE: 130,            // Drop zone size in pixels
+        DROP_ZONE_OFFSET_X: -17,          // Horizontal offset in pixels
+        DROP_ZONE_OFFSET_Y: 0,          // Vertical offset in pixels
+        DROP_ZONE_RADIUS: 3,            // Corner radius in pixels
         DROP_ZONE_BG_COLOR: 0xFFFFFF,   // Background color of drop zone (white)
         DROP_ZONE_BG_ALPHA: 1.0,        // Transparency of drop zone (0-1, 1.0 = 100% opaque)
         
         // Charger bolt sub-image (overlay on charger)
         // Shows charging status: grey when idle, neon green when charging a vehicle
-        BOLT_SIZE_PERCENT: 0.11,        // Bolt size as % of charger (0.11 = 11%, so 220 * 0.11 = 24px)
-        BOLT_OFFSET_X_PERCENT: -0.11,   // Horizontal offset as % of charger (-0.11 = -11%)
-        BOLT_OFFSET_Y_PERCENT: -0.23,   // Vertical offset as % of charger (-0.23 = -23%)
+        BOLT_SIZE: 25,                  // Bolt size in pixels
+        BOLT_OFFSET_X: -60,             // Horizontal offset in pixels
+        BOLT_OFFSET_Y: -80,             // Vertical offset in pixels
         BOLT_COLOR_INACTIVE: 0xCCCCCC,  // Grey color when not charging any vehicle
         BOLT_COLOR_ACTIVE: 0x00FF41,    // Neon green color when charging a vehicle
         BOLT_ALPHA: 1.0,                // Transparency (0 = invisible, 1.0 = fully opaque)
         
         // Charger on/off switch sub-image (overlay on charger)
         // Shows battery presence: charger_off.png when empty, charger_on.png when battery present
-        SWITCH_WIDTH_PERCENT: 0.19,     // Switch width as % of charger (0.19 = 19%, so 220 * 0.19 = 42px)
-        SWITCH_HEIGHT_PERCENT: 0.08,    // Switch height as % of charger (0.08 = 8%, so 220 * 0.08 = 18px)
-        SWITCH_OFFSET_X_PERCENT: 0.09,  // Horizontal offset as % of charger (0.09 = 9%)
-        SWITCH_OFFSET_Y_PERCENT: -0.24, // Vertical offset as % of charger (-0.24 = -24%)
+        SWITCH_WIDTH: 29,               // Switch width in pixels
+        SWITCH_HEIGHT: 12,              // Switch height in pixels
+        SWITCH_OFFSET_X: 14,            // Horizontal offset in pixels
+        SWITCH_OFFSET_Y: -80,           // Vertical offset in pixels
         SWITCH_ALPHA: 1.0,              // Transparency (0 = invisible, 1.0 = fully opaque)
     },
     

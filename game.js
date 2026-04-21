@@ -258,18 +258,18 @@
             // Parking area center Y = parkingAreaHeight / 2
             const parkingCenterY = parkingAreaHeight / 2;
             
-            // Calculate child element sizes/offsets from percentages (scales with charger size)
-            const dropZoneSize = chargerSize * CONFIG.EV_CHARGER.DROP_ZONE_SIZE_PERCENT;
-            const dropZoneOffsetX = chargerSize * CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_X_PERCENT;
-            const dropZoneOffsetY = chargerSize * CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_Y_PERCENT;
-            const dropZoneRadius = chargerSize * CONFIG.EV_CHARGER.DROP_ZONE_RADIUS_PERCENT;
-            const boltSize = chargerSize * CONFIG.EV_CHARGER.BOLT_SIZE_PERCENT;
-            const boltOffsetX = chargerSize * CONFIG.EV_CHARGER.BOLT_OFFSET_X_PERCENT;
-            const boltOffsetY = chargerSize * CONFIG.EV_CHARGER.BOLT_OFFSET_Y_PERCENT;
-            const switchWidth = chargerSize * CONFIG.EV_CHARGER.SWITCH_WIDTH_PERCENT;
-            const switchHeight = chargerSize * CONFIG.EV_CHARGER.SWITCH_HEIGHT_PERCENT;
-            const switchOffsetX = chargerSize * CONFIG.EV_CHARGER.SWITCH_OFFSET_X_PERCENT;
-            const switchOffsetY = chargerSize * CONFIG.EV_CHARGER.SWITCH_OFFSET_Y_PERCENT;
+            // Get child element sizes/offsets from config (absolute pixel values)
+            const dropZoneSize = CONFIG.EV_CHARGER.DROP_ZONE_SIZE;
+            const dropZoneOffsetX = CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_X;
+            const dropZoneOffsetY = CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_Y;
+            const dropZoneRadius = CONFIG.EV_CHARGER.DROP_ZONE_RADIUS;
+            const boltSize = CONFIG.EV_CHARGER.BOLT_SIZE;
+            const boltOffsetX = CONFIG.EV_CHARGER.BOLT_OFFSET_X;
+            const boltOffsetY = CONFIG.EV_CHARGER.BOLT_OFFSET_Y;
+            const switchWidth = CONFIG.EV_CHARGER.SWITCH_WIDTH;
+            const switchHeight = CONFIG.EV_CHARGER.SWITCH_HEIGHT;
+            const switchOffsetX = CONFIG.EV_CHARGER.SWITCH_OFFSET_X;
+            const switchOffsetY = CONFIG.EV_CHARGER.SWITCH_OFFSET_Y;
             
             for (let i = 0; i < 3; i++) {
                 // Position chargers: i=0 (top), i=1 (middle/center), i=2 (bottom)
@@ -437,7 +437,7 @@
             
             // Calculate scale factor based on drop zone size vs grid cell size
             // This ensures battery and text fit perfectly in the drop zone
-            const dropZoneSize = CONFIG.EV_CHARGER.CHARGER_SIZE * CONFIG.EV_CHARGER.DROP_ZONE_SIZE_PERCENT;
+            const dropZoneSize = CONFIG.EV_CHARGER.DROP_ZONE_SIZE;
             const gridCellSize = CONFIG.CELL.SIZE;
             const scaleFactor = dropZoneSize / gridCellSize;
             
@@ -1265,27 +1265,27 @@
                         
                         // Scale the battery sprite (using scaled size based on drop zone)
                         if (slotUI.batterySprite && slotUI.batterySprite.active) {
-                            const dropZoneScale = (CONFIG.EV_CHARGER.CHARGER_SIZE * CONFIG.EV_CHARGER.DROP_ZONE_SIZE_PERCENT) / CONFIG.CELL.SIZE;
+                            const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
                             const baseBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE * dropZoneScale;
                             slotUI.batterySprite.setDisplaySize(baseBatterySize * scaleFactor, baseBatterySize * scaleFactor);
                         }
                         
                         // Scale the battery level text (using scaled size based on drop zone)
                         if (slotUI.batteryLevelText && slotUI.batteryLevelText.active) {
-                            const dropZoneScale = (CONFIG.EV_CHARGER.CHARGER_SIZE * CONFIG.EV_CHARGER.DROP_ZONE_SIZE_PERCENT) / CONFIG.CELL.SIZE;
+                            const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
                             slotUI.batteryLevelText.setScale(dropZoneScale * scaleFactor);
                         }
                     } else {
                         // Reset battery and text size to normal when pulse is complete
                         if (slotUI.batterySprite && slotUI.batterySprite.active) {
                             // Reset to scaled size (not full size, but drop zone size)
-                            const dropZoneScale = (CONFIG.EV_CHARGER.CHARGER_SIZE * CONFIG.EV_CHARGER.DROP_ZONE_SIZE_PERCENT) / CONFIG.CELL.SIZE;
+                            const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
                             const baseBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE * dropZoneScale;
                             slotUI.batterySprite.setDisplaySize(baseBatterySize, baseBatterySize);
                         }
                         if (slotUI.batteryLevelText && slotUI.batteryLevelText.active) {
                             // Reset to scaled size (not scale 1, but drop zone scale)
-                            const dropZoneScale = (CONFIG.EV_CHARGER.CHARGER_SIZE * CONFIG.EV_CHARGER.DROP_ZONE_SIZE_PERCENT) / CONFIG.CELL.SIZE;
+                            const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
                             slotUI.batteryLevelText.setScale(dropZoneScale);
                         }
                     }
@@ -5161,7 +5161,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             
             if (batteryData.inChargingSlot) {
                 // Scale down to fit in drop zone
-                const dropZoneScale = (CONFIG.EV_CHARGER.CHARGER_SIZE * CONFIG.EV_CHARGER.DROP_ZONE_SIZE_PERCENT) / CONFIG.CELL.SIZE;
+                const dropZoneScale = CONFIG.EV_CHARGER.DROP_ZONE_SIZE / CONFIG.CELL.SIZE;
                 targetScale = dropZoneScale;
                 targetBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE * dropZoneScale;
             }
