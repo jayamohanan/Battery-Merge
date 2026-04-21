@@ -99,7 +99,9 @@
             this.load.image('point', 'graphics/point.png');
             this.load.image('button', 'graphics/Button.png');
             this.load.image('plug', 'graphics/plug.png');
-            this.load.image('ev_charger_left', 'graphics/ev_charger_07.png');
+            this.load.image('ev_charger_red', 'graphics/ev_charger_red.png');
+            this.load.image('ev_charger_green', 'graphics/ev_charger_green.png');
+            this.load.image('ev_charger_blue', 'graphics/ev_charger_blue.png');
             this.load.image('charger_bolt', 'graphics/charger_bolt.png');
             this.load.image('charger_on', 'graphics/charger_on.png');
             this.load.image('charger_off', 'graphics/charger_off.png');
@@ -277,8 +279,9 @@
                 const slotY = parkingCenterY + (i - 1) * CONFIG.EV_CHARGER.VERTICAL_SPACING;
                 const slotX = chargerX;
                 
-                // Base EV Charger sprite
-                const chargerSprite = this.add.sprite(slotX, slotY, 'ev_charger_left');
+                // Base EV Charger sprite - different color for each slot
+                const chargerColors = ['ev_charger_red', 'ev_charger_green', 'ev_charger_blue'];
+                const chargerSprite = this.add.sprite(slotX, slotY, chargerColors[i]);
                 // Preserve aspect ratio: scale by height, adjust width accordingly
                 const texture = chargerSprite.texture;
                 const aspectRatio = texture.source[0].width / texture.source[0].height;
