@@ -4372,6 +4372,42 @@ for (let t = 0; t <= 1; t += 0.002) {
             this.gridStartY = gridStartY;
             this.gridStartX = (sceneWidth - gridWidth) / 2 + this.CELL_SIZE / 2;
             
+            // Create grid background panel
+            const panelPadding = CONFIG.CELL.GRID_PANEL_PADDING;
+            const panelWidth = gridWidth + 2 * panelPadding;
+            const panelHeight = gridHeight + 2 * panelPadding;
+            
+            // Calculate panel center position
+            // Grid spans from (gridStartX - CELL_SIZE/2) to (gridStartX + gridWidth - CELL_SIZE/2)
+            const gridCenterX = this.gridStartX - this.CELL_SIZE / 2 + gridWidth / 2;
+            const gridCenterY = this.gridStartY - this.CELL_SIZE / 2 + gridHeight / 2;
+            
+            const gridPanel = this.add.graphics();
+            gridPanel.fillStyle(hexColor(CONFIG.CELL.GRID_PANEL_COLOR), 1);
+            gridPanel.fillRoundedRect(
+                gridCenterX - panelWidth / 2,
+                gridCenterY - panelHeight / 2,
+                panelWidth,
+                panelHeight,
+                CONFIG.CELL.GRID_PANEL_RADIUS
+            );
+            
+            // Add border to grid panel
+            gridPanel.lineStyle(
+                CONFIG.CELL.GRID_PANEL_BORDER_WIDTH,
+                hexColor(CONFIG.CELL.GRID_PANEL_BORDER_COLOR),
+                1
+            );
+            gridPanel.strokeRoundedRect(
+                gridCenterX - panelWidth / 2,
+                gridCenterY - panelHeight / 2,
+                panelWidth,
+                panelHeight,
+                CONFIG.CELL.GRID_PANEL_RADIUS
+            );
+            
+            gridPanel.setDepth(1.5); // Above grass (1), below cells (2)
+            
             for (let row = 0; row < this.GRID_ROWS; row++) {
                 this.gridCells[row] = [];
                 for (let col = 0; col < this.GRID_COLS; col++) {
@@ -5322,11 +5358,12 @@ for (let t = 0; t <= 1; t += 0.002) {
         }
 
         returnBatteryToPosition(batteryData) {
+            // Reset depths to proper values (above grid cells)
             if (batteryData.draggableBg) {
-                batteryData.draggableBg.setDepth(0);
+                batteryData.draggableBg.setDepth(10); // Above grid cells (2)
             }
-            batteryData.sprite.setDepth(1);
-            batteryData.levelText.setDepth(2);
+            batteryData.sprite.setDepth(11); // Above draggable bg (10)
+            batteryData.levelText.setDepth(12); // Above sprite (11)
             
             // Calculate appropriate scale based on location
             let targetScale = 1; // Default for grid cells

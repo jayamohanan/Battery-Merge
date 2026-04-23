@@ -152,7 +152,7 @@ var CONFIG = {
         INSET_BORDER_WIDTH: 4.5,       // Width of inset border (50% more than original 3)
         
         // Legacy border (deprecated - using inset styling instead)
-        BORDER_COLOR: "#BBDDEE",        // Empty cell border color (not used with inset)
+        BORDER_COLOR: "#364549",        // Empty cell border color (not used with inset)
         BORDER_WIDTH: 3,                // Border width
         
         // Battery icon configuration
@@ -168,6 +168,13 @@ var CONFIG = {
         // Draggable background for cell contents (debug)
         DRAGGABLE_BG_COLOR: "#FFFFFF",  // Color of draggable area
         DRAGGABLE_BG_ALPHA: 0,         // Transparency (0 = invisible, 0.3 = semi-transparent, 1 = opaque)
+        
+        // Grid background panel (panel behind all cells)
+        GRID_PANEL_PADDING: 40,        // Extra space around grid cells on all sides (pixels)
+        GRID_PANEL_COLOR: "#ccd5d7",   // Light grey-blue color for grid background panel
+        GRID_PANEL_RADIUS: 15,         // Rounded corner radius (same as cell radius)
+        GRID_PANEL_BORDER_COLOR: "#364549", // Dark grey border color for grid panel
+        GRID_PANEL_BORDER_WIDTH: 3,    // Border thickness (pixels)
     },
     
     // Battery Spawn Animation (Squash & Stretch with Overshoot)
