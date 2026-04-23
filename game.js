@@ -106,6 +106,12 @@
             this.load.image('charger_on', 'graphics/charger_on.png');
             this.load.image('charger_off', 'graphics/charger_off.png');
             
+            // Load grass sprites
+            this.load.image('grass1', 'graphics/grass/grass1.png');
+            this.load.image('grass2', 'graphics/grass/grass2.png');
+            this.load.image('grass3', 'graphics/grass/grass3.png');
+            this.load.image('grass4', 'graphics/grass/grass4.png');
+            
             // Load parking jam assets - dynamically load all vehicles from CONFIG.VEHICLES
             CONFIG.VEHICLES.forEach(vehicle => {
                 this.load.image(vehicle.key, `graphics/vehicles/${vehicle.key}.png`);
@@ -142,6 +148,9 @@
             bgGraphics.fillRect(0, 0, sceneWidth, sceneHeight);
             bgGraphics.setDepth(0); // Background layer
             
+            // Spawn grass decoration sprites (above background, below other elements)
+            this.spawnGrassSprites();
+            
             // Title for parking area - showing remaining charge
             this.levelChargeText = this.add.text(sceneWidth / 2, 20, '⚡ 0', {
                 fontSize: '32px',
@@ -158,7 +167,7 @@
             
             // Create graphics for charging connections
             this.chargingConnectionsGraphics = this.add.graphics();
-            this.chargingConnectionsGraphics.setDepth(8); // Above road (5) and tire tracks (6), below cars (10)
+            this.chargingConnectionsGraphics.setDepth(9); // Above road and tire tracks, below cars
             
             // Setup drag and drop for batteries
             this.setupBatteryDropZones();
@@ -200,6 +209,70 @@
                     stroke: '#5E35B1',
                     strokeThickness: 3
                 }).setOrigin(0.5);
+            }
+        }
+
+        spawnGrassSprites() {
+            const sceneWidth = this.cameras.main.width;
+            const sceneHeight = this.cameras.main.height;
+            
+            // Parse grass color from config
+            const grassColor = parseInt(CONFIG.GRASS.COLOR.substring(1), 16);
+            const grassCount = CONFIG.GRASS.COUNT;
+            const minSpacing = CONFIG.GRASS.MIN_SPACING;
+            
+            // Track positions to avoid overlap
+            const positions = [];
+            
+            // Grass sprite keys
+            const grassKeys = ['grass1', 'grass2', 'grass3', 'grass4'];
+            
+            // Spawn grass sprites with random positioning
+            let attempts = 0;
+            const maxAttemptsPerSprite = 50;
+            
+            for (let i = 0; i < grassCount; i++) {
+                let positionFound = false;
+                let x, y;
+                
+                // Try to find a position that doesn't overlap with existing grass
+                for (let attempt = 0; attempt < maxAttemptsPerSprite; attempt++) {
+                    x = Phaser.Math.Between(0, sceneWidth);
+                    y = Phaser.Math.Between(0, sceneHeight);
+                    
+                    // Check if position is far enough from all existing positions
+                    let tooClose = false;
+                    for (let pos of positions) {
+                        const distance = Phaser.Math.Distance.Between(x, y, pos.x, pos.y);
+                        if (distance < minSpacing) {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!tooClose) {
+                        positionFound = true;
+                        break;
+                    }
+                }
+                
+                // If we found a valid position, spawn the grass sprite
+                if (positionFound) {
+                    // Randomly select a grass sprite
+                    const randomGrassKey = Phaser.Utils.Array.GetRandom(grassKeys);
+                    
+                    // Create the grass sprite
+                    const grassSprite = this.add.sprite(x, y, randomGrassKey);
+                    
+                    // Apply grass color tint
+                    grassSprite.setTint(grassColor);
+                    
+                    // Set depth just above background (0) but below ALL other game elements
+                    grassSprite.setDepth(1);
+                    
+                    // Store position to check for future overlaps
+                    positions.push({ x, y });
+                }
             }
         }
 
@@ -319,7 +392,7 @@
                     dropZoneSize - inset * 2,
                     dropZoneRadius - inset
                 );
-                dropZoneEmpty.setDepth(2); // Above charger sprite
+                dropZoneEmpty.setDepth(3); // Above merge grid (2) and charger sprite (1)
                 
                 // Create inset look for filled drop zone (when battery is present)
                 const dropZoneFilled = this.add.graphics();
@@ -343,7 +416,7 @@
                     dropZoneSize - inset * 2,
                     dropZoneRadius - inset
                 );
-                dropZoneFilled.setDepth(2); // Above charger sprite
+                dropZoneFilled.setDepth(3); // Above merge grid (2) and charger sprite (1)
                 dropZoneFilled.setVisible(false); // Start hidden (slot is empty)
                 
                 // Bolt sub-image (shows charging status) - overlay on charger, above drop zone
@@ -355,7 +428,7 @@
                 boltSprite.setDisplaySize(boltSize, boltSize);
                 boltSprite.setAlpha(CONFIG.EV_CHARGER.BOLT_ALPHA);
                 boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE); // Start grey (not charging)
-                boltSprite.setDepth(3); // Above drop zone, visible on top
+                boltSprite.setDepth(4); // Above drop zone, visible on top
                 
                 // On/Off switch sub-image (shows battery presence) - overlay on charger, above drop zone
                 const switchSprite = this.add.sprite(
@@ -365,7 +438,7 @@
                 );
                 switchSprite.setDisplaySize(switchWidth, switchHeight);
                 switchSprite.setAlpha(CONFIG.EV_CHARGER.SWITCH_ALPHA);
-                switchSprite.setDepth(3); // Above drop zone, visible on top
+                switchSprite.setDepth(4); // Above drop zone, visible on top
                 
                 // Charge rate text (to the right of charger, near connection start, hidden initially)
                 // Positioned close to charger with vertical offset to avoid overlapping with charging line
@@ -407,7 +480,7 @@
                 const plugHead = this.add.sprite(0, 0, 'plug');
                 plugHead.setDisplaySize(plugSize, plugSize);
                 plugHead.setOrigin(0.5, 1); // Default: bottom center for vertical orientation
-                plugHead.setDepth(9); // Above charging lines (8), below cars (10)
+                plugHead.setDepth(10); // Same depth as cars
                 plugHead.setTint(hexColor(CONFIG.CHARGING_CONNECTION.LINE_COLOR)); // Same color as charging line
                 plugHead.setAlpha(CONFIG.CHARGING_CONNECTION.LINE_ALPHA); // Same transparency as line
                 plugHead.setVisible(false);
@@ -486,7 +559,7 @@
             const batterySprite = this.add.image(slot.x, slot.y + CONFIG.CELL.BATTERY_Y_OFFSET * scaleFactor, batteryIcon);
             const scaledBatterySize = CONFIG.CELL.BATTERY_DISPLAY_SIZE * scaleFactor;
             batterySprite.setDisplaySize(scaledBatterySize, scaledBatterySize);
-            batterySprite.setDepth(5); // Above charger sprite (1) and pink square (2)
+            batterySprite.setDepth(6); // Above charger drop zone (3)
             
             // Make battery draggable
             const hitArea = new Phaser.Geom.Rectangle(
@@ -511,7 +584,7 @@
                 fontStyle: 'bold'
             }).setOrigin(0.5);
             levelText.setScale(scaleFactor); // Scale the text to match drop zone size
-            levelText.setDepth(6); // Above battery sprite
+            levelText.setDepth(7); // Above battery sprite
             
             // Show charge rate
             slot.chargeText.setText(`${chargePerMinute}`);
@@ -985,7 +1058,7 @@
             this.roadRope.setAlpha(1.0);
             
             // Set depth above parking area
-            this.roadRope.setDepth(5);
+            this.roadRope.setDepth(6);
             
             console.log('Road rope created with pre-scaled texture - no rope scaling needed');
             
@@ -1004,7 +1077,7 @@
                 hexColor(CONFIG.GRID.PARKING_AREA_COLOR),
                 parkingData.alpha
             );
-            this.parkingFloor.setDepth(3);
+            this.parkingFloor.setDepth(4);
             
             // Draw border around entire parking area
             this.parkingBorder = this.add.rectangle(
@@ -1016,7 +1089,7 @@
                 0 // Transparent fill, border only
             );
             this.parkingBorder.setStrokeStyle(parkingData.borderWidth, parkingData.borderColor);
-            this.parkingBorder.setDepth(3);
+            this.parkingBorder.setDepth(4);
             
             console.log('Parking area created with solid color:', {
                 position: { x: centerX, y: centerY },
@@ -1568,7 +1641,7 @@
         // If sides are left/right (vertical), lines are horizontal
         drawParkingLines(centerX, centerY, parkingWidth, parkingHeight, cellSize, cols, rows) {
             this.parkingLinesGraphics = this.add.graphics();
-            this.parkingLinesGraphics.setDepth(4); // Above parking floor but below road
+            this.parkingLinesGraphics.setDepth(5); // Above parking floor
             
             // Line properties
             const lineColor = 0xFFFFFF; // White
@@ -1694,7 +1767,7 @@
         // Draw road markings (yellow edge lines and white dashed center line)
         drawRoadMarkings(roadWidth, numPoints) {
             this.roadMarkingsGraphics = this.add.graphics();
-            this.roadMarkingsGraphics.setDepth(6); // Above road but below cars
+            this.roadMarkingsGraphics.setDepth(7); // Above road but below cars
             
             // Yellow edge line properties
             const edgeLineWidth = Math.max(2, roadWidth * 0.04); // Scale with road width
@@ -1941,7 +2014,7 @@
             
             // Create tire track graphics (below car sprite but above road)
             const tireTrackGraphics = this.add.graphics();
-            tireTrackGraphics.setDepth(6); // Above road (depth 5), below car sprite (depth 10)
+            tireTrackGraphics.setDepth(7); // Above road, below car sprite
             
             // Create vehicle shadow (rounded rectangle shadow that matches car shape)
             let shadowGraphics = null;
@@ -4154,6 +4227,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             const coinIconX = sceneWidth - CONFIG.COIN_COUNTER.PADDING_FROM_SCREEN_RIGHT - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
             this.coinIcon = this.add.image(coinIconX, coinY, 'coin');
             this.coinIcon.setDisplaySize(CONFIG.COIN_COUNTER.COIN_ICON_WIDTH, CONFIG.COIN_COUNTER.COIN_ICON_HEIGHT);
+            this.coinIcon.setDepth(100); // Above game elements
             
             // Coin text (to the left of the icon)
             const coinTextX = coinIconX - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2 - CONFIG.COIN_COUNTER.TEXT_ICON_SPACING;
@@ -4165,6 +4239,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 stroke: CONFIG.COIN_COUNTER.TEXT_STROKE_COLOR,
                 strokeThickness: CONFIG.COIN_COUNTER.TEXT_STROKE_THICKNESS
             }).setOrigin(1, 0.5);  // Right-aligned
+            this.coinText.setDepth(100); // Above game elements
         }
         
         // Animate coin reward when car is fully charged and moves out
@@ -4326,6 +4401,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                         this.CELL_SIZE - inset * 2,
                         this.CELL_RADIUS - inset
                     );
+                    emptyCell.setDepth(2); // Above grass (1), below other elements
                     
                     // Create inset look for filled cell (when battery is present)
                     const filledBg = this.add.graphics();
@@ -4349,7 +4425,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                         this.CELL_SIZE - inset * 2,
                         this.CELL_RADIUS - inset
                     );
-                    
+                    filledBg.setDepth(2); // Above grass (1), below other elements
                     filledBg.setVisible(false);
                     
                     this.gridCells[row][col] = {
@@ -4394,6 +4470,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             spawnCoinIcon.setDisplaySize(CONFIG.BUTTON.COIN_ICON_WIDTH, CONFIG.BUTTON.COIN_ICON_HEIGHT);
             
             spawnButton.add([spawnBg, spawnIcon, this.spawnButtonText, spawnCoinIcon]);
+            spawnButton.setDepth(100); // UI elements always on top
             
             spawnBg.on('pointerdown', () => {
                 this.spawnBattery();
@@ -4419,6 +4496,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             }).setOrigin(0.5);
             
             levelUpButton.add([levelUpBg, levelUpText]);
+            levelUpButton.setDepth(100); // UI elements always on top
             
             levelUpBg.on('pointerdown', () => {
                 if (this.levelUpButtonVisible) {
@@ -4480,8 +4558,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             });
             
             // Set depths: overlay behind button, pointer on top of everything
-            this.startOverlay.setDepth(100);
-            this.spawnButton.setDepth(101);  // Button visible above overlay
+            this.startOverlay.setDepth(99);   // Overlay just below buttons
             pointer.setDepth(102);            // Pointer on top
             
             this.startPointer = pointer;
@@ -4609,6 +4686,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 hexColor(CONFIG.CELL.DRAGGABLE_BG_COLOR), 
                 CONFIG.CELL.DRAGGABLE_BG_ALPHA
             );
+            draggableBg.setDepth(10); // Above merge grid cells (2), below battery sprite (11)
             draggableBg.setInteractive({
                 draggable: true,
                 useHandCursor: true
@@ -4617,6 +4695,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Create battery sprite (not directly draggable, dragged via draggableBg)
             const battery = this.add.image(cellData.x, cellData.y + CONFIG.CELL.BATTERY_Y_OFFSET, batteryIcon);
             battery.setDisplaySize(CONFIG.CELL.BATTERY_DISPLAY_SIZE, CONFIG.CELL.BATTERY_DISPLAY_SIZE);
+            battery.setDepth(11); // Above merge grid cells (2) and draggable bg (10)
             
             // Add level text at top of battery
             const levelText = this.add.text(
@@ -4630,6 +4709,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                     fontStyle: 'bold'
                 }
             ).setOrigin(0.5);
+            levelText.setDepth(12); // Above battery sprite
             
             const batteryData = {
                 draggableBg: draggableBg,

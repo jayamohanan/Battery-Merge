@@ -19,8 +19,15 @@ var CONFIG = {
     // Game Area Background Colors
     BACKGROUND: {
         // Ground to sea gradient - parking area (top) blends to merge area (bottom)
-        GRADIENT_START_COLOR: "#a3f46f",  // Green at top (ground/parking area)
-        GRADIENT_END_COLOR: "#87ceeb",    // Sky blue at bottom (merge area)
+        GRADIENT_START_COLOR: "#9ab39e",  // Green at top (ground/parking area)
+        GRADIENT_END_COLOR: "#99b582",    // Sky blue at bottom (merge area)
+    },
+    
+    // Grass Decoration Settings
+    GRASS: {
+        COUNT: 20,                     // Number of grass sprites to spawn
+        COLOR: "#819b80",              // Grass tint color (applied to white sprites)
+        MIN_SPACING: 32,               // Minimum distance between grass sprites (pixels)
     },
     
     // UI Button Configuration
