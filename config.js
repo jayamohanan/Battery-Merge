@@ -148,8 +148,8 @@ var CONFIG = {
         // Inset look styling (creates recessed appearance)
         EMPTY_BG_COLOR: "#B4E4FF",      // Light blue for empty cells
         FILLED_BG_COLOR: "#FFFFFF",     // Bright white for occupied cells
-        INSET_SHADOW_COLOR: "#0D7C9D",  // Deep teal for outer shadow (creates depth)
-        INSET_BORDER_WIDTH: 4.5,       // Width of inset border (50% more than original 3)
+        INSET_SHADOW_COLOR: "#364549",  // Deep teal for outer shadow (creates depth)
+        INSET_BORDER_WIDTH: 3,       // Width of inset border (50% more than original 3)
         
         // Legacy border (deprecated - using inset styling instead)
         BORDER_COLOR: "#364549",        // Empty cell border color (not used with inset)

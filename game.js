@@ -95,7 +95,7 @@
             // Load battery images with extension fallback (from pre-initialized cache)
             loadBatteryImagesFromCache(this);
             
-            this.load.image('coin', 'graphics/coin.svg');
+            this.load.image('coin', 'graphics/coin.png');
             this.load.image('point', 'graphics/point.png');
             this.load.image('button', 'graphics/Button.png');
             this.load.image('plug', 'graphics/plug.png');
