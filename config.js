@@ -396,6 +396,9 @@ var CONFIG = {
         SWITCH_OFFSET_X: 14,            // Horizontal offset in pixels
         SWITCH_OFFSET_Y: -80,           // Vertical offset in pixels
         SWITCH_ALPHA: 1.0,              // Transparency (0 = invisible, 1.0 = fully opaque)
+        
+        // Empty charger appearance (when no battery is loaded)
+        EMPTY_CHARGER_OVERLAY_COLOR: 0x888888,  // Grey overlay color for empty chargers (without transparency)
     },
     
     // Lightning bolt charging effect settings
@@ -446,6 +449,12 @@ var CONFIG = {
         BATTERY_CAP_WIDTH: 6,           // Width of battery terminal/cap on right side
         BATTERY_CAP_HEIGHT: 16,         // Height of battery terminal/cap
         BATTERY_CORNER_RADIUS: 4,       // Rounded corner radius for battery body
+        
+        // Charger color coding (for battery/meter outlines to indicate which charger is charging the vehicle)
+        // Colors match the charger icon colors
+        CHARGER_COLOR_RED: "#f25858",    // Red for top charger (slot 0)
+        CHARGER_COLOR_GREEN: "#b4c817",  // Green for middle charger (slot 1)
+        CHARGER_COLOR_BLUE: "#3186d9",   // Blue for bottom charger (slot 2)
         
         // Analog meter settings (gauge above battery icon)
         ANALOG_METER_ENABLED: true,     // Enable analog meter display

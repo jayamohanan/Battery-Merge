@@ -290,8 +290,7 @@
                 chargerSprite.setDisplaySize(displayWidth, displayHeight);
                 chargerSprite.setDepth(1);
                 // Start with grey/inactive appearance (empty slot)
-                chargerSprite.setTint(0x888888);
-                chargerSprite.setAlpha(0.6);
+                chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
                 
                 // Drop zone inside the charger (inset look like merge grid cells)
                 const dropZoneX = slotX + dropZoneOffsetX;
@@ -520,7 +519,6 @@
             
             // Make charger sprite active/normal (battery is now present)
             slot.chargerSprite.clearTint();
-            slot.chargerSprite.setAlpha(1);
             
             // Switch to ON sprite (battery present)
             slot.switchSprite.setTexture('charger_on');
@@ -590,8 +588,7 @@
             slot.chargeText.setVisible(false);
             
             // Make charger sprite grey/inactive (empty slot)
-            slot.chargerSprite.setTint(0x888888); // Grey tint
-            slot.chargerSprite.setAlpha(0.6); // Slightly transparent
+            slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
             
             // Switch to OFF sprite (no battery)
             slot.switchSprite.setTexture('charger_off');
@@ -661,6 +658,29 @@
                     this.chargingSlots[slotIndex].assignedCar = car;
                     this.chargingSlots[slotIndex].assignedAt = this.time.now; // Track when car was assigned
                     console.log(`Slot ${slotIndex} assigned to car ${this.cars.indexOf(car)}`);
+                    
+                    // Set charger color for this car (for battery/meter outline color coding)
+                    const chargerColors = [
+                        CONFIG.PARKING_CAR.CHARGER_COLOR_RED,    // Slot 0 (top/red charger)
+                        CONFIG.PARKING_CAR.CHARGER_COLOR_GREEN,  // Slot 1 (middle/green charger)
+                        CONFIG.PARKING_CAR.CHARGER_COLOR_BLUE    // Slot 2 (bottom/blue charger)
+                    ];
+                    car.chargerColor = chargerColors[slotIndex];
+                    
+                    // Recreate battery display with charger color
+                    if (car.batteryContainer) {
+                        car.batteryContainer.destroy();
+                        car.batteryContainer = null;
+                    }
+                    if (car.chargeBar) {
+                        car.chargeBar.destroy();
+                        car.chargeBar = null;
+                    }
+                    if (car.chargeBarBg) {
+                        car.chargeBarBg.destroy();
+                        car.chargeBarBg = null;
+                    }
+                    this.createCarChargeBar(car);
                     
                     // Make bolt neon green (actively charging a vehicle)
                     const slotUI = this.chargingSlotsUI[slotIndex];
@@ -2056,8 +2076,9 @@
                     CONFIG.PARKING_CAR.BATTERY_CORNER_RADIUS
                 );
                 
-                // Battery border
-                batteryBody.lineStyle(CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH, hexColor(CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR), 1);
+                // Battery border (use charger color if assigned, otherwise default)
+                const borderColor = car.chargerColor || CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR;
+                batteryBody.lineStyle(CONFIG.PARKING_CAR.BATTERY_BORDER_WIDTH, hexColor(borderColor), 1);
                 batteryBody.strokeRoundedRect(
                     -batteryWidth / 2,
                     -batteryHeight / 2,
@@ -2066,8 +2087,8 @@
                     CONFIG.PARKING_CAR.BATTERY_CORNER_RADIUS
                 );
                 
-                // Battery cap/terminal (on right side)
-                batteryBody.fillStyle(hexColor(CONFIG.PARKING_CAR.BATTERY_BORDER_COLOR), 1);
+                // Battery cap/terminal (on right side, use same color as border)
+                batteryBody.fillStyle(hexColor(borderColor), 1);
                 batteryBody.fillRoundedRect(
                     batteryWidth / 2,
                     -CONFIG.PARKING_CAR.BATTERY_CAP_HEIGHT / 2,
@@ -2112,14 +2133,17 @@
                     // Create meter graphics (will be added to container)
                     analogMeter = this.add.graphics();
                     
+                    // Use charger color for meter arc if assigned, otherwise default
+                    const meterColor = car.chargerColor || meterConfig.ANALOG_METER_ARC_COLOR;
+                    
                     // Draw semi-circle arc at TOP (above the horizontal line)
-                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
+                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, hexColor(meterColor), 1);
                     analogMeter.beginPath();
                     analogMeter.arc(0, meterOffsetY, radius, -Math.PI, 0, false); // From left (-PI) to right (0), going upward
                     analogMeter.strokePath();
                     
                     // Draw straight line at bottom to close the semicircle
-                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
+                    analogMeter.lineStyle(meterConfig.ANALOG_METER_ARC_WIDTH, hexColor(meterColor), 1);
                     analogMeter.beginPath();
                     analogMeter.moveTo(-radius, meterOffsetY);
                     analogMeter.lineTo(radius, meterOffsetY);
@@ -2136,7 +2160,7 @@
                         const endX = Math.cos(angle) * radius;
                         const endY = meterOffsetY + Math.sin(angle) * radius;
                         
-                        analogMeter.lineStyle(meterConfig.ANALOG_METER_MARKER_WIDTH, hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
+                        analogMeter.lineStyle(meterConfig.ANALOG_METER_MARKER_WIDTH, hexColor(meterColor), 1);
                         analogMeter.beginPath();
                         analogMeter.moveTo(startX, startY);
                         analogMeter.lineTo(endX, endY);
@@ -2155,7 +2179,8 @@
                     const needleBaseWidth = 8; // Width at the base (center)
                     const needleTipWidth = 2;  // Width at the tip
                     
-                    analogNeedle.fillStyle(hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
+                    // Use charger color for needle if assigned, otherwise default
+                    analogNeedle.fillStyle(hexColor(meterColor), 1);
                     analogNeedle.beginPath();
                     // Draw trapezoid pointing up (wide at center, narrow at tip)
                     analogNeedle.moveTo(-needleBaseWidth/2, 0); // Left base at center
@@ -2165,8 +2190,8 @@
                     analogNeedle.closePath();
                     analogNeedle.fillPath();
                     
-                    // Draw center dot
-                    analogNeedle.fillStyle(hexColor(meterConfig.ANALOG_METER_ARC_COLOR), 1);
+                    // Draw center dot (use same color)
+                    analogNeedle.fillStyle(hexColor(meterColor), 1);
                     analogNeedle.fillCircle(0, 0, 5);
                     
                     // Initialize needle at 5 degrees (slightly right from left edge of top arc)
@@ -2450,6 +2475,9 @@
                         // 3. Unassign car from slot
                         slot.assignedCar = null;
                         slot.assignedAt = null;
+                        
+                        // Clear charger color from car
+                        car.chargerColor = null;
                         
                         // Make bolt grey (no longer charging)
                         const slotUI = this.chargingSlotsUI[i];
@@ -3921,8 +3949,8 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Update gate state based on vehicle proximity
             this.updateGate();
             
-            // Draw charging connections
-            this.drawChargingConnections();
+            // Draw charging connections (DISABLED - using color coding instead)
+            // this.drawChargingConnections();
             
             // Check level-up timer
             this.checkLevelUpTimer();
@@ -4726,8 +4754,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.dropZoneFilled.setVisible(false);
                 
                 // Make charger grey/inactive (empty slot)
-                slot.chargerSprite.setTint(0x888888);
-                slot.chargerSprite.setAlpha(0.6);
+                slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
                 
                 // Make bolt grey (not charging)
                 slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -4900,8 +4927,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.dropZoneFilled.setVisible(false);
                 
                 // Make charger grey/inactive (empty slot)
-                slot.chargerSprite.setTint(0x888888);
-                slot.chargerSprite.setAlpha(0.6);
+                slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
                 
                 // Make bolt grey (not charging)
                 slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -5008,8 +5034,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 oldSlot.dropZoneFilled.setVisible(false);
                 
                 // Make old charger grey/inactive (empty slot)
-                oldSlot.chargerSprite.setTint(0x888888);
-                oldSlot.chargerSprite.setAlpha(0.6);
+                oldSlot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
                 
                 // Make old bolt grey (not charging)
                 oldSlot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -5133,8 +5158,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.dropZoneFilled.setVisible(false);
                 
                 // Make charger grey/inactive (empty slot)
-                slot.chargerSprite.setTint(0x888888);
-                slot.chargerSprite.setAlpha(0.6);
+                slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
                 
                 // Make bolt grey (not charging)
                 slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -5195,8 +5219,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.dropZoneFilled.setVisible(false);
                 
                 // Make charger grey/inactive (empty slot)
-                slot.chargerSprite.setTint(0x888888);
-                slot.chargerSprite.setAlpha(0.6);
+                slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
                 
                 // Make bolt grey (not charging)
                 slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
