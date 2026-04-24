@@ -99,9 +99,9 @@
             this.load.image('point', 'graphics/point.png');
             this.load.image('button', 'graphics/spawn_button3.png');
             this.load.image('plug', 'graphics/plug.png');
-            this.load.image('ev_charger_red', 'graphics/ev_charger_red.png');
-            this.load.image('ev_charger_green', 'graphics/ev_charger_green.png');
-            this.load.image('ev_charger_blue', 'graphics/ev_charger_blue.png');
+            this.load.image('ev_charger_red', 'graphics/charger_red.png');
+            this.load.image('ev_charger_green', 'graphics/charger_green.png');
+            this.load.image('ev_charger_blue', 'graphics/charger_blue.png');
             this.load.image('charger_bolt', 'graphics/charger_bolt.png');
             this.load.image('charger_on', 'graphics/charger_on.png');
             this.load.image('charger_off', 'graphics/charger_off.png');

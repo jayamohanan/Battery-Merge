@@ -426,18 +426,18 @@ var CONFIG = {
     // - Colors: 0xRRGGBB format (e.g., 0x00FF41 = neon green)
     // - Alpha: 0 = transparent, 1.0 = fully opaque
     EV_CHARGER: {
-        CHARGER_SIZE: 220,              // EV charger display size in pixels (width and height) - ADJUST THIS to scale everything!
+        CHARGER_SIZE: 180,              // EV charger display size in pixels (width and height) - ADJUST THIS to scale everything!
         
         // Vertical layout positioning (chargers stacked vertically on left side)
         // Middle charger (index 1) is centered with parking area center
         // Top (index 0) and bottom (index 2) are equally spaced from middle
-        HORIZONTAL_POSITION: 110,        // Horizontal position from left edge of screen (pixels)
+        HORIZONTAL_POSITION: 100,        // Horizontal position from left edge of screen (pixels)
         VERTICAL_SPACING: 210,          // Vertical spacing between chargers (pixels) - must be > CHARGER_SIZE to avoid overlap
         
         // Child elements - sizes and offsets in absolute pixels
         DROP_ZONE_SIZE: 130,            // Drop zone size in pixels
-        DROP_ZONE_OFFSET_X: -17,          // Horizontal offset in pixels
-        DROP_ZONE_OFFSET_Y: 0,          // Vertical offset in pixels
+        DROP_ZONE_OFFSET_X: 0,          // Horizontal offset in pixels
+        DROP_ZONE_OFFSET_Y: 5,          // Vertical offset in pixels
         DROP_ZONE_RADIUS: 15,           // Corner radius in pixels (same as merge grid cell)
         
         // Drop zone styling (inset look like merge grid cells)
@@ -518,9 +518,9 @@ var CONFIG = {
         
         // Charger color coding (for battery/meter outlines to indicate which charger is charging the vehicle)
         // Colors match the charger icon colors
-        CHARGER_COLOR_RED: "#f25858",    // Red for top charger (slot 0)
-        CHARGER_COLOR_GREEN: "#b4c817",  // Green for middle charger (slot 1)
-        CHARGER_COLOR_BLUE: "#3186d9",   // Blue for bottom charger (slot 2)
+        CHARGER_COLOR_RED: "#C36E6E",    // Red for top charger (slot 0)
+        CHARGER_COLOR_GREEN: "#D6C48A",  // Green for middle charger (slot 1)
+        CHARGER_COLOR_BLUE: "#7FA1C2",   // Blue for bottom charger (slot 2)
         
         // Analog meter settings (gauge above battery icon)
         ANALOG_METER_ENABLED: true,     // Enable analog meter display
