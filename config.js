@@ -149,8 +149,10 @@ var CONFIG = {
         RADIUS: 15,                     // Rounded corner radius (used for merge game grid)
         
         // Inset look styling (creates recessed appearance)
-        EMPTY_BG_COLOR: "#F2F0EF",      // Light blue for empty cells
-        FILLED_BG_COLOR: "#FFFFFF",     // Bright white for occupied cells
+        EMPTY_BG_COLOR: "#c2d1e0",      // Light blue for empty cells
+        //#F2F0EF
+        FILLED_BG_COLOR: "#eaf0f6", 
+        //    // Bright white for occupied cells
         INSET_SHADOW_COLOR: "#364549",  // Deep teal for outer shadow (creates depth)
         INSET_BORDER_WIDTH: 3.5,       // Width of inset border (50% more than original 3)
         
