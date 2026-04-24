@@ -224,6 +224,42 @@
             const grassCount = CONFIG.GRASS.COUNT;
             const minSpacing = CONFIG.GRASS.MIN_SPACING;
             
+            // Get forbidden zones from config
+            const forbiddenZones = CONFIG.GRASS.FORBIDDEN_ZONES || [];
+            
+            // Draw forbidden zone debug rectangles if enabled
+            if (CONFIG.GRASS.SHOW_FORBIDDEN_ZONES) {
+                const debugGraphics = this.add.graphics();
+                debugGraphics.setDepth(999); // On top of everything for visibility
+                
+                forbiddenZones.forEach(zone => {
+                    const color = parseInt(zone.color.substring(1), 16);
+                    const alpha = zone.opacity;
+                    
+                    // Calculate rectangle boundaries from center + dimensions
+                    const x = zone.centerX - zone.width / 2;
+                    const y = zone.centerY - zone.height / 2;
+                    
+                    debugGraphics.fillStyle(color, alpha);
+                    debugGraphics.fillRect(x, y, zone.width, zone.height);
+                });
+            }
+            
+            // Helper function to check if a point is inside any forbidden zone
+            const isInForbiddenZone = (x, y) => {
+                for (let zone of forbiddenZones) {
+                    const halfWidth = zone.width / 2;
+                    const halfHeight = zone.height / 2;
+                    
+                    // Check if point is inside the rectangle
+                    if (x >= zone.centerX - halfWidth && x <= zone.centerX + halfWidth &&
+                        y >= zone.centerY - halfHeight && y <= zone.centerY + halfHeight) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            
             // Track positions to avoid overlap
             const positions = [];
             
@@ -238,10 +274,15 @@
                 let positionFound = false;
                 let x, y;
                 
-                // Try to find a position that doesn't overlap with existing grass
+                // Try to find a position that doesn't overlap with existing grass and is not in forbidden zones
                 for (let attempt = 0; attempt < maxAttemptsPerSprite; attempt++) {
                     x = Phaser.Math.Between(0, sceneWidth);
                     y = Phaser.Math.Between(0, sceneHeight);
+                    
+                    // Check if position is in a forbidden zone
+                    if (isInForbiddenZone(x, y)) {
+                        continue; // Skip this position
+                    }
                     
                     // Check if position is far enough from all existing positions
                     let tooClose = false;

@@ -28,9 +28,56 @@ var CONFIG = {
     
     // Grass Decoration Settings
     GRASS: {
-        COUNT: 20,                     // Number of grass sprites to spawn
+        COUNT: 8,                     // Number of grass sprites to spawn
         COLOR: "#67b464",              // Grass tint color (applied to white sprites)
         MIN_SPACING: 32,               // Minimum distance between grass sprites (pixels)
+        
+        // Forbidden Zones (grass will not spawn in these areas)
+        // These values can be edited directly to adjust zone positions and sizes
+        SHOW_FORBIDDEN_ZONES: false,   // Toggle visibility of debug rectangles (true = visible, false = hidden)
+        
+        FORBIDDEN_ZONES: [
+            // Zone 1 - Left side (3 charging stations in vertical alignment)
+            // Default calculated for: chargerX=110, parkingCenterY=250, chargerSize=220, spacing=210
+            {
+                centerX: 110,          // Center X position (pixels)
+                centerY: 320,          // Center Y position (pixels)
+                width: 240,            // Width of zone (pixels)
+                height: 680,           // Height of zone (pixels) - covers all 3 chargers
+                color: "#FF0000",      // Debug rectangle color (red)
+                opacity: 0.2           // Debug rectangle opacity (0-1, 0.2 = 20%)
+            },
+            // Zone 2 - Right side of top half (road and parking area)
+            // Default calculated for: parking center with constraint square
+            {
+                centerX: 440,          // Center X position (pixels)
+                centerY: 350,          // Center Y position (pixels)
+                width: 480,            // Width of zone (pixels)
+                height: 500,           // Height of zone (pixels)
+                color: "#00FF00",      // Debug rectangle color (green)
+                opacity: 0.2           // Debug rectangle opacity (0-1, 0.2 = 20%)
+            },
+            // Zone 3 - Center bottom (merge grid - 3x3 battery grid)
+            // Default calculated for: 3x3 grid of 130px cells with 40px panel padding
+            {
+                centerX: 360,          // Center X position (pixels)
+                centerY: 930,          // Center Y position (pixels)
+                width: 550,            // Width of zone (pixels)
+                height: 500,           // Height of zone (pixels)
+                color: "#0000FF",      // Debug rectangle color (blue)
+                opacity: 0.2           // Debug rectangle opacity (0-1, 0.2 = 20%)
+            },
+            // Zone 4 - Bottom (spawn and watch ad buttons)
+            // Default calculated for: buttons at bottom with BOTTOM_PADDING=80
+            {
+                centerX: 300,          // Center X position (pixels)
+                centerY: 1200,          // Center Y position (pixels)
+                width: 580,            // Width of zone (pixels) - 90% of screen width
+                height: 150,           // Height of zone (pixels)
+                color: "#FFFF00",      // Debug rectangle color (yellow)
+                opacity: 0.2           // Debug rectangle opacity (0-1, 0.2 = 20%)
+            }
+        ]
     },
     
     // UI Button Configuration
