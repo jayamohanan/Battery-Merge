@@ -97,7 +97,7 @@
             
             this.load.image('coin', 'graphics/coin.png');
             this.load.image('point', 'graphics/point.png');
-            this.load.image('button', 'graphics/Button.png');
+            this.load.image('button', 'graphics/spawn_button3.png');
             this.load.image('plug', 'graphics/plug.png');
             this.load.image('ev_charger_red', 'graphics/ev_charger_red.png');
             this.load.image('ev_charger_green', 'graphics/ev_charger_green.png');
@@ -111,6 +111,9 @@
             this.load.image('grass2', 'graphics/grass/grass2.png');
             this.load.image('grass3', 'graphics/grass/grass3.png');
             this.load.image('grass4', 'graphics/grass/grass4.png');
+            
+            // Load grid panel background
+            this.load.image('grid_panel', 'graphics/grid_panel.png');
             
             // Load parking jam assets - dynamically load all vehicles from CONFIG.VEHICLES
             CONFIG.VEHICLES.forEach(vehicle => {
@@ -4382,30 +4385,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             const gridCenterX = this.gridStartX - this.CELL_SIZE / 2 + gridWidth / 2;
             const gridCenterY = this.gridStartY - this.CELL_SIZE / 2 + gridHeight / 2;
             
-            const gridPanel = this.add.graphics();
-            gridPanel.fillStyle(hexColor(CONFIG.CELL.GRID_PANEL_COLOR), 1);
-            gridPanel.fillRoundedRect(
-                gridCenterX - panelWidth / 2,
-                gridCenterY - panelHeight / 2,
-                panelWidth,
-                panelHeight,
-                CONFIG.CELL.GRID_PANEL_RADIUS
-            );
-            
-            // Add border to grid panel
-            gridPanel.lineStyle(
-                CONFIG.CELL.GRID_PANEL_BORDER_WIDTH,
-                hexColor(CONFIG.CELL.GRID_PANEL_BORDER_COLOR),
-                1
-            );
-            gridPanel.strokeRoundedRect(
-                gridCenterX - panelWidth / 2,
-                gridCenterY - panelHeight / 2,
-                panelWidth,
-                panelHeight,
-                CONFIG.CELL.GRID_PANEL_RADIUS
-            );
-            
+            // Create grid panel using sprite image
+            const gridPanel = this.add.image(gridCenterX, gridCenterY, 'grid_panel');
+            gridPanel.setDisplaySize(panelWidth, panelHeight);
             gridPanel.setDepth(1.5); // Above grass (1), below cells (2)
             
             for (let row = 0; row < this.GRID_ROWS; row++) {

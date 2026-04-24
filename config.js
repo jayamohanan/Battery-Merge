@@ -19,14 +19,17 @@ var CONFIG = {
     // Game Area Background Colors
     BACKGROUND: {
         // Ground to sea gradient - parking area (top) blends to merge area (bottom)
-        GRADIENT_START_COLOR: "#9ab39e",  // Green at top (ground/parking area)
-        GRADIENT_END_COLOR: "#99b582",    // Sky blue at bottom (merge area)
+        // GRADIENT_START_COLOR: "#9ab39e",  // Green at top (ground/parking area)
+        // GRADIENT_END_COLOR: "#99b582",    // Sky blue at bottom (merge area)
+
+        GRADIENT_START_COLOR: "#79d288",  // Green at top (ground/parking area)
+        GRADIENT_END_COLOR: "#79d288",    // Sky blue at bottom (merge area)
     },
     
     // Grass Decoration Settings
     GRASS: {
         COUNT: 20,                     // Number of grass sprites to spawn
-        COLOR: "#819b80",              // Grass tint color (applied to white sprites)
+        COLOR: "#67b464",              // Grass tint color (applied to white sprites)
         MIN_SPACING: 32,               // Minimum distance between grass sprites (pixels)
     },
     
@@ -146,14 +149,14 @@ var CONFIG = {
         RADIUS: 15,                     // Rounded corner radius (used for merge game grid)
         
         // Inset look styling (creates recessed appearance)
-        EMPTY_BG_COLOR: "#B4E4FF",      // Light blue for empty cells
+        EMPTY_BG_COLOR: "#F2F0EF",      // Light blue for empty cells
         FILLED_BG_COLOR: "#FFFFFF",     // Bright white for occupied cells
         INSET_SHADOW_COLOR: "#364549",  // Deep teal for outer shadow (creates depth)
-        INSET_BORDER_WIDTH: 3,       // Width of inset border (50% more than original 3)
+        INSET_BORDER_WIDTH: 3.5,       // Width of inset border (50% more than original 3)
         
         // Legacy border (deprecated - using inset styling instead)
         BORDER_COLOR: "#364549",        // Empty cell border color (not used with inset)
-        BORDER_WIDTH: 3,                // Border width
+        BORDER_WIDTH: 4,                // Border width
         
         // Battery icon configuration
         BATTERY_DISPLAY_SIZE: 64,      // Fixed display size in pixels (all batteries shown at this size regardless of source image dimensions)
@@ -374,7 +377,7 @@ var CONFIG = {
     // - Colors: 0xRRGGBB format (e.g., 0x00FF41 = neon green)
     // - Alpha: 0 = transparent, 1.0 = fully opaque
     EV_CHARGER: {
-        CHARGER_SIZE: 200,              // EV charger display size in pixels (width and height) - ADJUST THIS to scale everything!
+        CHARGER_SIZE: 220,              // EV charger display size in pixels (width and height) - ADJUST THIS to scale everything!
         
         // Vertical layout positioning (chargers stacked vertically on left side)
         // Middle charger (index 1) is centered with parking area center
