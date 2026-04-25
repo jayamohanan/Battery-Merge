@@ -89,15 +89,24 @@ var CONFIG = {
             }
         ],
 
-        SHOW_SPECIAL_ZONES: true,   // Toggle visibility of debug rectangles (true = visible, false = hidden)
+        SHOW_SPECIAL_ZONES: false,   // Toggle visibility of debug rectangles (true = visible, false = hidden)
         SPECIAL_ZONES: [
              {
                 tag:"shop",
-                centerX: 500,          // Center X position (pixels)
+                centerX: 450,          // Center X position (pixels)
                 centerY: 55,          // Center Y position (pixels)
-                width: 400,            // Width of zone (pixels)
+                width: 200,            // Width of zone (pixels)
                 height: 110,           // Height of zone (pixels) - covers all 3 chargers
                 color: "#10b2f8",      // Debug rectangle color (red)
+                opacity: 0.7          // Debug rectangle opacity (0-1, 0.2 = 20%)
+            },
+             {
+                tag:"shop_counter",
+                centerX: 620,          // Center X position (pixels)
+                centerY: 55,          // Center Y position (pixels)
+                width: 140,            // Width of zone (pixels)
+                height: 110,           // Height of zone (pixels) - covers all 3 chargers
+                color: "#9500ff",      // Debug rectangle color (red)
                 opacity: 0.7          // Debug rectangle opacity (0-1, 0.2 = 20%)
             },
              {
@@ -404,7 +413,7 @@ var CONFIG = {
         ANIMATION_YOYO: true,          // Animation returns to start
         ANIMATION_REPEAT: -1,          // Repeat indefinitely (-1)
         TUTORIAL_START_DELAY: 500,    // Delay in ms before mask animation starts (full game preview)
-        TUTORIAL_FADE_DURATION: 1000,   // Duration in ms for mask fade-in animation
+        TUTORIAL_FADE_DURATION: 500,   // Duration in ms for mask fade-in animation
         TUTORIAL_MASK_COLOR: "#000000",   // Color of the tutorial mask overlay
         TUTORIAL_MASK_OPACITY: 0.75    // Opacity of the tutorial mask overlay (0-1, higher = darker)
     },
