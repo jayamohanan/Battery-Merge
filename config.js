@@ -87,6 +87,28 @@ var CONFIG = {
                 color: "#f777fa",      // Debug rectangle color (pink)
                 opacity: 0.2           // Debug rectangle opacity (0-1, 0.2 = 20%)
             }
+        ],
+
+        SHOW_SPECIAL_ZONES: true,   // Toggle visibility of debug rectangles (true = visible, false = hidden)
+        SPECIAL_ZONES: [
+             {
+                tag:"shop",
+                centerX: 500,          // Center X position (pixels)
+                centerY: 55,          // Center Y position (pixels)
+                width: 400,            // Width of zone (pixels)
+                height: 110,           // Height of zone (pixels) - covers all 3 chargers
+                color: "#10b2f8",      // Debug rectangle color (red)
+                opacity: 0.7          // Debug rectangle opacity (0-1, 0.2 = 20%)
+            },
+             {
+                tag:"conveyer_belt",
+                centerX: 475,          // Center X position (pixels)
+                centerY: 600,          // Center Y position (pixels)
+                width: 490,            // Width of zone (pixels)
+                height: 30,           // Height of zone (pixels) - covers all 3 chargers
+                color: "#91ff00",      // Debug rectangle color (blue)
+                opacity: 0.7          // Debug rectangle opacity (0-1, 0.2 = 20%)
+            }
         ]
     },
     

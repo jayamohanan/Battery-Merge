@@ -112,6 +112,9 @@
             this.load.image('grass3', 'graphics/grass/grass3.png');
             this.load.image('grass4', 'graphics/grass/grass4.png');
             
+            // Load special zone images
+            this.load.image('pizza_shop', 'graphics/pizza_shop.png');
+            
             // Load grid panel background
             this.load.image('grid_panel', 'graphics/grid_panel.png');
             
@@ -233,6 +236,54 @@
                     debugGraphics.fillRect(x, y, zone.width, zone.height);
                 });
             }
+            
+            // Get special zones from config and render if enabled
+            const specialZones = CONFIG.GRASS.SPECIAL_ZONES || [];
+            
+            // Draw special zone debug rectangles if enabled
+            if (CONFIG.GRASS.SHOW_SPECIAL_ZONES) {
+                const debugGraphics = this.add.graphics();
+                debugGraphics.setDepth(999); // On top of everything for visibility
+                
+                specialZones.forEach(zone => {
+                    const color = parseInt(zone.color.substring(1), 16);
+                    const alpha = zone.opacity;
+                    
+                    // Calculate rectangle boundaries from center + dimensions
+                    const x = zone.centerX - zone.width / 2;
+                    const y = zone.centerY - zone.height / 2;
+                    
+                    debugGraphics.fillStyle(color, alpha);
+                    debugGraphics.fillRect(x, y, zone.width, zone.height);
+                });
+            }
+            
+            // Render special zone images
+            specialZones.forEach(zone => {
+                if (zone.tag === 'shop') {
+                    // Add pizza shop image at top of screen, contained within zone width
+                    const shopImage = this.add.image(0, 0, 'pizza_shop');
+                    shopImage.setOrigin(0.5, 0); // Origin at top center
+                    
+                    // Calculate zone boundaries
+                    const zoneLeft = zone.centerX - zone.width / 2;
+                    const zoneRight = zone.centerX + zone.width / 2;
+                    const zoneTop = 0; // Start from top of screen
+                    const zoneHeight = zone.height;
+                    
+                    // Calculate scale to fit within zone width while maintaining aspect ratio
+                    const scaleX = zone.width / shopImage.width;
+                    const scaleY = zoneHeight / shopImage.height;
+                    const scale = Math.min(scaleX, scaleY); // Use smaller scale to fit within zone
+                    
+                    // Apply scale
+                    shopImage.setScale(scale);
+                    
+                    // Position at zone center X and top of screen
+                    shopImage.setPosition(zone.centerX, zoneTop);
+                    shopImage.setDepth(1); // Below grass (2) but above background
+                }
+            });
             
             // Helper function to check if a point is inside any forbidden zone
             const isInForbiddenZone = (x, y) => {
