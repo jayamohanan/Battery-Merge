@@ -154,17 +154,6 @@
             // Spawn grass decoration sprites (above background, below other elements)
             this.spawnGrassSprites();
             
-            // Title for parking area - showing remaining charge
-            this.levelChargeText = this.add.text(sceneWidth / 2, 20, '⚡ 0', {
-                fontSize: '32px',
-                fontFamily: CONFIG.FONT_FAMILY,
-                color: '#FFFFFF',
-                fontStyle: 'bold',
-                stroke: '#5E35B1',
-                strokeThickness: 4
-            }).setOrigin(0.5);
-            this.levelChargeText.setDepth(100);
-            
             // Create 3 charging slots (moved to top of bottom half, just below parking area)
             this.createChargingSlots();
             
@@ -406,8 +395,7 @@
                 const displayWidth = displayHeight * aspectRatio;
                 chargerSprite.setDisplaySize(displayWidth, displayHeight);
                 chargerSprite.setDepth(1);
-                // Start with grey/inactive appearance (empty slot)
-                chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
+                // Start with normal appearance (no tint)
                 
                 // Drop zone inside the charger (inset look like merge grid cells)
                 const dropZoneX = slotX + dropZoneOffsetX;
@@ -704,8 +692,8 @@
             slot.batteryLevelText = null;
             slot.chargeText.setVisible(false);
             
-            // Make charger sprite grey/inactive (empty slot)
-            slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
+            // Keep charger sprite normal (no tint)
+            // slot.chargerSprite.clearTint();
             
             // Switch to OFF sprite (no battery)
             slot.switchSprite.setTexture('charger_off');
@@ -2450,17 +2438,7 @@
         }
 
         updateLevelChargeDisplay() {
-            if (!this.levelChargeText) return;
-            
-            // Update text to show remaining charge
-            this.levelChargeText.setText(`⚡ ${Math.round(this.remainingCharge)}`);
-            
-            // Change color based on remaining charge
-            if (this.remainingCharge === 0) {
-                this.levelChargeText.setColor('#00E676'); // Bright green when complete
-            } else {
-                this.levelChargeText.setColor('#FFFFFF'); // White when in progress
-            }
+            // Charge display removed - no longer showing parking area charge
         }
 
         // Helper function to interpolate between two hex colors
@@ -4261,29 +4239,34 @@ for (let t = 0; t <= 1; t += 0.002) {
         createCoinDisplay() {
             const sceneWidth = this.cameras.main.width;
             
-            // Position aligned with a specific grid row (configurable)
-            // gridStartY is center of top row (row 0)
-            // Each row down adds (CELL_SIZE + CELL_GAP)
-            const alignRowIndex = CONFIG.COIN_COUNTER.ALIGN_WITH_GRID_ROW;
-            const coinY = this.gridStartY + alignRowIndex * (this.CELL_SIZE + this.CELL_GAP);
+            // Calculate grid panel top edge
+            const gridWidth = this.GRID_COLS * this.CELL_SIZE + (this.GRID_COLS - 1) * this.CELL_GAP;
+            const panelPadding = CONFIG.CELL.GRID_PANEL_PADDING;
+            const gridCenterX = this.gridStartX - this.CELL_SIZE / 2 + gridWidth / 2;
+            const gridCenterY = this.gridStartY - this.CELL_SIZE / 2 + (this.GRID_ROWS * this.CELL_SIZE + (this.GRID_ROWS - 1) * this.CELL_GAP) / 2;
+            const gridHeight = this.GRID_ROWS * this.CELL_SIZE + (this.GRID_ROWS - 1) * this.CELL_GAP;
+            const panelHeight = gridHeight + 2 * panelPadding;
             
-            // Position coin icon at right edge with padding
-            const coinIconX = sceneWidth - CONFIG.COIN_COUNTER.PADDING_FROM_SCREEN_RIGHT - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
-            this.coinIcon = this.add.image(coinIconX, coinY, 'coin');
-            this.coinIcon.setDisplaySize(CONFIG.COIN_COUNTER.COIN_ICON_WIDTH, CONFIG.COIN_COUNTER.COIN_ICON_HEIGHT);
-            this.coinIcon.setDepth(100); // Above game elements
+            // Position above grid panel (centered horizontally, above panel top edge)
+            const coinY = gridCenterY - panelHeight / 2 - 40; // 40px above panel top
+            const coinX = gridCenterX; // Horizontally centered with grid
             
-            // Coin text (to the left of the icon)
-            const coinTextX = coinIconX - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2 - CONFIG.COIN_COUNTER.TEXT_ICON_SPACING;
-            this.coinText = this.add.text(coinTextX, coinY, `${this.coins}`, {
+            // Coin text (centered)
+            this.coinText = this.add.text(coinX, coinY, `${this.coins}`, {
                 fontSize: CONFIG.COIN_COUNTER.TEXT_SIZE,
                 fontFamily: CONFIG.FONT_FAMILY,
                 color: CONFIG.COIN_COUNTER.TEXT_COLOR,
                 fontStyle: 'bold',
                 stroke: CONFIG.COIN_COUNTER.TEXT_STROKE_COLOR,
                 strokeThickness: CONFIG.COIN_COUNTER.TEXT_STROKE_THICKNESS
-            }).setOrigin(1, 0.5);  // Right-aligned
-            this.coinText.setDepth(100); // Above game elements
+            }).setOrigin(0.5);  // Center-aligned
+            this.coinText.setDepth(10); // Below tutorial overlay (so it gets masked)
+            
+            // Position coin icon to the right of the text
+            const coinIconX = coinX + this.coinText.width / 2 + CONFIG.COIN_COUNTER.TEXT_ICON_SPACING + CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
+            this.coinIcon = this.add.image(coinIconX, coinY, 'coin');
+            this.coinIcon.setDisplaySize(CONFIG.COIN_COUNTER.COIN_ICON_WIDTH, CONFIG.COIN_COUNTER.COIN_ICON_HEIGHT);
+            this.coinIcon.setDepth(10); // Below tutorial overlay (so it gets masked)
         }
         
         // Animate coin reward when car is fully charged and moves out
@@ -4585,42 +4568,77 @@ for (let t = 0; t <= 1; t += 0.002) {
             const sceneHeight = this.cameras.main.height;
             
             // Create overlay covering entire scene
+            const maskColor = parseInt(CONFIG.POINTER.TUTORIAL_MASK_COLOR.substring(1), 16);
             this.startOverlay = this.add.rectangle(
                 sceneWidth / 2,
                 sceneHeight / 2,
                 sceneWidth,
                 sceneHeight,
-                0x000000,
-                0.6
+                maskColor,
+                CONFIG.POINTER.TUTORIAL_MASK_OPACITY  // Mask opacity from config
             );
+            this.startOverlay.setAlpha(0);  // Start fully transparent (will fade in)
+            this.startOverlay.setDepth(99);   // Overlay just below spawn button (100)
             
-            // Animated pointer (point.png) positioned below button center
+            // Animated pointer (point.png) positioned below button center (start invisible)
             const pointerY = this.spawnButton.y + CONFIG.POINTER.OFFSET_Y;
-            const pointer = this.add.image(
-                this.spawnButton.x,
-                pointerY,
-                'point'
-            );
+            
+            // Create stroke effect by rendering offset copies in stroke color
+            const strokeWidth = CONFIG.POINTER.STROKE_WIDTH;
+            const strokeColor = parseInt(CONFIG.POINTER.STROKE_COLOR.substring(1), 16);
+            const fillColor = parseInt(CONFIG.POINTER.FILL_COLOR.substring(1), 16);
+            
+            const pointerContainer = this.add.container(this.spawnButton.x, pointerY);
+            pointerContainer.setAlpha(0);  // Start invisible
+            pointerContainer.setDepth(102);   // Pointer on top
+            
+            // Create stroke copies (8 directions for smooth outline)
+            for (let angle = 0; angle < 360; angle += 45) {
+                const rad = angle * Math.PI / 180;
+                const offsetX = Math.cos(rad) * strokeWidth;
+                const offsetY = Math.sin(rad) * strokeWidth;
+                
+                const strokeCopy = this.add.image(offsetX, offsetY, 'point');
+                strokeCopy.setScale(CONFIG.POINTER.SCALE);
+                strokeCopy.setTint(strokeColor);
+                strokeCopy.setOrigin(0.5, 0);
+                pointerContainer.add(strokeCopy);
+            }
+            
+            // Create main pointer on top with fill color
+            const pointer = this.add.image(0, 0, 'point');
             pointer.setScale(CONFIG.POINTER.SCALE);
-            pointer.setTint(CONFIG.POINTER.TINT);
+            pointer.setTint(fillColor);
             pointer.setOrigin(0.5, 0);  // Origin at top center, so top appears at pointerY
+            pointerContainer.add(pointer);
             
-            // Click animation: move up and scale down, then back
-            this.tweens.add({
-                targets: pointer,
-                y: pointerY - CONFIG.POINTER.ANIMATION_MOVE_UP,
-                scaleX: CONFIG.POINTER.SCALE * CONFIG.POINTER.ANIMATION_SCALE_DOWN,
-                scaleY: CONFIG.POINTER.SCALE * CONFIG.POINTER.ANIMATION_SCALE_DOWN,
-                duration: CONFIG.POINTER.ANIMATION_DURATION,
-                yoyo: CONFIG.POINTER.ANIMATION_YOYO,
-                repeat: CONFIG.POINTER.ANIMATION_REPEAT
+            this.startPointer = pointerContainer;
+            
+            // Wait before starting tutorial, then fade in overlay
+            this.time.delayedCall(CONFIG.POINTER.TUTORIAL_START_DELAY, () => {
+                // Fade in overlay
+                this.tweens.add({
+                    targets: this.startOverlay,
+                    alpha: 1,  // Fade to fully visible (showing 0.6 fillAlpha)
+                    duration: CONFIG.POINTER.TUTORIAL_FADE_DURATION,
+                    ease: 'Linear',
+                    onComplete: () => {
+                        // After mask finishes, show pointer immediately (no fade)
+                        pointerContainer.setAlpha(1);
+                        
+                        // Start position/scale animation
+                        this.tweens.add({
+                            targets: pointerContainer,
+                            y: pointerY - CONFIG.POINTER.ANIMATION_MOVE_UP,
+                            scaleX: CONFIG.POINTER.SCALE * CONFIG.POINTER.ANIMATION_SCALE_DOWN,
+                            scaleY: CONFIG.POINTER.SCALE * CONFIG.POINTER.ANIMATION_SCALE_DOWN,
+                            duration: CONFIG.POINTER.ANIMATION_DURATION,
+                            yoyo: CONFIG.POINTER.ANIMATION_YOYO,
+                            repeat: CONFIG.POINTER.ANIMATION_REPEAT
+                        });
+                    }
+                });
             });
-            
-            // Set depths: overlay behind button, pointer on top of everything
-            this.startOverlay.setDepth(99);   // Overlay just below buttons
-            pointer.setDepth(102);            // Pointer on top
-            
-            this.startPointer = pointer;
         }
 
         removeStartOverlay() {
@@ -4652,21 +4670,39 @@ for (let t = 0; t <= 1; t += 0.002) {
             const cell2X = this.gridStartX + (this.CELL_SIZE + this.CELL_GAP);
             const cell2Y = this.gridStartY;
             
-            // Create pointer with tip at horizontal center of cells
-            const mergePointer = this.add.image(
-                cell1X,
-                cell1Y,  // Center of cell, not below
-                'point'
-            );
+            // Create stroke effect by rendering offset copies in stroke color
+            const strokeWidth = CONFIG.POINTER.STROKE_WIDTH;
+            const strokeColor = parseInt(CONFIG.POINTER.STROKE_COLOR.substring(1), 16);
+            const fillColor = parseInt(CONFIG.POINTER.FILL_COLOR.substring(1), 16);
+            
+            const pointerContainer = this.add.container(cell1X, cell1Y);
+            
+            // Create stroke copies (8 directions for smooth outline)
+            for (let angle = 0; angle < 360; angle += 45) {
+                const rad = angle * Math.PI / 180;
+                const offsetX = Math.cos(rad) * strokeWidth;
+                const offsetY = Math.sin(rad) * strokeWidth;
+                
+                const strokeCopy = this.add.image(offsetX, offsetY, 'point');
+                strokeCopy.setScale(CONFIG.POINTER.SCALE);
+                strokeCopy.setTint(strokeColor);
+                strokeCopy.setOrigin(0.5, 0);
+                pointerContainer.add(strokeCopy);
+            }
+            
+            // Create main pointer on top with fill color
+            const mergePointer = this.add.image(0, 0, 'point');
             mergePointer.setScale(CONFIG.POINTER.SCALE);
-            mergePointer.setTint(CONFIG.POINTER.TINT);
+            mergePointer.setTint(fillColor);
             mergePointer.setOrigin(0.5, 0);  // Origin at top center, so tip is at cell center
-            mergePointer.setDepth(102); // Above everything else
+            pointerContainer.add(mergePointer);
+            
+            pointerContainer.setDepth(102); // Above everything else
             
             // Animate pointer from cell 1 to cell 2 horizontally
             // Left to right, then reset and repeat (no yoyo)
             this.tweens.add({
-                targets: mergePointer,
+                targets: pointerContainer,
                 x: cell2X,
                 duration: CONFIG.MERGE_TUTORIAL.ANIMATION_DURATION,
                 ease: CONFIG.MERGE_TUTORIAL.ANIMATION_EASE,
@@ -4675,7 +4711,7 @@ for (let t = 0; t <= 1; t += 0.002) {
                 repeatDelay: 200  // Small pause before repeating (appears, animates, disappears, reappears)
             });
             
-            this.mergePointer = mergePointer;
+            this.mergePointer = pointerContainer;
         }
         
         removeMergeTutorial() {
@@ -4892,8 +4928,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.dropZoneEmpty.setVisible(true);
                 slot.dropZoneFilled.setVisible(false);
                 
-                // Make charger grey/inactive (empty slot)
-                slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
+                // Keep charger normal appearance (no tint when empty)
+                // slot.chargerSprite.clearTint();
                 
                 // Make bolt grey (not charging)
                 slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -5065,8 +5101,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.dropZoneEmpty.setVisible(true);
                 slot.dropZoneFilled.setVisible(false);
                 
-                // Make charger grey/inactive (empty slot)
-                slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
+                // Keep charger normal appearance (no tint when empty)
+                // slot.chargerSprite.clearTint();
                 
                 // Make bolt grey (not charging)
                 slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -5172,8 +5208,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                 oldSlot.dropZoneEmpty.setVisible(true);
                 oldSlot.dropZoneFilled.setVisible(false);
                 
-                // Make old charger grey/inactive (empty slot)
-                oldSlot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
+                // Keep charger normal appearance (no tint)
+                // oldSlot.chargerSprite.clearTint();
                 
                 // Make old bolt grey (not charging)
                 oldSlot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -5296,8 +5332,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.dropZoneEmpty.setVisible(true);
                 slot.dropZoneFilled.setVisible(false);
                 
-                // Make charger grey/inactive (empty slot)
-                slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
+                // Keep charger normal appearance (no tint when empty)
+                // slot.chargerSprite.clearTint();
                 
                 // Make bolt grey (not charging)
                 slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -5357,8 +5393,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                 slot.dropZoneEmpty.setVisible(true);
                 slot.dropZoneFilled.setVisible(false);
                 
-                // Make charger grey/inactive (empty slot)
-                slot.chargerSprite.setTint(CONFIG.EV_CHARGER.EMPTY_CHARGER_OVERLAY_COLOR);
+                // Keep charger normal appearance (no tint when empty)
+                // slot.chargerSprite.clearTint();
                 
                 // Make bolt grey (not charging)
                 slot.boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE);
@@ -5612,7 +5648,8 @@ for (let t = 0; t <= 1; t += 0.002) {
             this.coinText.setText(`${this.coins}`);
             
             // Update coin icon position to stay next to text
-            const coinIconX = this.coinText.x + CONFIG.COIN_COUNTER.TEXT_ICON_SPACING + CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
+            // Since text is center-aligned (origin 0.5), we need to add half the text width
+            const coinIconX = this.coinText.x + this.coinText.width / 2 + CONFIG.COIN_COUNTER.TEXT_ICON_SPACING + CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
             this.coinIcon.setX(coinIconX);
             
             this.updateSpawnButton();

@@ -76,6 +76,16 @@ var CONFIG = {
                 height: 150,           // Height of zone (pixels)
                 color: "#FFFF00",      // Debug rectangle color (yellow)
                 opacity: 0.2           // Debug rectangle opacity (0-1, 0.2 = 20%)
+            },
+              // Zone 5 - Bottom (spawn and watch ad buttons)
+            // Default calculated for: coin text
+            {
+                centerX: 380,          // Center X position (pixels)
+                centerY: 650,          // Center Y position (pixels)
+                width: 200,            // Width of zone (pixels) - 90% of screen width
+                height: 80,           // Height of zone (pixels)
+                color: "#f777fa",      // Debug rectangle color (pink)
+                opacity: 0.2           // Debug rectangle opacity (0-1, 0.2 = 20%)
             }
         ]
     },
@@ -179,8 +189,8 @@ var CONFIG = {
         ALIGN_WITH_GRID_ROW: 1,        // Which row to align with (0=top, 1=middle, 2=bottom for 3x3 grid)
         PADDING_FROM_SCREEN_RIGHT: 20, // Padding from right edge of screen (pixels) - ensures visibility on mobile
         TEXT_SIZE: '48px',             // Font size for coin count text
-        TEXT_COLOR: '#FFEB3B',         // Bright yellow color for text
-        TEXT_STROKE_COLOR: '#FF6F00',  // Orange outline color for text
+        TEXT_COLOR: '#f7ca42',         // Bright yellow color for text
+        TEXT_STROKE_COLOR: '#7e5d11',  // Orange outline color for text
         TEXT_STROKE_THICKNESS: 6,      // Outline thickness (pixels)
         COIN_ICON_WIDTH: 40,           // Coin icon display width (pixels)
         COIN_ICON_HEIGHT: 40,          // Coin icon display height (pixels)
@@ -362,13 +372,19 @@ var CONFIG = {
     // Pointer animation settings (for tutorial overlay)
     POINTER: {
         SCALE: 1,                   // Scale of point.png image
-        TINT: "#FFFFFF",                // White tint color
+        FILL_COLOR: "#ffd251",      // Fill color for pointer (yellow/gold)
+        STROKE_COLOR: "#6d5727",    // Stroke/outline color for pointer (dark brown)
+        STROKE_WIDTH: 3,            // Stroke width in pixels
         OFFSET_Y: 20,                  // Pixels below button center where top of pointer appears
-        ANIMATION_MOVE_UP: 8,          // Pixels to move up during click animation
+        ANIMATION_MOVE_UP: 12,          // Pixels to move up during click animation
         ANIMATION_SCALE_DOWN: 0.9,     // Scale multiplier during click (0.9 = 10% smaller)
-        ANIMATION_DURATION: 500,       // Duration of one click animation in milliseconds
+        ANIMATION_DURATION: 200,       // Duration of one click animation in milliseconds
         ANIMATION_YOYO: true,          // Animation returns to start
-        ANIMATION_REPEAT: -1           // Repeat indefinitely (-1)
+        ANIMATION_REPEAT: -1,          // Repeat indefinitely (-1)
+        TUTORIAL_START_DELAY: 500,    // Delay in ms before mask animation starts (full game preview)
+        TUTORIAL_FADE_DURATION: 1000,   // Duration in ms for mask fade-in animation
+        TUTORIAL_MASK_COLOR: "#000000",   // Color of the tutorial mask overlay
+        TUTORIAL_MASK_OPACITY: 0.75    // Opacity of the tutorial mask overlay (0-1, higher = darker)
     },
     
     // Merge tutorial animation settings
