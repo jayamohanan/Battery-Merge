@@ -534,6 +534,35 @@ var CONFIG = {
         EASE: 'Power2'                 // Easing function for coin movement
     },
     
+    // Pizza Delivery System settings
+    PIZZA_DELIVERY: {
+        ENABLED: true,                  // Enable pizza collection before vehicles leave
+        COUNTER_STOP_DURATION: 1000,   // How long vehicle stops at counter to collect pizza (ms)
+        PIZZA_SIZE: 40,                 // Size of pizza sprites (pixels)
+        PIZZA_SPACING: 10,              // Spacing between pizzas at counter (pixels)
+        PIZZA_COLLECT_DURATION: 500,   // Duration for pizza to fly to vehicle (ms)
+        PIZZA_SCALE_FINAL: 0.5,        // Final scale of pizza when collected (0.5 = half size)
+        
+        // Counter position (from shop_counter special zone in GRASS.SPECIAL_ZONES)
+        COUNTER_CENTER_X: 620,          // X position of counter center
+        COUNTER_CENTER_Y: 55,           // Y position of counter center
+        COUNTER_WIDTH: 140,             // Width of counter zone
+        COUNTER_HEIGHT: 110,            // Height of counter zone
+        
+        // Detection settings
+        COUNTER_DETECTION_RANGE: 150,   // Distance to detect counter (pixels) - vehicles stop on road when within this range
+        STAY_ON_ROAD: true,             // Keep vehicles on road during pizza collection (pizza flies to them)
+        
+        // Full lap requirement for vehicles that would miss counter
+        // Counter is at top-right (< 45 degrees from top center)
+        // Vehicles exiting at angles >= 45 degrees will miss it and need a full lap
+        REQUIRE_FULL_LAP_AFTER_ANGLE: 45, // Vehicles exiting after this angle (degrees, clockwise from top) need a full lap
+        
+        // Queue configuration
+        QUEUE_SPACING: 80,              // Distance between vehicles in queue (pixels)
+        QUEUE_START_OFFSET: 100,        // Distance before counter where queue starts (pixels)
+    },
+    
     // Parking Jam Car Movement settings
     PARKING_CAR: {
         MAX_SPEED: 300,                 // Maximum speed of cars moving on the road (pixels per second)
