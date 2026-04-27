@@ -91,13 +91,6 @@
             
             // Road width is proportional to cell size
             this.roadWidthFactor = CONFIG.GRID.ROAD_WIDTH_FACTOR;
-            
-            console.log('Parking grid sizes calculated:', {
-                screenWidth: sceneWidth,
-                parkingGridWidth: parkingGridWidth.toFixed(2),
-                defaultParkingCellSize: this.defaultParkingCellSize.toFixed(2),
-                roadWidthFactor: this.roadWidthFactor
-            });
         }
 
         preload() {
@@ -823,7 +816,6 @@
                     // Assign this car to the slot
                     this.chargingSlots[slotIndex].assignedCar = car;
                     this.chargingSlots[slotIndex].assignedAt = this.time.now; // Track when car was assigned
-                    console.log(`Slot ${slotIndex} assigned to car ${this.cars.indexOf(car)}`);
                     
                     // Set charger color for this car (for battery/meter outline color coding)
                     const chargerColors = [
@@ -883,14 +875,11 @@
             }
             
             // No car available - slot remains idle
-            console.log(`Slot ${slotIndex} has no car to charge (idle)`);
         }
         
         // ========== PARKING JAM METHODS ==========
         
         loadLevel(levelData) {
-            console.log('Loading level:', levelData);
-            
             // Store grid configuration (from level or defaults)
             // Get size_factor (per-level zoom) from level data, default to 1.0
             const levelSizeFactor = levelData.grid?.size_factor || 1.0;
@@ -933,27 +922,10 @@
                 // Always scale to fit constraint square (scale up OR down to maximize usage)
                 const scaleFactor = constraintSize / maxDimension;
                 calculatedCellSize = calculatedCellSize * scaleFactor;
-                
-                console.log('Constraint square applied:', {
-                    originalCellSize: (parkingGridWidth / this.gridConfig.cols).toFixed(2),
-                    scaleFactor: scaleFactor.toFixed(3),
-                    newCellSize: calculatedCellSize.toFixed(2),
-                    constraintSize: constraintSize,
-                    maxDimension: maxDimension.toFixed(2),
-                    scaledDimension: (maxDimension * scaleFactor).toFixed(2)
-                });
             }
             
             // Set calculated cellSize
             this.gridConfig.cellSize = calculatedCellSize;
-            
-            console.log('Parking grid config:', {
-                cols: this.gridConfig.cols,
-                rows: this.gridConfig.rows,
-                levelSizeFactor: levelSizeFactor,
-                cellSize: this.gridConfig.cellSize.toFixed(2),
-                parkingGridWidth: parkingGridWidth.toFixed(2)
-            });
             
             // Initialize grid occupancy tracking (null = empty, car reference = occupied)
             this.gridOccupancy = Array(this.gridConfig.rows).fill(null).map(() => 
@@ -961,15 +933,7 @@
             );
             
             // Draw parking and road if they exist in level data
-            console.log('Checking parking and road data:', {
-                hasParkingData: !!levelData.parking,
-                hasRoadData: !!levelData.road,
-                parkingData: levelData.parking,
-                roadData: levelData.road
-            });
-            
             if (levelData.parking && levelData.road) {
-                console.log('Drawing parking and road...');
                 this.drawParkingAndRoad(levelData.parking, levelData.road);
             } else {
                 console.warn('Missing parking or road data in level!');
@@ -1000,10 +964,6 @@
         }
         
         drawParkingAndRoad(parkingData, roadData) {
-            console.log('=== DRAW PARKING AND ROAD START ===');
-            console.log('Parking data:', parkingData);
-            console.log('Road data:', roadData);
-            
             // Clean up existing parking-related graphics
             if (this.parkingFloor) {
                 this.parkingFloor.destroy();
@@ -1055,9 +1015,6 @@
             const sceneHeight = this.cameras.main.height;
             const parkingAreaHeight = sceneHeight * 0.5;
             
-            console.log('Scene dimensions:', sceneWidth, 'x', sceneHeight);
-            console.log('Parking area height:', parkingAreaHeight);
-            
             // Center position for parking area (in top half) - shifted to the right
             const horizontalShift = sceneWidth * (CONFIG.GRID.PARKING_HORIZONTAL_OFFSET || 0);
             let centerX = sceneWidth / 2 + horizontalShift;
@@ -1085,12 +1042,6 @@
             // Set road width to calculated value (not from level data)
             const roadWidth = calculatedRoadWidth;
             
-            console.log('Road width calculated:', {
-                cellSize: this.gridConfig.cellSize.toFixed(2),
-                roadWidthFactor: this.roadWidthFactor,
-                calculatedRoadWidth: calculatedRoadWidth.toFixed(2)
-            });
-            
             // Create curved road path
             const halfW = parkingWidth / 2;
             const halfH = parkingHeight / 2;
@@ -1110,8 +1061,6 @@
                 const point = this.roadPath.getPoint(t);
                 worldPoints.push(point);
             }
-            
-            console.log('********numPoints for road rope:', numPoints);
             
             // Pre-scale the texture to match desired road width
             const roadTextureSize = 80; // Original road_80.png size
@@ -1137,28 +1086,16 @@
                 // Clean up
                 tempSprite.destroy();
                 rt.destroy();
-                
-                console.log('Created scaled texture:', scaledTextureName, `(${scaledSize}x${scaledSize})`);
             }
             
             // Create rope at origin with world coordinates using the scaled texture
             this.roadRope = this.add.rope(0, 0, scaledTextureName, null, worldPoints);
-            
-            console.log('Road created with pre-scaled texture:', {
-                originalTextureSize: roadTextureSize,
-                scaledTextureSize: scaledSize.toFixed(2),
-                roadWidth: roadWidth.toFixed(2),
-                points: worldPoints.length,
-                textureName: scaledTextureName
-            });
             
             // Roads are always fully opaque (no transparency) to prevent background color bleed-through
             this.roadRope.setAlpha(1.0);
             
             // Set depth above parking area
             this.roadRope.setDepth(6);
-            
-            console.log('Road rope created with pre-scaled texture - no rope scaling needed');
             
             // Add road markings for visual clarity
             this.drawRoadMarkings(roadWidth, numPoints);
@@ -1189,14 +1126,6 @@
             this.parkingBorder.setStrokeStyle(parkingData.borderWidth, parkingData.borderColor);
             this.parkingBorder.setDepth(4);
             
-            console.log('Parking area created with solid color:', {
-                position: { x: centerX, y: centerY },
-                dimensions: { width: parkingWidth, height: parkingHeight },
-                color: CONFIG.GRID.PARKING_AREA_COLOR,
-                depth: 3,
-                alpha: parkingData.alpha
-            });
-            
             // Draw parking lines dynamically
             this.drawParkingLines(centerX, centerY, parkingWidth, parkingHeight, this.gridConfig.cellSize, this.gridConfig.cols, this.gridConfig.rows);
             
@@ -1215,20 +1144,26 @@
                     constraintSize
                 );
                 this.constraintSquareGraphics.setDepth(100); // On top of everything for debugging
-                
-                console.log('Constraint square drawn:', {
-                    size: constraintSize,
-                    centerX: centerX,
-                    centerY: centerY,
-                    offsetX: offsetX,
-                    offsetY: offsetY,
-                    parkingPlusRoadsWidth: (parkingWidth + 2 * roadWidth).toFixed(2),
-                    parkingPlusRoadsHeight: (parkingHeight + 2 * roadWidth).toFixed(2)
-                });
             }
-            
-            console.log('=== DRAW PARKING AND ROAD COMPLETE ===');
+        
+        this.findCounterPathIndex();
+    }
+    
+    // Find which path index is closest to the counter point (for pizza delivery)
+    findCounterPathIndex() {
+        if (!this.roadPath) return;
+        const points = this.roadPath.getSpacedPoints(500);
+        let closestIndex = 0;
+        let minDist = Infinity;
+        for (let i = 0; i < points.length; i++) {
+            const dx = points[i].x - CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_X;
+            const dy = points[i].y - CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_Y;
+            const d = dx*dx + dy*dy;
+            if (d < minDist) { minDist = d; closestIndex = i; }
         }
+        this.counterPathIndex = closestIndex;
+        console.log('🍕 Counter nearest path index:', closestIndex, '/ 500');
+    }
         
         // Create exit gate at the end of the road (left edge going upward)
         createExitGate(centerX, centerY, halfW, halfH, offset, roadWidth) {
@@ -1305,20 +1240,6 @@
             
             // Store gate position for proximity checks
             this.gatePosition = { x: gateX, y: gateY };
-            
-            console.log('Exit gate created:', {
-                position: { x: gateX, y: gateY },
-                exitTail: { start: exitTailStart, end: exitTailEnd, length: exitTailLength },
-                positionYFactor: CONFIG.GATE.POSITION_Y_FACTOR,
-                roadWidth: roadWidth,
-                doorSize: { length: gateLength, thickness: gateThickness },
-                centerGap: centerGap,
-                pivotOffset: pivotOffset,
-                leftPoleX: leftPoleX,
-                rightPoleX: rightPoleX,
-                poleRadius: CONFIG.GATE.POLE_RADIUS,
-                state: 'closed'
-            });
         }
         
         // Check if any vehicle is near the gate
@@ -1356,7 +1277,6 @@
             if (this.gateOpen || this.gateAnimating) return;
             
             this.gateAnimating = true;
-            console.log('Opening gate...');
             
             // Left door rotates 90 degrees counterclockwise to become vertical (parallel to upward road)
             // Pivots on left edge, swings outward to the left
@@ -1377,7 +1297,6 @@
                 onComplete: () => {
                     this.gateOpen = true;
                     this.gateAnimating = false;
-                    console.log('Gate opened');
                 }
             });
         }
@@ -1387,7 +1306,6 @@
             if (!this.gateOpen || this.gateAnimating) return;
             
             this.gateAnimating = true;
-            console.log('Closing gate...');
             
             // Both doors rotate back to 0 degrees (horizontal, perpendicular to upward road)
             this.tweens.add({
@@ -1405,7 +1323,6 @@
                 onComplete: () => {
                     this.gateOpen = false;
                     this.gateAnimating = false;
-                    console.log('Gate closed');
                 }
             });
         }
@@ -1443,6 +1360,8 @@
                 // Check if vehicle needs a full lap first
                 if (car.needsFullLap && !car.hasCompletedLap) {
                     // Don't stop yet - vehicle needs to complete full lap
+                    console.log('🍕 BLOCKED by needsFullLap, pathProgress:', 
+                        car.roadPathData ? (car.roadPathData.currentIndex / 500).toFixed(2) : 'no data');
                     continue;
                 }
                 
@@ -1460,8 +1379,6 @@
                     
                     // Check if another vehicle is currently collecting
                     if (this.currentPizzaCollector && this.currentPizzaCollector !== car) {
-                        console.log('🍕 Another vehicle is collecting pizza, joining queue');
-                        
                         // Stop the vehicle's current tween if it has one
                         if (car.roadTween) {
                             car.roadTween.stop();
@@ -1480,7 +1397,6 @@
                         }
                     } else {
                         // No one collecting, this car can collect now
-                        console.log('🍕 No queue, collecting pizza immediately (via proximity check)');
                         this.currentPizzaCollector = car;
                         
                         // Stop the vehicle's current tween if it has one
@@ -1895,15 +1811,6 @@
                     this.parkingLinesGraphics.lineTo(lineX + tCapLength / 2, bottomEndY);
                     this.parkingLinesGraphics.strokePath();
                 }
-                
-                console.log('Parking lines drawn (VERTICAL teeth from TOP/BOTTOM sides):', {
-                    sides: 'top/bottom (horizontal)',
-                    lineDirection: 'vertical',
-                    numLines: Math.ceil(cols / 2),
-                    lineLength: lineLength.toFixed(2),
-                    lineWidth: lineWidth.toFixed(2),
-                    tCapLength: tCapLength.toFixed(2)
-                });
             } else {
                 // LEFT and RIGHT sides (vertical) - draw HORIZONTAL lines like comb teeth
                 // Lines are spaced 1 cell apart vertically, extending 2 cells horizontally
@@ -1945,15 +1852,6 @@
                     this.parkingLinesGraphics.lineTo(rightEndX, lineY + tCapLength / 2);
                     this.parkingLinesGraphics.strokePath();
                 }
-                
-                console.log('Parking lines drawn (HORIZONTAL teeth from LEFT/RIGHT sides):', {
-                    sides: 'left/right (vertical)',
-                    lineDirection: 'horizontal',
-                    numLines: Math.ceil(rows / 2),
-                    lineLength: lineLength.toFixed(2),
-                    lineWidth: lineWidth.toFixed(2),
-                    tCapLength: tCapLength.toFixed(2)
-                });
             }
         }
 
@@ -2084,13 +1982,6 @@
                 
                 lastPoint = point;
             }
-            
-            console.log('Road markings drawn:', {
-                edgeLineWidth: edgeLineWidth.toFixed(2),
-                centerLineWidth: centerLineWidth.toFixed(2),
-                dashLength: dashLength.toFixed(2),
-                gapLength: gapLength.toFixed(2)
-            });
         }
 
         getOccupiedCellsForGame(anchorRow, anchorCol, orientation, width, length) {
@@ -2629,29 +2520,23 @@
                 
                 this.pizzas.push(pizza);
             }
-            
-            console.log(`Created ${numVehicles} pizzas at counter`);
         }
 
         // Process the next vehicle in the pizza queue
         processNextInPizzaQueue() {
             // Don't start a new collection if one is already in progress
             if (this.currentPizzaCollector) {
-                console.log('Pizza collection already in progress, waiting...');
                 return;
             }
             
             // Check if there are vehicles waiting
             if (this.pizzaQueue.length === 0) {
-                console.log('Pizza queue is empty');
                 return;
             }
             
             // Get the next vehicle from the queue
             const car = this.pizzaQueue.shift();
             this.currentPizzaCollector = car;
-            
-            console.log('Processing next vehicle in pizza queue');
             
             // Resume the vehicle's journey to the counter
             if (car.resumePathData) {
@@ -2672,8 +2557,6 @@
 
         // Move car from parking lot to counter position
         moveCarToCounter(car) {
-            console.log('Moving car to counter');
-            
             // First, we need to get the car out of the parking area
             // Calculate which direction the car can exit
             const stepsToExitForward = this.calculateStepsToExit(car);
@@ -2722,14 +2605,11 @@
             const normalizedCounterAngle = (angleToCounter + 360) % 360;
             const normalizedVehicleAngle = (angleToVehicle + 360) % 360;
             
-            console.log(`Vehicle angle: ${normalizedVehicleAngle.toFixed(1)}°, Counter angle: ${normalizedCounterAngle.toFixed(1)}°`);
-            
             // If vehicle is exiting AFTER the counter in clockwise direction, it needs a full lap
             // Check if vehicle angle is greater than counter angle (accounting for wrap-around)
             let needsFullLap = false;
             if (normalizedVehicleAngle > normalizedCounterAngle + CONFIG.PIZZA_DELIVERY.REQUIRE_FULL_LAP_AFTER_ANGLE) {
                 needsFullLap = true;
-                console.log('Vehicle will miss counter - needs full lap!');
             }
             
             // Mark that this car needs to go to counter after exiting
@@ -2743,8 +2623,6 @@
 
         // Animate pizza collection for a car
         collectPizzaForCar(car) {
-            console.log('Collecting pizza for car');
-            
             // Check if there are any pizzas left
             if (this.pizzas.length === 0) {
                 console.warn('No pizzas left to collect!');
@@ -2767,7 +2645,6 @@
                 onComplete: () => {
                     // Pizza collected - destroy it
                     pizza.destroy();
-                    console.log('Pizza collected!');
                     
                     // Mark car as having collected pizza
                     car.needsPizza = false;
@@ -2781,8 +2658,6 @@
 
         // Finish pizza collection and route car to exit
         finishPizzaCollection(car) {
-            console.log('Finishing pizza collection, routing to exit');
-            
             // Clear current collector
             this.currentPizzaCollector = null;
             
@@ -2797,8 +2672,6 @@
             const stepsToExitForward = this.calculateStepsToExit(car);
             const stepsToExitReverse = this.calculateStepsToReverseExit(car);
             
-            console.log(`Car at counter - exit options: Forward: ${stepsToExitForward}, Reverse: ${stepsToExitReverse}`);
-            
             // Determine exit direction
             let exitDirection = 'forward';
             let stepsToExit = stepsToExitForward;
@@ -2811,7 +2684,6 @@
             // If both are blocked, the car needs to make a loop
             // For now, let's just move it to the road directly
             if (stepsToExit === 0) {
-                console.log('Car at counter needs to make a loop to reach exit');
                 // Route car to make a complete turn and come back to counter area
                 // Then exit through top
                 this.routeCarFromCounterToRoad(car);
@@ -2823,8 +2695,6 @@
 
         // Route car from counter to road (for vehicles that can't directly exit)
         routeCarFromCounterToRoad(car) {
-            console.log('Routing car from counter to road via loop');
-            
             // The counter is at top-right
             // We need to route the car: counter -> top of parking area -> road
             // This is the same path that vehicles at the top row would take
@@ -2875,7 +2745,6 @@
                     }
                 },
                 onComplete: () => {
-                    console.log('Car reached road from counter');
                     // Now follow the road path
                     this.followRoadPath(car);
                 }
@@ -2884,8 +2753,6 @@
 
         // Route car from road to counter, collect pizza, then continue on road
         routeCarFromRoadToCounter(car, spacedPoints, currentIndex) {
-            console.log('Routing car from road to counter');
-            
             // Safety check: if spacedPoints is null or undefined, regenerate it
             if (!spacedPoints || !Array.isArray(spacedPoints) || spacedPoints.length === 0) {
                 console.warn('spacedPoints is invalid in routeCarFromRoadToCounter, regenerating');
@@ -2935,7 +2802,6 @@
                     }
                 },
                 onComplete: () => {
-                    console.log('Car arrived at counter from road');
                     // Stop briefly, then collect pizza
                     this.time.delayedCall(CONFIG.PIZZA_DELIVERY.COUNTER_STOP_DURATION, () => {
                         this.collectPizzaAtCounter(car, spacedPoints, currentIndex);
@@ -2946,8 +2812,6 @@
 
         // Collect pizza at counter and continue on road
         collectPizzaAtCounter(car, spacedPoints, resumeIndex) {
-            console.log('Collecting pizza at counter');
-            
             // Safety check: if spacedPoints is null or undefined, regenerate it
             if (!spacedPoints || !Array.isArray(spacedPoints) || spacedPoints.length === 0) {
                 console.warn('spacedPoints is invalid in collectPizzaAtCounter, regenerating');
@@ -2992,7 +2856,6 @@
                 ease: 'Power2',
                 onComplete: () => {
                     pizza.destroy();
-                    console.log('Pizza collected from counter!');
                     
                     car.needsPizza = false;
                     car.hasPizza = true;
@@ -3010,10 +2873,6 @@
 
         // Collect pizza while vehicle stays on road (new method)
         collectPizzaOnRoad(car, spacedPoints, currentIndex) {
-            console.log('🍕 collectPizzaOnRoad called - Collecting pizza while staying on road');
-            console.log('🍕 Car position:', car.sprite.x, car.sprite.y);
-            console.log('🍕 Available pizzas:', this.pizzas.length);
-            
             // Safety check: if spacedPoints is null or undefined, regenerate it
             if (!spacedPoints || !Array.isArray(spacedPoints) || spacedPoints.length === 0) {
                 console.warn('spacedPoints is invalid in collectPizzaOnRoad, regenerating');
@@ -3042,7 +2901,6 @@
             
             // Get first pizza
             const pizza = this.pizzas.shift();
-            console.log('🍕 Pizza collected from stack, remaining:', this.pizzas.length);
             
             // Vehicle stops briefly at current position
             this.time.delayedCall(CONFIG.PIZZA_DELIVERY.COUNTER_STOP_DURATION, () => {
@@ -3057,7 +2915,6 @@
                     ease: 'Power2',
                     onComplete: () => {
                         pizza.destroy();
-                        console.log('🍕✅ Pizza collected on road!');
                         
                         car.needsPizza = false;
                         car.hasPizza = true;
@@ -3076,8 +2933,6 @@
 
         // Continue vehicle journey on road after collecting pizza
         continueOnRoadAfterCounter(car, spacedPoints, startIndex) {
-            console.log('Continuing on road after counter');
-            
             if (!this.roadPath) {
                 this.removeCar(car);
                 return;
@@ -3250,8 +3105,6 @@
                 // Mark this slot as pulsing (for connection line flash)
                 this.chargingPulseTimestamps[i] = this.time.now;
                 
-                console.log(`Slot ${i} charging car: ${car.currentCharge}/${car.chargeRequired}`);
-                
                 // Check if car is fully charged
                 if (car.currentCharge >= car.chargeRequired) {
                     // Mark car as waiting for animation to complete
@@ -3327,8 +3180,6 @@
             
             car.rewardCoinsSpawned = true;
             car.coinReward = vehicleDef.reward; // Store reward amount
-            
-            console.log(`Spawned ${coinCount} reward coins at car position (hidden under car)`);
         }
 
         showChargingEffect(car) {
@@ -3511,7 +3362,6 @@
                 
                 // Try to move each waiting car
                 for (let car of waitingCars) {
-                    console.log('Retrying blocked car movement...');
                     car.waitingToExit = false; // Clear flag before retry
                     this.moveOutCar(car);
                 }
@@ -3519,8 +3369,6 @@
         }
 
         moveOutCar(car) {
-            console.log('Car fully charged! Moving out...');
-            
             car.isCharging = false;
             car.isMovingOut = true;
             car.waitingToExit = false;  // Clear waiting flag since car is now moving
@@ -3549,8 +3397,6 @@
             const stepsToExitForward = this.calculateStepsToExit(car);
             const stepsToExitReverse = this.calculateStepsToReverseExit(car);
             
-            console.log(`Car exit options - Forward: ${stepsToExitForward} cells, Reverse: ${stepsToExitReverse} cells`);
-            
             // Determine best exit direction (prefer forward, use reverse if forward blocked)
             let exitDirection = null;
             let stepsToExit = 0;
@@ -3559,15 +3405,12 @@
                 // Forward exit is clear - use it
                 exitDirection = 'forward';
                 stepsToExit = stepsToExitForward;
-                console.log('Using forward exit');
             } else if (stepsToExitReverse > 0) {
                 // Forward blocked but reverse is clear - use reverse
                 exitDirection = 'reverse';
                 stepsToExit = stepsToExitReverse;
-                console.log('Forward blocked! Using reverse exit');
             } else {
                 // Both directions blocked - mark car as waiting to exit and will retry later
-                console.log('Car is blocked in both directions! Will retry when obstacle clears...');
                 this.stopVehicleSound(car); // Stop sound since car can't move
                 car.isMovingOut = false;
                 car.isCharging = false;
@@ -3583,54 +3426,15 @@
             
             // If pizza delivery is enabled, mark car as needing pizza but let it exit immediately
             if (CONFIG.PIZZA_DELIVERY.ENABLED) {
-                console.log('🍕 Pizza delivery enabled - Car needs pizza - will collect on road');
-                console.log('🍕 Pizza counter position:', this.pizzaCounterPosition);
-                console.log('🍕 Number of pizzas available:', this.pizzas.length);
-                
                 car.needsPizza = true;
                 car.goingToCounter = true;
                 car.stoppedAtCounter = false;
                 
-                // Calculate if this vehicle will naturally pass the counter based on exit position
-                const counterX = this.pizzaCounterPosition.x;
-                const counterY = this.pizzaCounterPosition.y;
-                const carX = car.sprite.x;
-                const carY = car.sprite.y;
-                
-                const parkingCenterX = this.parkingLeft + (this.gridConfig.cols * this.gridConfig.cellSize) / 2;
-                const parkingCenterY = this.parkingTop + (this.gridConfig.rows * this.gridConfig.cellSize) / 2;
-                
-                // Calculate angles (0 = top, 90 = right, 180 = bottom, 270 = left, clockwise)
-                const angleToCounter = Math.atan2(
-                    counterX - parkingCenterX,
-                    -(counterY - parkingCenterY)
-                ) * 180 / Math.PI;
-                
-                const angleToVehicle = Math.atan2(
-                    carX - parkingCenterX,
-                    -(carY - parkingCenterY)
-                ) * 180 / Math.PI;
-                
-                // Normalize angles to 0-360
-                const normalizedCounterAngle = (angleToCounter + 360) % 360;
-                const normalizedVehicleAngle = (angleToVehicle + 360) % 360;
-                
-                console.log(`🍕 Vehicle angle: ${normalizedVehicleAngle.toFixed(1)}°, Counter angle: ${normalizedCounterAngle.toFixed(1)}°`);
-                
-                // If vehicle exits AFTER the counter in clockwise direction, it needs a full lap
-                // Check if vehicle would pass counter before exiting (clockwise motion)
-                let needsFullLap = false;
-                if (normalizedVehicleAngle > normalizedCounterAngle + CONFIG.PIZZA_DELIVERY.REQUIRE_FULL_LAP_AFTER_ANGLE) {
-                    needsFullLap = true;
-                    console.log('🍕 Vehicle will miss counter - needs full lap!');
-                } else {
-                    console.log('🍕 Vehicle will naturally pass counter');
-                }
-                
-                car.needsFullLap = needsFullLap;
+                // Simple path-index based check: does vehicle join road AFTER counter?
+                // We don't know startIndex yet (set in curveOntoRoad), so default to false
+                // It will be corrected in curveOntoRoad after startIndex is calculated
+                car.needsFullLap = false;  // Default - corrected in curveOntoRoad
                 car.hasCompletedLap = false;
-            } else {
-                console.log('⚠️ Pizza delivery is DISABLED in config');
             }
             
             // Move continuously to parking exit, then smoothly transition to road
@@ -3796,8 +3600,6 @@
                 },
                 onComplete: () => {
                     // Car has left parking area - no grid cells to update
-                    
-                    console.log(`Car reached parking exit via ${exitDirection}, transitioning to road...`);
                     
                     // Phase 2: Smoothly curve onto road (use appropriate curve function)
                     if (exitDirection === 'reverse') {
@@ -3968,6 +3770,12 @@ for (let t = 0; t <= 1; t += 0.002) {
                 if (d < minD) { minD = d; startIndex = i; }
             }
 
+            // Correct needsFullLap based on actual road entry position vs counter position
+            if (car.goingToCounter && this.counterPathIndex !== undefined) {
+                car.needsFullLap = startIndex > this.counterPathIndex;
+                console.log(`🍕 startIndex: ${startIndex}, counterIndex: ${this.counterPathIndex}, needsFullLap: ${car.needsFullLap}`);
+            }
+
             const remainingPoints = spacedPoints.length - startIndex;
             const remainingDistance = (remainingPoints / spacedPoints.length) * pathLength;
             const pathDuration = (remainingDistance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
@@ -4032,18 +3840,15 @@ for (let t = 0; t <= 1; t += 0.002) {
                             const pathProgress = idx / spacedPoints.length;
                             if (pathProgress > 0.9) { // 90% through the path
                                 car.hasCompletedLap = true;
-                                console.log('🍕 Vehicle completed full lap, ready to collect pizza on next pass');
                             }
                         } else {
                             // Either doesn't need full lap, or has already completed it
                             // Stop when within detection range of counter
                             if (distToCounter < CONFIG.PIZZA_DELIVERY.COUNTER_DETECTION_RANGE) {
-                                console.log('🍕 Car reached counter area on road');
                                 car.stoppedAtCounter = true;
                                 
                                 // Check if another vehicle is currently collecting
                                 if (this.currentPizzaCollector && this.currentPizzaCollector !== car) {
-                                    console.log('🍕 Another vehicle is collecting pizza, joining queue');
                                     // Add to queue and stop moving
                                     tween.stop();
                                     this.pizzaQueue.push(car);
@@ -4055,7 +3860,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                                     return;
                                 } else {
                                     // No one collecting, this car can collect now
-                                    console.log('🍕 No queue, collecting pizza immediately');
                                     this.currentPizzaCollector = car;
                                     
                                     // Kill this tween
@@ -4089,6 +3893,14 @@ for (let t = 0; t <= 1; t += 0.002) {
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
                     // (coins were already animated when Bezier curve finished)
+                    if (car.goingToCounter && !car.stoppedAtCounter) {
+                        // Vehicle finished road without collecting pizza - force collect and remove
+                        console.log('🍕 Vehicle exited without pizza - forcing collection');
+                        if (this.pizzas.length > 0) {
+                            const pizza = this.pizzas.shift();
+                            pizza.destroy();
+                        }
+                    }
                     this.removeCar(car);
                 }
             });
@@ -4253,6 +4065,12 @@ for (let t = 0; t <= 1; t += 0.002) {
                 if (d < minD) { minD = d; startIndex = i; }
             }
 
+            // Correct needsFullLap based on actual road entry position vs counter position
+            if (car.goingToCounter && this.counterPathIndex !== undefined) {
+                car.needsFullLap = startIndex > this.counterPathIndex;
+                console.log(`🍕 startIndex: ${startIndex}, counterIndex: ${this.counterPathIndex}, needsFullLap: ${car.needsFullLap}`);
+            }
+
             const remainingPoints = spacedPoints.length - startIndex;
             const remainingDistance = (remainingPoints / spacedPoints.length) * pathLength;
             const pathDuration = (remainingDistance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
@@ -4317,18 +4135,15 @@ for (let t = 0; t <= 1; t += 0.002) {
                             const pathProgress = idx / spacedPoints.length;
                             if (pathProgress > 0.9) { // 90% through the path
                                 car.hasCompletedLap = true;
-                                console.log('🍕 Vehicle completed full lap (reverse exit), ready to collect pizza on next pass');
                             }
                         } else {
                             // Either doesn't need full lap, or has already completed it
                             // Stop when within detection range of counter
                             if (distToCounter < CONFIG.PIZZA_DELIVERY.COUNTER_DETECTION_RANGE) {
-                                console.log('🍕 Car reached counter area on road (reverse exit)');
                                 car.stoppedAtCounter = true;
                                 
                                 // Check if another vehicle is currently collecting
                                 if (this.currentPizzaCollector && this.currentPizzaCollector !== car) {
-                                    console.log('🍕 Another vehicle is collecting pizza, joining queue');
                                     // Add to queue and stop moving
                                     tween.stop();
                                     this.pizzaQueue.push(car);
@@ -4340,7 +4155,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                                     return;
                                 } else {
                                     // No one collecting, this car can collect now
-                                    console.log('🍕 No queue, collecting pizza immediately');
                                     this.currentPizzaCollector = car;
                                     
                                     // Kill this tween
@@ -4374,6 +4188,14 @@ for (let t = 0; t <= 1; t += 0.002) {
                 onComplete: () => {
                     // Car has completed road traversal - remove it immediately
                     // (coins were already animated when Bezier curve finished)
+                    if (car.goingToCounter && !car.stoppedAtCounter) {
+                        // Vehicle finished road without collecting pizza - force collect and remove
+                        console.log('🍕 Vehicle exited without pizza - forcing collection');
+                        if (this.pizzas.length > 0) {
+                            const pizza = this.pizzas.shift();
+                            pizza.destroy();
+                        }
+                    }
                     this.removeCar(car);
                 }
             });
@@ -4531,7 +4353,6 @@ for (let t = 0; t <= 1; t += 0.002) {
             
             // PIZZA DELIVERY: If this car was the current collector, clear it and process queue
             if (CONFIG.PIZZA_DELIVERY.ENABLED && this.currentPizzaCollector === car) {
-                console.log('Removed car was current pizza collector - processing next in queue');
                 this.currentPizzaCollector = null;
                 this.processNextInPizzaQueue();
             }
@@ -4628,8 +4449,6 @@ for (let t = 0; t <= 1; t += 0.002) {
         }
 
         winLevel() {
-            console.log('Level complete!');
-            
             // Stop charging
             if (this.chargingInterval) {
                 this.chargingInterval.remove();
@@ -4685,8 +4504,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                 this.currentLevelIndex = 0; // Loop back to first level
             }
             
-            console.log('Loading level', this.currentLevelIndex + 1);
-            
             // Clear existing parking area elements
             this.clearParkingArea();
             
@@ -4724,7 +4541,6 @@ for (let t = 0; t <= 1; t += 0.002) {
         
         handleBatteryDrop(gameObject, slotIndex) {
             // Handle battery drop from MergeScene (to be implemented)
-            console.log('Battery dropped on slot', slotIndex);
         }
         
         // Test buttons removed - batteries added via drag and drop from grid
@@ -5239,7 +5055,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                             if (completedCount === coinCount) {
                                 this.coins += rewardAmount;
                                 this.updateCoinDisplay();
-                                console.log(`Awarded ${rewardAmount} coins (animation complete)`);
                             }
                         }
                     });
@@ -5291,7 +5106,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                             if (completedCount === coinCount) {
                                 this.coins += rewardAmount;
                                 this.updateCoinDisplay();
-                                console.log(`Awarded ${rewardAmount} coins (animation complete)`);
                             }
                         }
                     });
@@ -5538,7 +5352,6 @@ for (let t = 0; t <= 1; t += 0.002) {
             this.time.delayedCall(CONFIG.POINTER.TUTORIAL_START_DELAY, () => {
                 // Safety check: ensure objects still exist before animating
                 if (!this.startOverlay || !pointerContainer || !pointerContainer.active) {
-                    console.log('Tutorial overlay cancelled (objects destroyed)');
                     return;
                 }
                 
@@ -5551,7 +5364,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                     onComplete: () => {
                         // Safety check again before showing pointer
                         if (!pointerContainer || !pointerContainer.active) {
-                            console.log('Pointer animation cancelled (container destroyed)');
                             return;
                         }
                         
@@ -6513,9 +6325,6 @@ for (let t = 0; t <= 1; t += 0.002) {
         }
 
         levelUpAll() {
-            // Log ad loading to console
-            console.log('loading ad');
-            
             // Upgrade all batteries in grid
             this.batteries.forEach(battery => {
                 if (battery.inGrid) {
@@ -6627,9 +6436,7 @@ for (let t = 0; t <= 1; t += 0.002) {
 
     // Initialize battery image paths cache, then create game instance
     if (typeof window !== 'undefined' && !window.__LEVEL_VIEWER__) {
-        console.log('Checking battery image files...');
         initBatteryImagePaths().then(() => {
-            console.log('Battery images detected:', BATTERY_IMAGE_PATHS);
             const loadingIndicator = document.getElementById('loading-indicator');
             if (loadingIndicator) {
                 loadingIndicator.style.display = 'none';

@@ -117,6 +117,15 @@ var CONFIG = {
                 height: 30,           // Height of zone (pixels) - covers all 3 chargers
                 color: "#91ff00",      // Debug rectangle color (blue)
                 opacity: 0.7          // Debug rectangle opacity (0-1, 0.2 = 20%)
+            },
+              {
+                tag:"none",
+                centerX: 620,          // Center X position (pixels)
+                centerY: 210,          // Center Y position (pixels)
+                width: 10,            // Width of zone (pixels)
+                height: 10,           // Height of zone (pixels) - covers all 3 chargers
+                color: "#000000",      // Debug rectangle color (blue)
+                opacity: 1         // Debug rectangle opacity (0-1, 0.2 = 20%)
             }
         ]
     },
@@ -754,13 +763,9 @@ async function initBatteryImagePaths(maxLevel = 100) {
             BATTERY_IMAGE_PATHS[level] = path;
         } else {
             // First missing level found - stop checking
-            console.log('Battery image paths initialized:', (level - 1), 'levels available (Battery1 to Battery' + (level - 1) + ')');
             return;
         }
     }
-    
-    // If we checked all levels without finding a missing one
-    console.log('Battery image paths initialized:', maxLevel, 'levels available (Battery1 to Battery' + maxLevel + ')');
 }
 
 // Helper function to load all battery images (to be called in preload after cache is initialized)
