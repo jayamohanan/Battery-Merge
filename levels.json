@@ -25,7 +25,7 @@
       "type": "motorbike_1x2",
       "gridRow": 4,
       "gridCol": 2,
-      "orientation": "up",
+      "orientation": "down",
       "width": 1,
       "length": 2,
       "chargeRequired": 5
@@ -34,7 +34,7 @@
       "type": "motorbike_1x2",
       "gridRow": 3,
       "gridCol": 9,
-      "orientation": "down",
+      "orientation": "up",
       "width": 1,
       "length": 2,
       "chargeRequired": 5

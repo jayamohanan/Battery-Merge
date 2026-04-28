@@ -43,6 +43,7 @@
             this.pizzas = [];                   // Array of pizza sprites at counter
             this.pizzaQueue = [];               // Queue of vehicles waiting to collect pizza
             this.currentPizzaCollector = null;  // Vehicle currently collecting pizza
+            this.exitQueue = [];                // Queue of vehicles waiting to exit after charging (to prevent overlap at pizza collection)
             this.pizzaCounterPosition = {       // Counter position from config
                 x: CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_X,
                 y: CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_Y
@@ -1050,6 +1051,27 @@
             this.roadPath = this.createRoadPath(
                 centerX, centerY, halfW, halfH, offset
             );
+            
+            // Find closest waypoint on path to pizza counter (for waypoint-based stopping)
+            if (CONFIG.PIZZA_DELIVERY.ENABLED && this.pizzaCounterPosition) {
+                const pathPoints = this.roadPath.getSpacedPoints(500); // Same 500 points used for vehicle movement
+                let closestDist = Infinity;
+                let closestIndex = 0;
+                
+                for (let i = 0; i < pathPoints.length; i++) {
+                    const dist = Phaser.Math.Distance.Between(
+                        pathPoints[i].x, pathPoints[i].y,
+                        this.pizzaCounterPosition.x, this.pizzaCounterPosition.y
+                    );
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closestIndex = i;
+                    }
+                }
+                
+                this.pizzaCounterWaypointIndex = closestIndex;
+                console.log(`🍕 Pizza counter waypoint: index ${closestIndex}, distance: ${closestDist.toFixed(1)}px`);
+            }
             
             // Draw road using Rope with texture - simple approach
             // Sample points along the center path
@@ -2531,6 +2553,8 @@
             
             // Check if there are vehicles waiting
             if (this.pizzaQueue.length === 0) {
+                // No vehicles waiting at counter - process exit queue
+                this.processNextInExitQueue();
                 return;
             }
             
@@ -2554,28 +2578,57 @@
                 this.moveCarToCounter(car);
             }
         }
+        
+        // Process next vehicle waiting in exit queue (after charging completes)
+        processNextInExitQueue() {
+            // Check if there are vehicles waiting to exit
+            if (this.exitQueue.length === 0) {
+                return;
+            }
+            
+            // Check if pizza delivery is enabled and another vehicle is already en route
+            if (CONFIG.PIZZA_DELIVERY.ENABLED) {
+                const vehicleEnRouteToCounter = this.cars.some(c => 
+                    c.isMovingOut && 
+                    c.goingToCounter && 
+                    !c.stoppedAtCounter
+                );
+                
+                if (vehicleEnRouteToCounter || this.currentPizzaCollector) {
+                    // Someone is still en route or collecting - wait
+                    return;
+                }
+            }
+            
+            // Get the next vehicle from the exit queue
+            const car = this.exitQueue.shift();
+            console.log('🚗 Processing next vehicle from exit queue');
+            this.moveOutCar(car);
+        }
 
         // Move car from parking lot to counter position
         moveCarToCounter(car) {
             // First, we need to get the car out of the parking area
-            // Calculate which direction the car can exit
-            const stepsToExitForward = this.calculateStepsToExit(car);
-            const stepsToExitReverse = this.calculateStepsToReverseExit(car);
+            // Find best exit path - check ALL 4 directions regardless of vehicle orientation
+            const exitPath = this.findBestExitPath(car);
             
-            let exitDirection = 'forward';
-            let stepsToExit = stepsToExitForward;
-            
-            if (stepsToExitForward === 0 && stepsToExitReverse > 0) {
-                exitDirection = 'reverse';
-                stepsToExit = stepsToExitReverse;
-            }
-            
-            if (stepsToExit === 0) {
+            if (!exitPath) {
                 // Car is blocked - wait and retry
                 console.warn('Car blocked when trying to go to counter');
                 car.waitingToExit = true;
                 return;
             }
+            
+            // Determine exit direction type for animation purposes
+            const forwardDir = this.getForwardDirection(car.orientation);
+            const reverseDir = this.getReverseDirection(car.orientation);
+            const exitDirection = (exitPath.direction.row === forwardDir.row && exitPath.direction.col === forwardDir.col) 
+                ? 'forward' 
+                : (exitPath.direction.row === reverseDir.row && exitPath.direction.col === reverseDir.col)
+                ? 'reverse'
+                : 'forward'; // For perpendicular movement, treat as forward
+            
+            const stepsToExit = exitPath.steps;
             
             // Calculate if this vehicle will miss the counter based on exit position
             // Counter is at top-right area (< 45 degrees from top center)
@@ -2616,6 +2669,9 @@
             car.goingToCounter = true;
             car.needsFullLap = needsFullLap;
             car.hasCompletedLap = false; // Track if vehicle has done the full lap
+            
+            // Store the actual movement direction for use in moveCarToExitAndTransition
+            car.exitMovementDirection = exitPath.direction;
             
             // Use the normal exit transition, but we'll intercept it
             this.moveCarToExitAndTransition(car, stepsToExit, exitDirection);
@@ -2668,28 +2724,30 @@
             // Since the car is now at the counter (top-right), we need to calculate
             // the best path to the parking exit
             
-            // Calculate exit options from current position
-            const stepsToExitForward = this.calculateStepsToExit(car);
-            const stepsToExitReverse = this.calculateStepsToReverseExit(car);
+            // Find best exit path - check ALL 4 directions regardless of vehicle orientation
+            const exitPath = this.findBestExitPath(car);
             
-            // Determine exit direction
-            let exitDirection = 'forward';
-            let stepsToExit = stepsToExitForward;
-            
-            if (stepsToExitForward === 0 && stepsToExitReverse > 0) {
-                exitDirection = 'reverse';
-                stepsToExit = stepsToExitReverse;
-            }
-            
-            // If both are blocked, the car needs to make a loop
+            // If no path found, the car needs to make a loop
             // For now, let's just move it to the road directly
-            if (stepsToExit === 0) {
+            if (!exitPath) {
                 // Route car to make a complete turn and come back to counter area
                 // Then exit through top
                 this.routeCarFromCounterToRoad(car);
             } else {
                 // Normal exit
-                this.moveCarToExitAndTransition(car, stepsToExit, exitDirection);
+                // Determine exit direction type for animation purposes
+                const forwardDir = this.getForwardDirection(car.orientation);
+                const reverseDir = this.getReverseDirection(car.orientation);
+                const exitDirection = (exitPath.direction.row === forwardDir.row && exitPath.direction.col === forwardDir.col) 
+                    ? 'forward' 
+                    : (exitPath.direction.row === reverseDir.row && exitPath.direction.col === reverseDir.col)
+                    ? 'reverse'
+                    : 'forward'; // For perpendicular movement, treat as forward
+                
+                // Store the actual movement direction for use in moveCarToExitAndTransition
+                car.exitMovementDirection = exitPath.direction;
+                
+                this.moveCarToExitAndTransition(car, exitPath.steps, exitDirection);
             }
         }
 
@@ -2902,10 +2960,8 @@
             // Get first pizza
             const pizza = this.pizzas.shift();
             
-            // Vehicle stops briefly at current position
-            this.time.delayedCall(CONFIG.PIZZA_DELIVERY.COUNTER_STOP_DURATION, () => {
-                // Animate pizza from counter to car's position on road
-                this.tweens.add({
+            // Animate pizza immediately from counter to car's position on road (no delay)
+            this.tweens.add({
                     targets: pizza,
                     x: car.sprite.x,
                     y: car.sprite.y,
@@ -2928,7 +2984,6 @@
                         this.continueOnRoadAfterCounter(car, spacedPoints, currentIndex);
                     }
                 });
-            });
         }
 
         // Continue vehicle journey on road after collecting pizza
@@ -2945,32 +3000,20 @@
                 startIndex = 0;
             }
             
-            // Find the closest road point to continue from
-            let closestIndex = 0;
-            let minDist = Infinity;
+            // Use the provided startIndex directly - this is where the vehicle stopped for pizza
+            // Don't search for closest point as that can cause vehicles to jump backward
+            let continueIndex = startIndex;
             
-            for (let i = 0; i < spacedPoints.length; i++) {
-                const dist = Phaser.Math.Distance.Between(
-                    car.sprite.x, car.sprite.y,
-                    spacedPoints[i].x, spacedPoints[i].y
-                );
-                if (dist < minDist) {
-                    minDist = dist;
-                    closestIndex = i;
-                }
-            }
-            
-            // Make sure we're moving forward on the path
-            if (closestIndex < startIndex) {
-                closestIndex = startIndex;
-            }
+            // Ensure index is valid
+            if (continueIndex < 0) continueIndex = 0;
+            if (continueIndex >= spacedPoints.length) continueIndex = spacedPoints.length - 1;
             
             const pathLength = this.roadPath.getLength();
-            const remainingPoints = spacedPoints.length - closestIndex;
+            const remainingPoints = spacedPoints.length - continueIndex;
             const remainingDistance = (remainingPoints / spacedPoints.length) * pathLength;
             const duration = (remainingDistance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
             
-            const roadFollower = { index: closestIndex };
+            const roadFollower = { index: continueIndex };
             
             this.tweens.add({
                 targets: roadFollower,
@@ -3148,7 +3191,18 @@
                         
                         // NOW car can move out (connection is fully disconnected)
                         car.waitingForAnimationComplete = false;
-                        this.moveOutCar(car);
+                        
+                        // When pizza delivery is enabled, use exit queue to ensure vehicles don't overlap
+                        if (CONFIG.PIZZA_DELIVERY.ENABLED) {
+                            // Always add to queue to prevent race conditions
+                            this.exitQueue.push(car);
+                            console.log('🚗 Vehicle added to exit queue');
+                            // Try to process the queue immediately
+                            this.processNextInExitQueue();
+                        } else {
+                            // No pizza delivery - proceed directly
+                            this.moveOutCar(car);
+                        }
                         
                         // Schedule next car assignment after cooldown expires
                         // This ensures the slot connects to the next vehicle exactly after SLOT_SWITCH_DELAY
@@ -3224,6 +3278,91 @@
                 'right': { row: 0, col: -1 }
             };
             return directions[orientation] || { row: 0, col: 0 };
+        }
+
+        // Find best exit path by checking ALL 4 directions (up, down, left, right)
+        // This allows vehicles of any orientation to exit through the top
+        findBestExitPath(car) {
+            // All possible movement directions
+            const directions = [
+                { name: 'up', delta: { row: -1, col: 0 } },
+                { name: 'down', delta: { row: 1, col: 0 } },
+                { name: 'left', delta: { row: 0, col: -1 } },
+                { name: 'right', delta: { row: 0, col: 1 } }
+            ];
+            
+            let bestPath = null;
+            let shortestSteps = Infinity;
+            
+            // Try each direction
+            for (let dir of directions) {
+                const steps = this.calculateStepsToExitInDirection(car, dir.delta);
+                if (steps > 0 && steps < shortestSteps) {
+                    shortestSteps = steps;
+                    bestPath = {
+                        direction: dir.delta,
+                        steps: steps,
+                        name: dir.name
+                    };
+                }
+            }
+            
+            return bestPath;
+        }
+        
+        // Calculate steps needed to reach TOP boundary in a specific direction
+        calculateStepsToExitInDirection(car, direction) {
+            let steps = 0;
+            
+            // Keep checking until we reach TOP boundary or obstacle
+            while (steps < 20) {
+                steps++;
+                const newAnchorRow = car.gridRow + direction.row * steps;
+                const newAnchorCol = car.gridCol + direction.col * steps;
+                
+                // Get cells at this position
+                const newCells = this.getOccupiedCellsForGame(
+                    newAnchorRow, 
+                    newAnchorCol, 
+                    car.orientation, 
+                    car.width, 
+                    car.length
+                );
+                
+                // Check if any cell reaches TOP boundary (row < 0) - THE ONLY VALID EXIT
+                let hasTopExitCell = false;
+                for (let cell of newCells) {
+                    if (cell.row < 0) {
+                        hasTopExitCell = true;
+                        break;
+                    }
+                }
+                
+                if (hasTopExitCell) {
+                    // Found top exit - return steps to just before exit
+                    return Math.max(1, steps - 1);
+                }
+                
+                // Check if path is blocked by another car or other boundaries
+                for (let cell of newCells) {
+                    // Hit non-top boundary - blocked
+                    if (cell.row >= this.gridConfig.rows || cell.col < 0 || cell.col >= this.gridConfig.cols) {
+                        return 0;
+                    }
+                    
+                    // Still in grid - check for car blocking
+                    if (cell.row >= 0 && cell.row < this.gridConfig.rows &&
+                        cell.col >= 0 && cell.col < this.gridConfig.cols) {
+                        const occupant = this.gridOccupancy[cell.row][cell.col];
+                        if (occupant !== null && occupant !== car) {
+                            // Blocked by another car
+                            return 0;
+                        }
+                    }
+                }
+            }
+            
+            return 0; // Can't reach top in 20 steps
         }
 
         // Check if car can move forward by steps in grid
@@ -3373,6 +3512,16 @@
             car.isMovingOut = true;
             car.waitingToExit = false;  // Clear waiting flag since car is now moving
             
+            // If pizza delivery is enabled, mark car as needing pizza IMMEDIATELY
+            // This ensures the exit queue system knows this vehicle is en route
+            if (CONFIG.PIZZA_DELIVERY.ENABLED) {
+                car.needsPizza = true;
+                car.goingToCounter = true;
+                car.stoppedAtCounter = false;
+                car.needsFullLap = false;
+                car.hasCompletedLap = false;
+            }
+            
             // Start vehicle sound
             this.startVehicleSound(car);
             
@@ -3393,52 +3542,110 @@
             // Note: Battery/meter/connection already hidden when charging completed
             // No need to hide again here
             
-            // Calculate exit options in both directions BEFORE making any move
-            const stepsToExitForward = this.calculateStepsToExit(car);
-            const stepsToExitReverse = this.calculateStepsToReverseExit(car);
-            
-            // Determine best exit direction (prefer forward, use reverse if forward blocked)
-            let exitDirection = null;
-            let stepsToExit = 0;
-            
-            if (stepsToExitForward > 0) {
-                // Forward exit is clear - use it
-                exitDirection = 'forward';
-                stepsToExit = stepsToExitForward;
-            } else if (stepsToExitReverse > 0) {
-                // Forward blocked but reverse is clear - use reverse
-                exitDirection = 'reverse';
-                stepsToExit = stepsToExitReverse;
+            // If vehicle is NOT facing up, rotate it in place to face up
+            // Exit is always through the top, so all vehicles must face up to exit
+            if (car.orientation !== 'up') {
+                this.rotateCarInPlace(car, 'up', () => {
+                    // After rotating, move to exit
+                    this.continueToExit(car);
+                });
             } else {
-                // Both directions blocked - mark car as waiting to exit and will retry later
-                this.stopVehicleSound(car); // Stop sound since car can't move
+                // Already facing up or down, proceed directly to exit
+                this.continueToExit(car);
+            }
+        }
+        
+        // Continue to exit after any necessary rotation
+        continueToExit(car) {
+            // Car is now always facing up (rotated if needed)
+            // Calculate steps to exit by moving forward
+            const stepsToExit = this.calculateStepsToExit(car);
+            
+            if (stepsToExit === 0) {
+                // No valid path to top - car is blocked
+                this.stopVehicleSound(car);
                 car.isMovingOut = false;
                 car.isCharging = false;
-                car.waitingToExit = true;  // Mark as waiting - will retry periodically
-                // Restore grid cells since car couldn't leave yet
+                car.waitingToExit = true;
                 this.updateCarGridPosition(car);
-                // Update movable cars to show proper charge bar visibility
                 this.updateMovableCars();
-                // Show brief collision feedback without full animation
                 this.showBlockedFeedback(car);
                 return;
             }
             
-            // If pizza delivery is enabled, mark car as needing pizza but let it exit immediately
-            if (CONFIG.PIZZA_DELIVERY.ENABLED) {
-                car.needsPizza = true;
-                car.goingToCounter = true;
-                car.stoppedAtCounter = false;
-                
-                // Simple path-index based check: does vehicle join road AFTER counter?
-                // We don't know startIndex yet (set in curveOntoRoad), so default to false
-                // It will be corrected in curveOntoRoad after startIndex is calculated
-                car.needsFullLap = false;  // Default - corrected in curveOntoRoad
-                car.hasCompletedLap = false;
-            }
+            // Always moving forward since car is facing up
+            const exitDirection = 'forward';
             
-            // Move continuously to parking exit, then smoothly transition to road
+            // Pizza delivery flags already set in moveOutCar() when it was called
+            
+            // Move to parking exit, then smoothly transition to road
             this.moveCarToExitAndTransition(car, stepsToExit, exitDirection);
+        }
+        
+        // Rotate car in place to face a specific direction (simple rotation animation)
+        rotateCarInPlace(car, targetOrientation, callback) {
+            // Calculate target rotation angle
+            const orientationAngles = {
+                'up': 0,
+                'right': Math.PI / 2,
+                'down': Math.PI,
+                'left': -Math.PI / 2
+            };
+            
+            const targetAngle = orientationAngles[targetOrientation];
+            const currentAngle = car.sprite.rotation;
+            
+            // Calculate shortest rotation direction
+            let angleDiff = targetAngle - currentAngle;
+            
+            // Normalize to -PI to PI range
+            while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+            while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+            
+            const finalAngle = currentAngle + angleDiff;
+            
+            // Animate rotation
+            this.tweens.add({
+                targets: [car.sprite, car.chargeBar, car.chargeBarBg, car.batteryContainer, car.shadow].filter(Boolean),
+                rotation: finalAngle,
+                duration: 300,
+                ease: 'Cubic.easeInOut',
+                onComplete: () => {
+                    // Update car orientation
+                    car.orientation = targetOrientation;
+                    car.sprite.rotation = targetAngle;
+                    
+                    // Update grid position based on new orientation
+                    this.updateCarGridPosition(car);
+                    
+                    if (callback) callback();
+                }
+            });
+        }
+        
+        // ========== REMOVED: ARC-BASED TURNING SYSTEM ==========
+        // Complex arc pathfinding and turning logic removed.
+        // Now using simple in-place rotation (rotateCarInPlace) above.
+        
+        // Update car's grid position from current pixel coordinates
+        updateCarGridPositionFromPixels(car) {
+            const cellSize = this.gridConfig.cellSize;
+            
+            // Calculate grid position from pixel position
+            const gridCol = Math.round((car.sprite.x - this.parkingLeft) / cellSize);
+            const gridRow = Math.round((car.sprite.y - this.parkingTop) / cellSize);
+            
+            car.gridRow = gridRow;
+            car.gridCol = gridCol;
+            
+            // Recalculate occupied cells with new orientation
+            car.occupiedCells = this.getOccupiedCellsForGame(
+                car.gridRow,
+                car.gridCol,
+                car.orientation,
+                car.width,
+                car.length
+            );
         }
 
         // Calculate steps needed to reach parking boundary in forward direction
@@ -3446,7 +3653,7 @@
             const direction = this.getForwardDirection(car.orientation);
             let steps = 0;
             
-            // Keep checking forward until we hit boundary or obstacle
+            // Keep checking forward until we reach TOP boundary or obstacle
             while (steps < 20) {
                 steps++;
                 const newAnchorRow = car.gridRow + direction.row * steps;
@@ -3461,23 +3668,28 @@
                     car.length
                 );
                 
-                // Check if any cell is outside grid (exit point found)
-                let hasExitCell = false;
+                // Check if any cell reaches TOP boundary (row < 0) - THE ONLY VALID EXIT
+                let hasTopExitCell = false;
                 for (let cell of newCells) {
-                    if (cell.row < 0 || cell.row >= this.gridConfig.rows ||
-                        cell.col < 0 || cell.col >= this.gridConfig.cols) {
-                        hasExitCell = true;
+                    if (cell.row < 0) {
+                        hasTopExitCell = true;
                         break;
                     }
                 }
                 
-                if (hasExitCell) {
-                    // Found exit point - return steps to just before exit
+                if (hasTopExitCell) {
+                    // Found top exit - return steps to just before exit
                     return Math.max(1, steps - 1);
                 }
                 
-                // Check if path is blocked by another car
+                // Check if path is blocked by another car or other boundaries
                 for (let cell of newCells) {
+                    // Hit non-top boundary - blocked
+                    if (cell.row >= this.gridConfig.rows || cell.col < 0 || cell.col >= this.gridConfig.cols) {
+                        return 0;
+                    }
+                    
+                    // Still in grid - check for car blocking
                     if (cell.row >= 0 && cell.row < this.gridConfig.rows &&
                         cell.col >= 0 && cell.col < this.gridConfig.cols) {
                         const occupant = this.gridOccupancy[cell.row][cell.col];
@@ -3489,15 +3701,15 @@
                 }
             }
             
-            return 0; // Shouldn't reach here
+            return 0; // Can't reach top in 20 steps
         }
 
-        // Calculate steps needed to reach parking boundary in reverse direction
+        // Calculate steps needed to reach TOP boundary in reverse direction
         calculateStepsToReverseExit(car) {
             const direction = this.getReverseDirection(car.orientation);
             let steps = 0;
             
-            // Keep checking reverse until we hit boundary or obstacle
+            // Keep checking reverse until we reach TOP boundary or obstacle
             while (steps < 20) {
                 steps++;
                 const newAnchorRow = car.gridRow + direction.row * steps;
@@ -3512,23 +3724,28 @@
                     car.length
                 );
                 
-                // Check if any cell is outside grid (exit point found)
-                let hasExitCell = false;
+                // Check if any cell reaches TOP boundary (row < 0) - THE ONLY VALID EXIT
+                let hasTopExitCell = false;
                 for (let cell of newCells) {
-                    if (cell.row < 0 || cell.row >= this.gridConfig.rows ||
-                        cell.col < 0 || cell.col >= this.gridConfig.cols) {
-                        hasExitCell = true;
+                    if (cell.row < 0) {
+                        hasTopExitCell = true;
                         break;
                     }
                 }
                 
-                if (hasExitCell) {
-                    // Found exit point - return steps to just before exit
+                if (hasTopExitCell) {
+                    // Found top exit - return steps to just before exit
                     return Math.max(1, steps - 1);
                 }
                 
-                // Check if path is blocked by another car
+                // Check if path is blocked by another car or other boundaries
                 for (let cell of newCells) {
+                    // Hit non-top boundary - blocked
+                    if (cell.row >= this.gridConfig.rows || cell.col < 0 || cell.col >= this.gridConfig.cols) {
+                        return 0;
+                    }
+                    
+                    // Still in grid - check for car blocking
                     if (cell.row >= 0 && cell.row < this.gridConfig.rows &&
                         cell.col >= 0 && cell.col < this.gridConfig.cols) {
                         const occupant = this.gridOccupancy[cell.row][cell.col];
@@ -3540,15 +3757,22 @@
                 }
             }
             
-            return 0; // Shouldn't reach here
+            return 0; // Can't reach top in 20 steps
         }
 
         // Move car to parking exit, then smoothly curve onto road
         moveCarToExitAndTransition(car, steps, exitDirection = 'forward') {
-            // Get the appropriate direction based on exit type
-            const direction = exitDirection === 'reverse' 
-                ? this.getReverseDirection(car.orientation)
-                : this.getForwardDirection(car.orientation);
+            // Get the appropriate direction
+            // If car has an explicit movement direction set (from findBestExitPath), use that
+            // Otherwise fall back to forward/reverse based on orientation
+            let direction;
+            if (car.exitMovementDirection) {
+                direction = car.exitMovementDirection;
+            } else {
+                direction = exitDirection === 'reverse' 
+                    ? this.getReverseDirection(car.orientation)
+                    : this.getForwardDirection(car.orientation);
+            }
             
             const cellSize = this.gridConfig.cellSize;
             
@@ -3600,6 +3824,9 @@
                 },
                 onComplete: () => {
                     // Car has left parking area - no grid cells to update
+                    
+                    // Clean up temporary movement direction
+                    delete car.exitMovementDirection;
                     
                     // Phase 2: Smoothly curve onto road (use appropriate curve function)
                     if (exitDirection === 'reverse') {
@@ -3794,6 +4021,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                 spacedPoints: spacedPoints,
                 currentIndex: 0  // Will be updated in onUpdate
             };
+            
+            // Set flag to indicate vehicle is now on road path (for pizza waypoint check)
+            car.onRoadPath = true;
 
             // Create and store tween reference for stopping/resuming
             car.roadTween = this.tweens.add({
@@ -3822,18 +4052,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                     }
                     
                     // Check if car needs to stop at counter (for pizza collection)
-                    if (car.goingToCounter && !car.stoppedAtCounter) {
-                        const counterX = this.pizzaCounterPosition.x;
-                        const counterY = this.pizzaCounterPosition.y;
-                        const distToCounter = Phaser.Math.Distance.Between(
-                            car.sprite.x, car.sprite.y, counterX, counterY
-                        );
-                        
-                        // Debug: Log distance every 10% of progress (to avoid spam)
-                        if (Math.random() < 0.1) {
-                            console.log(`🍕 Distance to counter: ${distToCounter.toFixed(1)}px (detection range: ${CONFIG.PIZZA_DELIVERY.COUNTER_DETECTION_RANGE}px)`);
-                        }
-                        
+                    // ONLY check when vehicle is on road path (not during parking, charging, or Bezier curve)
+                    if (car.onRoadPath && car.goingToCounter && !car.stoppedAtCounter) {
                         // Check if vehicle needs a full lap first
                         if (car.needsFullLap && !car.hasCompletedLap) {
                             // Check if vehicle has completed a full lap (near starting point)
@@ -3843,8 +4063,11 @@ for (let t = 0; t <= 1; t += 0.002) {
                             }
                         } else {
                             // Either doesn't need full lap, or has already completed it
-                            // Stop when within detection range of counter
-                            if (distToCounter < CONFIG.PIZZA_DELIVERY.COUNTER_DETECTION_RANGE) {
+                            // Stop when vehicle reaches the pizza counter waypoint
+                            const waypointTolerance = 5; // Allow ±5 indices tolerance for waypoint detection
+                            const atWaypoint = Math.abs(idx - this.pizzaCounterWaypointIndex) <= waypointTolerance;
+                            
+                            if (atWaypoint) {
                                 car.stoppedAtCounter = true;
                                 
                                 // Check if another vehicle is currently collecting
@@ -3891,6 +4114,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                     }
                 },
                 onComplete: () => {
+                    // Clear road path flag - vehicle finished road traversal
+                    car.onRoadPath = false;
+                    
                     // Car has completed road traversal - remove it immediately
                     // (coins were already animated when Bezier curve finished)
                     if (car.goingToCounter && !car.stoppedAtCounter) {
@@ -4089,6 +4315,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                 spacedPoints: spacedPoints,
                 currentIndex: 0  // Will be updated in onUpdate
             };
+            
+            // Set flag to indicate vehicle is now on road path (for pizza waypoint check)
+            car.onRoadPath = true;
 
             // Create and store tween reference for stopping/resuming
             car.roadTween = this.tweens.add({
@@ -4117,18 +4346,8 @@ for (let t = 0; t <= 1; t += 0.002) {
                     }
                     
                     // Check if car needs to stop at counter (for pizza collection)
-                    if (car.goingToCounter && !car.stoppedAtCounter) {
-                        const counterX = this.pizzaCounterPosition.x;
-                        const counterY = this.pizzaCounterPosition.y;
-                        const distToCounter = Phaser.Math.Distance.Between(
-                            car.sprite.x, car.sprite.y, counterX, counterY
-                        );
-                        
-                        // Debug: Log distance every 10% of progress (to avoid spam)
-                        if (Math.random() < 0.1) {
-                            console.log(`🍕 [REVERSE] Distance to counter: ${distToCounter.toFixed(1)}px (detection range: ${CONFIG.PIZZA_DELIVERY.COUNTER_DETECTION_RANGE}px)`);
-                        }
-                        
+                    // ONLY check when vehicle is on road path (not during parking, charging, or Bezier curve)
+                    if (car.onRoadPath && car.goingToCounter && !car.stoppedAtCounter) {
                         // Check if vehicle needs a full lap first
                         if (car.needsFullLap && !car.hasCompletedLap) {
                             // Check if vehicle has completed a full lap (near starting point)
@@ -4138,8 +4357,11 @@ for (let t = 0; t <= 1; t += 0.002) {
                             }
                         } else {
                             // Either doesn't need full lap, or has already completed it
-                            // Stop when within detection range of counter
-                            if (distToCounter < CONFIG.PIZZA_DELIVERY.COUNTER_DETECTION_RANGE) {
+                            // Stop when vehicle reaches the pizza counter waypoint
+                            const waypointTolerance = 5; // Allow ±5 indices tolerance for waypoint detection
+                            const atWaypoint = Math.abs(idx - this.pizzaCounterWaypointIndex) <= waypointTolerance;
+                            
+                            if (atWaypoint) {
                                 car.stoppedAtCounter = true;
                                 
                                 // Check if another vehicle is currently collecting
@@ -4186,6 +4408,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                     }
                 },
                 onComplete: () => {
+                    // Clear road path flag - vehicle finished road traversal
+                    car.onRoadPath = false;
+                    
                     // Car has completed road traversal - remove it immediately
                     // (coins were already animated when Bezier curve finished)
                     if (car.goingToCounter && !car.stoppedAtCounter) {
@@ -4527,6 +4752,7 @@ for (let t = 0; t <= 1; t += 0.002) {
             this.pizzas.forEach(pizza => pizza.destroy());
             this.pizzas = [];
             this.pizzaQueue = [];
+            this.exitQueue = [];
             this.currentPizzaCollector = null;
             
             // Destroy parking lot graphics
@@ -4777,8 +5003,8 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Update gate state based on vehicle proximity
             this.updateGate();
             
-            // Update pizza counter - check for vehicles near counter (like gate checking)
-            this.updatePizzaCounter();
+            // Update pizza counter - DISABLED: now using waypoint-based detection in road traversal loop
+            // this.updatePizzaCounter();
             
             // Draw charging connections (DISABLED - using color coding instead)
             // this.drawChargingConnections();

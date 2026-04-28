@@ -595,7 +595,7 @@ var CONFIG = {
         BATTERY_FILL_COLOR: "#00E676",   // Bright green color for filled area (used when gradient is disabled)
         BATTERY_USE_GRADIENT: true,     // Use gradient color from red (low) to green (high)
         BATTERY_GRADIENT_LOW_COLOR: "#FF5252",  // Bright red for low charge (0-33%)
-        BATTERY_GRADIENT_MID_COLOR: "#FFD600",  // Bright yellow for medium charge (33-66%)
+        BATTERY_GRADIENT_MID_COLOR: "#7FAF9A",  // Bright yellow for medium charge (33-66%)
         BATTERY_GRADIENT_HIGH_COLOR: "#00E676", // Bright green for high charge (66-100%)
         BATTERY_CAP_WIDTH: 6,           // Width of battery terminal/cap on right side
         BATTERY_CAP_HEIGHT: 16,         // Height of battery terminal/cap
