@@ -117,7 +117,8 @@
             this.load.image('grass4', 'graphics/grass/grass4.png');
             
             // Load special zone images
-            this.load.image('pizza_shop', 'graphics/pizza_shop.png');
+            this.load.image('pizza_shop', 'graphics/library.png');
+            // this.load.image('pizza_shop', 'graphics/pizza_shop.png');
             
             // Load grid panel background
             this.load.image('grid_panel', 'graphics/grid_panel.png');
@@ -2524,21 +2525,63 @@
             const numVehicles = this.cars.length;
             if (numVehicles === 0) return;
             
-            const pizzaSize = CONFIG.PIZZA_DELIVERY.PIZZA_SIZE;
-            const spacing = CONFIG.PIZZA_DELIVERY.PIZZA_SPACING;
-            const counterX = this.pizzaCounterPosition.x;
-            const counterY = this.pizzaCounterPosition.y;
+            const pizzaBaseSize = CONFIG.PIZZA_DELIVERY.PIZZA_SIZE;
+            const pizzaScale = CONFIG.PIZZA_DELIVERY.PIZZA_SCALE || 1.0;
+            const pizzaSize = pizzaBaseSize * pizzaScale; // Actual display size
             
-            // Calculate total width of pizza arrangement
-            const totalWidth = numVehicles * pizzaSize + (numVehicles - 1) * spacing;
-            const startX = counterX - totalWidth / 2 + pizzaSize / 2;
+            // Get shop_counter zone from GRASS.SPECIAL_ZONES
+            const shopCounterZone = CONFIG.GRASS.SPECIAL_ZONES.find(zone => zone.tag === 'shop_counter');
             
-            // Create pizzas in a horizontal row
+            // Grid layout configuration
+            const columns = CONFIG.PIZZA_DELIVERY.GRID_COLUMNS || 3;
+            const rowGapPercent = CONFIG.PIZZA_DELIVERY.ROW_GAP_PERCENTAGE || 20;
+            const columnGapPercent = CONFIG.PIZZA_DELIVERY.COLUMN_GAP_PERCENTAGE || 20;
+            
+            // Calculate spacing based on percentages
+            const horizontalSpacing = pizzaSize * (rowGapPercent / 100); // Gap between items in same row
+            const verticalSpacing = pizzaSize * (columnGapPercent / 100); // Gap between rows
+            
+            // Calculate grid dimensions
+            const numRows = Math.ceil(numVehicles / columns);
+            
+            // Calculate bottom-left corner of shop_counter zone
+            const zoneBottomLeftX = shopCounterZone.centerX - shopCounterZone.width / 2;
+            const zoneBottomLeftY = shopCounterZone.centerY + shopCounterZone.height / 2;
+            
+            // Position first pizza (bottom row, left column) so its bottom-left corner
+            // aligns with bottom-left corner of shop_counter zone
+            // Pizza center = bottom-left corner + (pizzaSize/2, -pizzaSize/2)
+            // Note: Y is negative because we go UP from bottom edge
+            const firstPizzaCenterX = zoneBottomLeftX + pizzaSize / 2;
+            const firstPizzaCenterY = zoneBottomLeftY - pizzaSize / 2;
+            
+            // Starting position for bottom-left pizza in grid
+            const startX = firstPizzaCenterX;
+            const startY = firstPizzaCenterY;
+            
+            // Create pizzas in 3-column overlapping grid
+            // Grid builds upward and rightward from the first pizza position
             for (let i = 0; i < numVehicles; i++) {
-                const x = startX + i * (pizzaSize + spacing);
-                const pizza = this.add.image(x, counterY, 'pizza')
+                const col = i % columns; // Column index (0 to columns-1)
+                const row = Math.floor(i / columns); // Row index
+                
+                // Position calculation:
+                // - Columns (left to right): items stack with overlap, leftmost fully visible
+                // - Rows (bottom to top): each row positioned with vertical spacing upward
+                const x = startX + col * horizontalSpacing;
+                const y = startY - row * verticalSpacing; // Negative because we stack upward
+                
+                // Depth calculation:
+                // - Within a row: leftmost has highest depth (fully visible)
+                // - Between rows: lower rows (higher indices) have higher depth (in front)
+                // Formula: depth = (numRows - row) * columns + (columns - col)
+                // This ensures: row 0 items are behind row 1, and within each row, left items are in front
+                // Keep depth below 99 so pizzas are behind tutorial mask (mask is at depth 99)
+                const depth = (numRows - row) * columns + (columns - col) + 10;
+                
+                const pizza = this.add.image(x, y, 'pizza')
                     .setDisplaySize(pizzaSize, pizzaSize)
-                    .setDepth(100); // High depth to be visible above other elements
+                    .setDepth(depth);
                 
                 this.pizzas.push(pizza);
             }
@@ -2976,6 +3019,9 @@
                         car.hasPizza = true;
                         car.goingToCounter = false;
                         
+                        // Spawn coins at pizza counter and animate to coin display
+                        this.spawnCoinsAtPizzaCounter(car);
+                        
                         // Clear current collector and process next vehicle in queue
                         this.currentPizzaCollector = null;
                         this.processNextInPizzaQueue();
@@ -3218,22 +3264,71 @@
         spawnRewardCoins(car) {
             // Get vehicle definition for reward
             const vehicleDef = CONFIG.VEHICLES.find(v => v.key === car.type);
-            if (!vehicleDef || !vehicleDef.reward) return;
+            if (!vehicleDef || !vehicleDef.reward) {
+                console.warn('❌ No vehicle definition or reward found for:', car.type);
+                return;
+            }
             
-            const coinCount = 10; // User requested 10 coins
+            const coinCount = CONFIG.COIN_REWARD_ANIMATION.COIN_COUNT;
             const stackOffset = CONFIG.COIN_REWARD_ANIMATION.INITIAL_STACK_OFFSET; // 0 for single coin (top-down view)
             
-            // Create coins at car position, below car sprite (so car covers them)
+            console.log('🪙 Creating', coinCount, 'reward coins for vehicle', car.type, 'worth', vehicleDef.reward);
+            
+            // Create coins at car position, hidden (will be moved to counter when pizza is collected)
             car.rewardCoins = [];
             for (let i = 0; i < coinCount; i++) {
                 const coin = this.add.image(car.sprite.x, car.sprite.y - (i * stackOffset), 'coin');
                 coin.setDisplaySize(CONFIG.COIN_REWARD_ANIMATION.REWARD_COIN_SIZE, CONFIG.COIN_REWARD_ANIMATION.REWARD_COIN_SIZE);
                 coin.setDepth(car.sprite.depth - 1); // Below car so it's hidden
+                coin.setVisible(false); // Hide coins until vehicle collects pizza
                 car.rewardCoins.push(coin);
             }
             
             car.rewardCoinsSpawned = true;
             car.coinReward = vehicleDef.reward; // Store reward amount
+            car.coinsSpawnedAtGate = false; // Track if coins have been spawned at gate
+            
+            console.log('✅ Reward coins created:', car.rewardCoins.length);
+        }
+        
+        // Spawn coins at pizza counter when pizza is collected
+        spawnCoinsAtPizzaCounter(car) {
+            console.log('🪙 spawnCoinsAtPizzaCounter called', {
+                hasRewardCoins: !!car.rewardCoins,
+                coinCount: car.rewardCoins?.length || 0,
+                coinReward: car.coinReward
+            });
+            
+            if (!car.rewardCoins || car.rewardCoins.length === 0) {
+                console.warn('❌ No reward coins to spawn!', car.rewardCoins);
+                return;
+            }
+            
+            const stackOffset = CONFIG.COIN_REWARD_ANIMATION.INITIAL_STACK_OFFSET;
+            const spawnDelay = CONFIG.COIN_REWARD_ANIMATION.COIN_SPAWN_DELAY || 100;
+            
+            // Calculate vehicle bottom position (below vehicle, above road)
+            const vehicleBottomY = car.sprite.y + (car.sprite.displayHeight / 2) + 10; // 10px below vehicle
+            
+            console.log('🪙 Spawning coins at vehicle position:', { x: car.sprite.x, y: vehicleBottomY });
+            
+            // Move coins to vehicle bottom position and make them visible
+            for (let i = 0; i < car.rewardCoins.length; i++) {
+                const coin = car.rewardCoins[i];
+                coin.x = car.sprite.x;
+                coin.y = vehicleBottomY - (i * stackOffset);
+                coin.setVisible(true);
+                coin.setDepth(100 + i); // High depth to be visible above everything
+            }
+            
+            console.log('🪙 Waiting', spawnDelay, 'ms before starting animation');
+            
+            // Wait for spawn delay, then animate coins to coin counter
+            this.time.delayedCall(spawnDelay, () => {
+                console.log('🪙 Starting coin animation to coin counter');
+                this.animateExistingCoins(car.rewardCoins, car.coinReward);
+                car.rewardCoins = []; // Clear reference
+            });
         }
 
         showChargingEffect(car) {
@@ -4007,11 +4102,8 @@ for (let t = 0; t <= 1; t += 0.002) {
             const remainingDistance = (remainingPoints / spacedPoints.length) * pathLength;
             const pathDuration = (remainingDistance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
 
-            // Animate coins when Bezier curve finishes and road traversal begins
-            if (car.rewardCoins && car.rewardCoins.length > 0) {
-                this.animateExistingCoins(car.rewardCoins, car.coinReward);
-                car.rewardCoins = []; // Clear reference
-            }
+            // Coins will be animated when vehicle collects pizza at counter
+            // Do NOT animate coins here
 
             const roadFollower = { index: startIndex };
             const roadPhaseWeight = 0.60; // Road is 60% of total journey (40-100%)
@@ -4301,11 +4393,8 @@ for (let t = 0; t <= 1; t += 0.002) {
             const remainingDistance = (remainingPoints / spacedPoints.length) * pathLength;
             const pathDuration = (remainingDistance / CONFIG.PARKING_CAR.MAX_SPEED) * 1000;
 
-            // Animate coins when Bezier curve finishes and road traversal begins
-            if (car.rewardCoins && car.rewardCoins.length > 0) {
-                this.animateExistingCoins(car.rewardCoins, car.coinReward);
-                car.rewardCoins = []; // Clear reference
-            }
+            // Coins will be animated when vehicle crosses the gate (payment on exit)
+            // No longer animate coins here
 
             const roadFollower = { index: startIndex };
             const roadPhaseWeight = 0.60; // Road is 60% of total journey (40-100%)

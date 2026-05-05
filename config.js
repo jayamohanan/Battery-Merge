@@ -39,7 +39,8 @@ var CONFIG = {
         FORBIDDEN_ZONES: [
             // Zone 1 - Left side (3 charging stations in vertical alignment)
             // Default calculated for: chargerX=110, parkingCenterY=250, chargerSize=220, spacing=210
-            {
+            {   
+                tag: "chargers",
                 centerX: 110,          // Center X position (pixels)
                 centerY: 320,          // Center Y position (pixels)
                 width: 240,            // Width of zone (pixels)
@@ -50,6 +51,7 @@ var CONFIG = {
             // Zone 2 - Right side of top half (road and parking area)
             // Default calculated for: parking center with constraint square
             {
+                tag: "parking_area",
                 centerX: 440,          // Center X position (pixels)
                 centerY: 350,          // Center Y position (pixels)
                 width: 480,            // Width of zone (pixels)
@@ -60,6 +62,7 @@ var CONFIG = {
             // Zone 3 - Center bottom (merge grid - 3x3 battery grid)
             // Default calculated for: 3x3 grid of 130px cells with 40px panel padding
             {
+                tag: "merge_grid",
                 centerX: 360,          // Center X position (pixels)
                 centerY: 930,          // Center Y position (pixels)
                 width: 550,            // Width of zone (pixels)
@@ -70,6 +73,7 @@ var CONFIG = {
             // Zone 4 - Bottom (spawn and watch ad buttons)
             // Default calculated for: buttons at bottom with BOTTOM_PADDING=80
             {
+                tag: "spawn_buttons",
                 centerX: 300,          // Center X position (pixels)
                 centerY: 1200,          // Center Y position (pixels)
                 width: 580,            // Width of zone (pixels) - 90% of screen width
@@ -80,12 +84,22 @@ var CONFIG = {
               // Zone 5 - Bottom (spawn and watch ad buttons)
             // Default calculated for: coin text
             {
+                tag: "coin text",
                 centerX: 380,          // Center X position (pixels)
                 centerY: 650,          // Center Y position (pixels)
                 width: 200,            // Width of zone (pixels) - 90% of screen width
                 height: 80,           // Height of zone (pixels)
                 color: "#f777fa",      // Debug rectangle color (pink)
                 opacity: 0.2           // Debug rectangle opacity (0-1, 0.2 = 20%)
+            },
+             {
+                tag:"shop",
+                centerX: 420,          // Center X position (pixels)
+                centerY: 55,          // Center Y position (pixels)
+                width: 260,            // Width of zone (pixels)
+                height: 110,           // Height of zone (pixels) - covers all 3 chargers
+                color: "#10b2f8",      // Debug rectangle color (red)
+                opacity: 0.7          // Debug rectangle opacity (0-1, 0.2 = 20%)
             }
         ],
 
@@ -93,9 +107,9 @@ var CONFIG = {
         SPECIAL_ZONES: [
              {
                 tag:"shop",
-                centerX: 450,          // Center X position (pixels)
+                centerX: 420,          // Center X position (pixels)
                 centerY: 55,          // Center Y position (pixels)
-                width: 200,            // Width of zone (pixels)
+                width: 260,            // Width of zone (pixels)
                 height: 110,           // Height of zone (pixels) - covers all 3 chargers
                 color: "#10b2f8",      // Debug rectangle color (red)
                 opacity: 0.7          // Debug rectangle opacity (0-1, 0.2 = 20%)
@@ -103,9 +117,9 @@ var CONFIG = {
              {
                 tag:"shop_counter",
                 centerX: 620,          // Center X position (pixels)
-                centerY: 55,          // Center Y position (pixels)
+                centerY: 70,          // Center Y position (pixels)
                 width: 140,            // Width of zone (pixels)
-                height: 110,           // Height of zone (pixels) - covers all 3 chargers
+                height: 90,           // Height of zone (pixels) - covers all 3 chargers
                 color: "#9500ff",      // Debug rectangle color (red)
                 opacity: 0.7          // Debug rectangle opacity (0-1, 0.2 = 20%)
             },
@@ -540,6 +554,7 @@ var CONFIG = {
         SPEED_VARIATION: 0.15,         // Speed variation for other coins (0.15 = 15% slower than top speed)
         STAGGER_DELAY: 50,             // Delay in ms between each coin starting its animation
         INITIAL_STACK_OFFSET: 0,       // Vertical spacing between coins in initial stack (0 = single coin, top-down view)
+        COIN_SPAWN_DELAY: 100,         // Delay in ms before coins start animating after appearing (allows player to see them)
         EASE: 'Power2'                 // Easing function for coin movement
     },
     
@@ -547,10 +562,20 @@ var CONFIG = {
     PIZZA_DELIVERY: {
         ENABLED: true,                  // Enable pizza collection before vehicles leave
         COUNTER_STOP_DURATION: 1000,   // How long vehicle stops at counter to collect pizza (ms)
-        PIZZA_SIZE: 40,                 // Size of pizza sprites (pixels)
-        PIZZA_SPACING: 10,              // Spacing between pizzas at counter (pixels)
+        PIZZA_SIZE: 40,                 // Base size of pizza sprites (pixels) before scaling
+        PIZZA_SCALE: 0.7,               // Scale factor for pizza display size (0.7 = 70% of base size)
+        PIZZA_SPACING: 10,              // Spacing between pizzas at counter (pixels) - DEPRECATED: Use grid layout below
         PIZZA_COLLECT_DURATION: 500,   // Duration for pizza to fly to vehicle (ms)
         PIZZA_SCALE_FINAL: 0.5,        // Final scale of pizza when collected (0.5 = half size)
+        
+        // Compact overlapping grid layout configuration
+        GRID_COLUMNS: 3,                // Number of columns in grid (vertical layout)
+        ROW_GAP_PERCENTAGE: 20,         // Horizontal overlap between items in same row (% of item width)
+                                        // Lower value = more overlap, items stack more
+                                        // e.g., 20% means each item overlaps 80% with the next
+        COLUMN_GAP_PERCENTAGE: 50,      // Vertical gap between rows (% of item height)
+                                        // Lower value = rows closer together
+                                        // e.g., 20% means 20% spacing between rows
         
         // Counter position (from shop_counter special zone in GRASS.SPECIAL_ZONES)
         COUNTER_CENTER_X: 620,          // X position of counter center
