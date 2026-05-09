@@ -13,7 +13,7 @@ var CONFIG = {
     TEXT_COLOR: '#1A237E',
     
     RESET_PROGRESS: false,         // Set to true to clear saved progress on load
-    BATTERY_START_LEVEL: 1,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
+    BATTERY_START_LEVEL: 13,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
     BATTERY_IMAGE_EXTENSIONS: ['svg', 'png', 'jpg', 'webp'],  // Priority order for battery image extensions
     
     // Game Area Background Colors
@@ -763,7 +763,7 @@ var CONFIG = {
     ]
 };
 
-// Battery image path cache (populated before game starts)
+// Battery image path cache (populated before game starts from batteryChargeData.js)
 var BATTERY_IMAGE_PATHS = {};
 
 // Utility function to check if a file exists (silently, no console errors)
@@ -776,21 +776,29 @@ function checkFileExists(url) {
     });
 }
 
-// Initialize battery image paths cache - all batteries are now PNG in graphics/battery/
-// Batteries are continuous - if Battery10 exists, Battery1-9 exist. If Battery11 doesn't exist, no batteries above 10.
-async function initBatteryImagePaths(maxLevel = 100) {
-    // Check sequentially and stop at first missing level
-    for (let level = 1; level <= maxLevel; level++) {
-        const path = `graphics/battery/Battery${level}.png`;
+// Initialize battery image paths cache using the BATTERY_DATA from batteryChargeData.js
+// This allows complete freedom in naming battery sprite files (lamp_1.png, suitcase_1.png, etc.)
+async function initBatteryImagePaths() {
+    // Check if BATTERY_DATA is available
+    if (typeof BATTERY_DATA === 'undefined' || !BATTERY_DATA) {
+        console.error('BATTERY_DATA not found! Make sure batteryChargeData.js is loaded before config.js');
+        return;
+    }
+    
+    // Check each battery from BATTERY_DATA to see if its file exists
+    for (let i = 0; i < BATTERY_DATA.length; i++) {
+        const batteryInfo = BATTERY_DATA[i];
+        const path = `graphics/battery/${batteryInfo.fileName}`;
         const exists = await checkFileExists(path);
         
         if (exists) {
-            BATTERY_IMAGE_PATHS[level] = path;
+            BATTERY_IMAGE_PATHS[batteryInfo.level] = path;
         } else {
-            // First missing level found - stop checking
-            return;
+            console.warn(`Battery sprite not found: ${path} (Level ${batteryInfo.level})`);
         }
     }
+    
+    console.log(`Loaded ${Object.keys(BATTERY_IMAGE_PATHS).length} battery sprites`);
 }
 
 // Helper function to load all battery images (to be called in preload after cache is initialized)
@@ -802,19 +810,6 @@ function loadBatteryImagesFromCache(scene) {
             scene.load.image(`battery${level}`, path);
         }
     }
-}
-
-// Get the highest available battery level from loaded images
-function getHighestBatteryLevel() {
-    let highest = 1;
-    for (let level = 1; level <= 100; level++) {
-        if (BATTERY_IMAGE_PATHS[level]) {
-            highest = level;
-        } else {
-            break; // Stop when we hit the first missing level
-        }
-    }
-    return highest;
 }
 
 // Get appropriate battery icon level (uses highest available if level exceeds available sprites)
