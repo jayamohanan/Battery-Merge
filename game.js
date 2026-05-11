@@ -2652,8 +2652,23 @@
         // Move car from parking lot to counter position
         moveCarToCounter(car) {
             // First, we need to get the car out of the parking area
-            // Find best exit path - check ALL 4 directions regardless of vehicle orientation
-            const exitPath = this.findBestExitPath(car);
+            // CRITICAL: For pizza collection, vehicle MUST exit upward (through top) to enter road loop
+            // Otherwise, vehicles near left edge will exit left and miss pizza counter entirely
+            const upwardDirection = { row: -1, col: 0 };
+            const upwardSteps = this.calculateStepsToExitInDirection(car, upwardDirection);
+            
+            let exitPath;
+            if (upwardSteps > 0) {
+                // Force upward exit for pizza collection
+                exitPath = {
+                    direction: upwardDirection,
+                    steps: upwardSteps,
+                    name: 'up'
+                };
+            } else {
+                // If upward is blocked, fall back to any available exit
+                exitPath = this.findBestExitPath(car);
+            }
             
             if (!exitPath) {
                 // Car is blocked - wait and retry
@@ -3949,14 +3964,27 @@
     const forwardDirY = -Math.cos(startRotation);
 
     // Find closest road point in the forward direction
+    // ONLY consider points on the top road segment (above parking area)
     let bestT = 0;
     let bestScore = -Infinity;
+    let closestValidT = 0;
+    let closestValidDist = Infinity;
 
     for (let t = 0; t <= 1; t += 0.005) {
         const point = this.roadPath.getPoint(t);
+        
+        // Filter: Only consider points on top road segment
+        if (point.y > this.parkingTop) continue;
+        
         const toPointX = point.x - startX;
         const toPointY = point.y - startY;
         const dist = Math.sqrt(toPointX * toPointX + toPointY * toPointY);
+
+        // Track closest valid point as fallback
+        if (dist < closestValidDist) {
+            closestValidDist = dist;
+            closestValidT = t;
+        }
 
         if (dist < 20) continue;
 
@@ -3972,6 +4000,11 @@
             bestScore = score;
             bestT = t;
         }
+    }
+    
+    // If no point found with forward alignment, use closest valid point
+    if (bestScore === -Infinity) {
+        bestT = closestValidT;
     }
 
     const roadPoint = this.roadPath.getPoint(bestT);
@@ -4243,14 +4276,27 @@ for (let t = 0; t <= 1; t += 0.002) {
     const reverseDirY = -Math.cos(startRotation + Math.PI);
 
     // Find closest road point, but preferring points in the reverse direction
+    // ONLY consider points on the top road segment (above parking area)
     let bestT = 0;
     let bestScore = -Infinity;
+    let closestValidT = 0;
+    let closestValidDist = Infinity;
 
     for (let t = 0; t <= 1; t += 0.005) {
         const point = this.roadPath.getPoint(t);
+        
+        // Filter: Only consider points on top road segment
+        if (point.y > this.parkingTop) continue;
+        
         const toPointX = point.x - startX;
         const toPointY = point.y - startY;
         const dist = Math.sqrt(toPointX * toPointX + toPointY * toPointY);
+
+        // Track closest valid point as fallback
+        if (dist < closestValidDist) {
+            closestValidDist = dist;
+            closestValidT = t;
+        }
 
         if (dist < 20) continue;
 
@@ -4267,6 +4313,11 @@ for (let t = 0; t <= 1; t += 0.002) {
             bestScore = score;
             bestT = t;
         }
+    }
+    
+    // If no point found with reverse alignment, use closest valid point
+    if (bestScore === -Infinity) {
+        bestT = closestValidT;
     }
 
     const roadPoint = this.roadPath.getPoint(bestT);

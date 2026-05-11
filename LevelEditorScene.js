@@ -27,8 +27,32 @@ class LevelEditorScene extends Phaser.Scene {
         const baseGridWidth = screenWidth * gridWidthPercent;
         const gridWidth = baseGridWidth * zoomFactor;
         
-        // Calculate cell size (square cells, determined by columns)
-        this.cellSize = gridWidth / this.gridCols;
+        // Calculate initial cell size (square cells, determined by columns)
+        let calculatedCellSize = gridWidth / this.gridCols;
+        
+        // Apply constraint square if enabled (like in game.js)
+        if (CONFIG.GRID.CONSTRAINT_SQUARE_ENABLED) {
+            const constraintSize = CONFIG.GRID.CONSTRAINT_SQUARE_SIZE;
+            
+            // Calculate road width based on initial cell size
+            const roadWidth = calculatedCellSize * roadWidthCellPercent;
+            
+            // Calculate total area needed (parking + roads on 3 sides: left, right, bottom)
+            const parkingWidth = this.gridCols * calculatedCellSize;
+            const parkingHeight = this.gridRows * calculatedCellSize;
+            const totalWidth = parkingWidth + 2 * roadWidth;   // Left + parking + right
+            const totalHeight = parkingHeight + 2 * roadWidth;  // Top + parking + bottom
+            
+            // Find the larger dimension
+            const maxDimension = Math.max(totalWidth, totalHeight);
+            
+            // Scale to fit constraint square (scale up OR down to maximize usage)
+            const scaleFactor = constraintSize / maxDimension;
+            calculatedCellSize = calculatedCellSize * scaleFactor;
+        }
+        
+        // Set final cell size
+        this.cellSize = calculatedCellSize;
         
         // Car length in cells
         this.carLength = CONFIG.EDITOR.CAR_LENGTH; // Car occupies 2 cells
@@ -48,12 +72,21 @@ class LevelEditorScene extends Phaser.Scene {
         // Grid to track occupied cells (true = occupied, false = empty)
         this.gridOccupied = Array(this.gridRows).fill(null).map(() => Array(this.gridCols).fill(false));
         
-        // Colors and transparency
-        this.parkingColor = CONFIG.EDITOR.PARKING_COLOR;
+        // Helper function to convert hex color to Phaser format
+        const hexColor = (cssColor) => {
+            if (typeof cssColor === 'string' && cssColor.startsWith('#')) {
+                return parseInt(cssColor.substring(1), 16);
+            }
+            return cssColor;
+        };
+        
+        // Colors and transparency (convert hex strings to numbers for Phaser)
+        this.parkingColor = hexColor(CONFIG.EDITOR.PARKING_COLOR);
         this.parkingAlpha = CONFIG.EDITOR.PARKING_ALPHA;
-        this.roadColor = CONFIG.EDITOR.ROAD_COLOR;
-        this.roadFillColor = CONFIG.EDITOR.ROAD_FILL_COLOR;
+        this.roadColor = hexColor(CONFIG.EDITOR.ROAD_COLOR);
+        this.roadFillColor = hexColor(CONFIG.EDITOR.ROAD_FILL_COLOR);
         this.roadFillAlpha = CONFIG.EDITOR.ROAD_FILL_ALPHA;
+        this.parkingBorderColor = hexColor(CONFIG.EDITOR.PARKING_BORDER_COLOR);
         
         // Debug log
         console.log('=== EDITOR INIT ===');
@@ -75,6 +108,17 @@ class LevelEditorScene extends Phaser.Scene {
         
         // Load road sprite
         this.load.image('road', 'graphics/road_80.png');
+        
+        // Load library/shop building
+        this.load.image('pizza_shop', 'graphics/library.png');
+        
+        // Load EV charger sprites
+        this.load.image('ev_charger_red', 'graphics/charger_red.png');
+        this.load.image('ev_charger_green', 'graphics/charger_green.png');
+        this.load.image('ev_charger_blue', 'graphics/charger_blue.png');
+        this.load.image('charger_bolt', 'graphics/charger_bolt.png');
+        this.load.image('charger_on', 'graphics/charger_on.png');
+        this.load.image('charger_off', 'graphics/charger_off.png');
     }
 
     create() {
@@ -84,8 +128,17 @@ class LevelEditorScene extends Phaser.Scene {
         // Top half is the editor area (parking lot)
         const editorHeight = sceneHeight * 0.5;
         
-        // Background for editor area
-        this.add.rectangle(sceneWidth / 2, editorHeight / 2, sceneWidth, editorHeight, 0xCCCCCC);
+        // Create gradient background matching game.js (full screen)
+        const bgGraphics = this.add.graphics();
+        
+        // Parse hex colors for gradient
+        const startColor = parseInt(CONFIG.BACKGROUND.GRADIENT_START_COLOR.substring(1), 16);
+        const endColor = parseInt(CONFIG.BACKGROUND.GRADIENT_END_COLOR.substring(1), 16);
+        
+        // Fill with vertical gradient (top to bottom) - only for editor area
+        bgGraphics.fillGradientStyle(startColor, startColor, endColor, endColor, 1);
+        bgGraphics.fillRect(0, 0, sceneWidth, editorHeight);
+        bgGraphics.setDepth(0); // Background layer
         
         // Store editor bounds
         this.editorBounds = {
@@ -95,16 +148,14 @@ class LevelEditorScene extends Phaser.Scene {
             height: editorHeight
         };
         
-        // Title
-        this.add.text(sceneWidth / 2, 20, 'PARKING JAM LEVEL EDITOR', {
-            fontSize: '28px',
-            fontFamily: CONFIG.FONT_FAMILY,
-            color: '#000000',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
+        // Draw library/shop building at top (before parking area)
+        this.createLibraryBuilding();
         
         // Draw parking area and road rectangles
         this.createParkingAndRoad();
+        
+        // Draw charging slots on left side
+        this.createChargingSlots();
         
         // Create UI controls at bottom
         this.createControls();
@@ -149,9 +200,18 @@ class LevelEditorScene extends Phaser.Scene {
         const sceneHeight = this.cameras.main.height;
         const editorHeight = sceneHeight * 0.5;
         
-        // Center position for parking area (in editor area)
-        this.centerX = sceneWidth / 2;
+        // Center position for parking area (in editor area) - shifted to the right
+        const horizontalShift = sceneWidth * (CONFIG.GRID.PARKING_HORIZONTAL_OFFSET || 0);
+        this.centerX = sceneWidth / 2 + horizontalShift;
         this.centerY = editorHeight / 2 + 30; // Slightly below center to account for title
+        
+        // Apply constraint square position offset if enabled
+        if (CONFIG.GRID.CONSTRAINT_SQUARE_ENABLED) {
+            const offsetX = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_X || 0;
+            const offsetY = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_Y || 0;
+            this.centerX += offsetX;
+            this.centerY += offsetY;
+        }
         
         // Calculate road path center line (middle of road)
         const halfParkingW = this.parkingWidth / 2;
@@ -182,7 +242,7 @@ class LevelEditorScene extends Phaser.Scene {
             this.parkingColor,
             this.parkingAlpha
         );
-        this.parkingRect.setStrokeStyle(CONFIG.EDITOR.PARKING_BORDER_WIDTH, CONFIG.EDITOR.PARKING_BORDER_COLOR);
+        this.parkingRect.setStrokeStyle(CONFIG.EDITOR.PARKING_BORDER_WIDTH, this.parkingBorderColor);
         this.parkingRect.setDepth(3);
         
         // Draw grid lines
@@ -210,6 +270,26 @@ class LevelEditorScene extends Phaser.Scene {
         this.parkingCenterY = this.centerY;
         this.gridStartX = gridStartX;
         this.gridStartY = gridStartY;
+        
+        // Draw constraint square if enabled and visible
+        if (CONFIG.GRID.CONSTRAINT_SQUARE_ENABLED && CONFIG.GRID.CONSTRAINT_SQUARE_VISIBLE) {
+            const constraintSize = CONFIG.GRID.CONSTRAINT_SQUARE_SIZE;
+            
+            if (!this.constraintSquareGraphics) {
+                this.constraintSquareGraphics = this.add.graphics();
+            } else {
+                this.constraintSquareGraphics.clear();
+            }
+            
+            this.constraintSquareGraphics.lineStyle(3, 0xFF0000, 1); // Red outline, 3px thick
+            this.constraintSquareGraphics.strokeRect(
+                this.centerX - constraintSize / 2,
+                this.centerY - constraintSize / 2,
+                constraintSize,
+                constraintSize
+            );
+            this.constraintSquareGraphics.setDepth(100); // On top of everything for debugging
+        }
     }
     
     // Create a path with curved corners around the parking area
@@ -381,12 +461,150 @@ class LevelEditorScene extends Phaser.Scene {
         console.log('Debug points drawn: all', worldPoints.length, 'points visible above road rope');
     }
     
+    // Create library/shop building at top (like in game.js)
+    createLibraryBuilding() {
+        // Get shop zone from CONFIG.GRASS.SPECIAL_ZONES
+        const shopZone = CONFIG.GRASS.SPECIAL_ZONES.find(zone => zone.tag === 'shop');
+        if (!shopZone) return;
+        
+        // Add library image at top of screen, contained within zone width
+        const shopImage = this.add.image(0, 0, 'pizza_shop');
+        shopImage.setOrigin(0.5, 0); // Origin at top center
+        
+        // Calculate zone boundaries
+        const zoneLeft = shopZone.centerX - shopZone.width / 2;
+        const zoneRight = shopZone.centerX + shopZone.width / 2;
+        const zoneTop = 0; // Start from top of screen
+        const zoneHeight = shopZone.height;
+        
+        // Calculate scale to fit within zone width while maintaining aspect ratio
+        const scaleX = shopZone.width / shopImage.width;
+        const scaleY = zoneHeight / shopImage.height;
+        const scale = Math.min(scaleX, scaleY); // Use smaller scale to fit within zone
+        
+        // Apply scale
+        shopImage.setScale(scale);
+        
+        // Position at zone center X and top of screen
+        shopImage.setPosition(shopZone.centerX, zoneTop);
+        shopImage.setDepth(1); // Below grass (2) but above background
+        
+        console.log('Library building added at', shopZone.centerX, zoneTop);
+    }
+    
+    // Create charging slots on left side (like in game.js)
+    createChargingSlots() {
+        const sceneWidth = this.cameras.main.width;
+        const sceneHeight = this.cameras.main.height;
+        
+        // Position chargers vertically on the LEFT side of parking area
+        const parkingAreaHeight = sceneHeight * 0.5;
+        const chargerSize = CONFIG.EV_CHARGER.CHARGER_SIZE;
+        
+        // Position chargers on the left side of screen, aligned vertically
+        const chargerX = CONFIG.EV_CHARGER.HORIZONTAL_POSITION;
+        
+        // Vertical positioning: center middle charger (index 1) with parking area center
+        const parkingCenterY = parkingAreaHeight / 2;
+        
+        // Get child element sizes/offsets from config
+        const dropZoneSize = CONFIG.EV_CHARGER.DROP_ZONE_SIZE;
+        const dropZoneOffsetX = CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_X;
+        const dropZoneOffsetY = CONFIG.EV_CHARGER.DROP_ZONE_OFFSET_Y;
+        const dropZoneRadius = CONFIG.EV_CHARGER.DROP_ZONE_RADIUS;
+        const boltSize = CONFIG.EV_CHARGER.BOLT_SIZE;
+        const boltOffsetX = CONFIG.EV_CHARGER.BOLT_OFFSET_X;
+        const boltOffsetY = CONFIG.EV_CHARGER.BOLT_OFFSET_Y;
+        const switchWidth = CONFIG.EV_CHARGER.SWITCH_WIDTH;
+        const switchHeight = CONFIG.EV_CHARGER.SWITCH_HEIGHT;
+        const switchOffsetX = CONFIG.EV_CHARGER.SWITCH_OFFSET_X;
+        const switchOffsetY = CONFIG.EV_CHARGER.SWITCH_OFFSET_Y;
+        
+        for (let i = 0; i < 3; i++) {
+            // Position chargers: i=0 (top), i=1 (middle/center), i=2 (bottom)
+            const slotY = parkingCenterY + (i - 1) * CONFIG.EV_CHARGER.VERTICAL_SPACING;
+            const slotX = chargerX;
+            
+            // Base EV Charger sprite - different color for each slot
+            const chargerColors = ['ev_charger_red', 'ev_charger_green', 'ev_charger_blue'];
+            const chargerSprite = this.add.sprite(slotX, slotY, chargerColors[i]);
+            // Preserve aspect ratio: scale by height, adjust width accordingly
+            const texture = chargerSprite.texture;
+            const aspectRatio = texture.source[0].width / texture.source[0].height;
+            const displayHeight = chargerSize;
+            const displayWidth = displayHeight * aspectRatio;
+            chargerSprite.setDisplaySize(displayWidth, displayHeight);
+            chargerSprite.setDepth(1);
+            
+            // Drop zone inside the charger (inset look like merge grid cells)
+            const dropZoneX = slotX + dropZoneOffsetX;
+            const dropZoneY = slotY + dropZoneOffsetY;
+            
+            // Create inset look for empty drop zone
+            const dropZoneEmpty = this.add.graphics();
+            
+            // Helper function to convert hex color to Phaser format
+            const hexColor = (cssColor) => {
+                if (typeof cssColor === 'string' && cssColor.startsWith('#')) {
+                    return parseInt(cssColor.substring(1), 16);
+                }
+                return cssColor;
+            };
+            
+            // Outer shadow border (creates recessed/inset effect)
+            dropZoneEmpty.fillStyle(hexColor(CONFIG.EV_CHARGER.DROP_ZONE_INSET_SHADOW_COLOR), 1);
+            dropZoneEmpty.fillRoundedRect(
+                dropZoneX - dropZoneSize / 2,
+                dropZoneY - dropZoneSize / 2,
+                dropZoneSize,
+                dropZoneSize,
+                dropZoneRadius
+            );
+            
+            // Inner fill (lighter, creating depth)
+            const inset = CONFIG.EV_CHARGER.DROP_ZONE_INSET_BORDER_WIDTH;
+            dropZoneEmpty.fillStyle(hexColor(CONFIG.EV_CHARGER.DROP_ZONE_EMPTY_BG_COLOR), 1);
+            dropZoneEmpty.fillRoundedRect(
+                dropZoneX - dropZoneSize / 2 + inset,
+                dropZoneY - dropZoneSize / 2 + inset,
+                dropZoneSize - inset * 2,
+                dropZoneSize - inset * 2,
+                dropZoneRadius - inset
+            );
+            dropZoneEmpty.setDepth(3); // Above merge grid (2) and charger sprite (1)
+            
+            // Bolt sub-image (shows charging status) - overlay on charger, above drop zone
+            const boltSprite = this.add.sprite(
+                slotX + boltOffsetX,
+                slotY + boltOffsetY,
+                'charger_bolt'
+            );
+            boltSprite.setDisplaySize(boltSize, boltSize);
+            boltSprite.setAlpha(CONFIG.EV_CHARGER.BOLT_ALPHA);
+            boltSprite.setTint(CONFIG.EV_CHARGER.BOLT_COLOR_INACTIVE); // Start grey (not charging)
+            boltSprite.setDepth(4); // Above drop zone, visible on top
+            
+            // On/Off switch sub-image (shows battery presence) - overlay on charger, above drop zone
+            const switchSprite = this.add.sprite(
+                slotX + switchOffsetX,
+                slotY + switchOffsetY,
+                'charger_off' // Start with OFF (no battery)
+            );
+            switchSprite.setDisplaySize(switchWidth, switchHeight);
+            switchSprite.setAlpha(CONFIG.EV_CHARGER.SWITCH_ALPHA);
+            switchSprite.setDepth(4); // Above drop zone, visible on top
+        }
+        
+        console.log('Charging slots created (3 slots)');
+    }
+    
     redrawParkingAndRoad() {
         // Destroy existing graphics
         if (this.roadRope) this.roadRope.destroy();
         if (this.debugDots) this.debugDots.destroy();
         if (this.parkingRect) this.parkingRect.destroy();
         if (this.gridGraphics) this.gridGraphics.destroy();
+        if (this.constraintSquareGraphics) this.constraintSquareGraphics.destroy();
         
         // Redraw with updated dimensions
         this.createParkingAndRoad();

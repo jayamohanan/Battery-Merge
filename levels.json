@@ -50,6 +50,476 @@
     }
   ]
 },
+{
+  "grid": {
+    "cols": 12,
+    "rows": 12,
+    "size_factor": 1
+  },
+  "parking": {
+    "color": 10137815,
+    "alpha": 1,
+    "borderColor": "#7a90b7",
+    "borderWidth": 3
+  },
+  "road": {
+    "color": 4342338,
+    "fillColor": 6381921,
+    "fillAlpha": 0.7,
+    "outerRadius": 80,
+    "innerRadius": 20,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 5,
+      "gridCol": 1,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 7,
+      "gridCol": 3,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 7,
+      "gridCol": 1,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 4,
+      "gridCol": 4,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 10,
+      "gridCol": 4,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 10,
+      "gridCol": 9,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 1,
+      "gridCol": 1,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    }
+  ]
+},
+{
+  "grid": {
+    "cols": 12,
+    "rows": 12,
+    "size_factor": 1
+  },
+  "parking": {
+    "color": 10137815,
+    "alpha": 1,
+    "borderColor": "#7a90b7",
+    "borderWidth": 3
+  },
+  "road": {
+    "color": 4342338,
+    "fillColor": 6381921,
+    "fillAlpha": 0.7,
+    "outerRadius": 80,
+    "innerRadius": 20,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 5,
+      "gridCol": 3,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 5,
+      "gridCol": 0,
+      "orientation": "down",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 5,
+      "gridCol": 9,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 9,
+      "gridCol": 2,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 9,
+      "gridCol": 0,
+      "orientation": "down",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 11,
+      "gridCol": 5,
+      "orientation": "left",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 9,
+      "gridCol": 4,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 10,
+      "gridCol": 9,
+      "orientation": "left",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 7,
+      "gridCol": 7,
+      "orientation": "left",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 2,
+      "gridCol": 1,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    }
+  ]
+},
+{
+  "grid": {
+    "cols": 12,
+    "rows": 12,
+    "size_factor": 1
+  },
+  "parking": {
+    "color": 10137815,
+    "alpha": 1,
+    "borderColor": "#7a90b7",
+    "borderWidth": 3
+  },
+  "road": {
+    "color": 4342338,
+    "fillColor": 6381921,
+    "fillAlpha": 0.7,
+    "outerRadius": 80,
+    "innerRadius": 20,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 2,
+      "gridCol": 1,
+      "orientation": "down",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 6,
+      "gridCol": 0,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 8,
+      "gridCol": 2,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 9,
+      "gridCol": 7,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 8,
+      "gridCol": 4,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 1,
+      "gridCol": 4,
+      "orientation": "down",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 5,
+      "gridCol": 9,
+      "orientation": "down",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 4,
+      "gridCol": 7,
+      "orientation": "down",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 4,
+      "gridCol": 5,
+      "orientation": "down",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 10,
+      "gridCol": 10,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    }
+  ]
+},
+{
+  "grid": {
+    "cols": 12,
+    "rows": 12,
+    "size_factor": 1
+  },
+  "parking": {
+    "color": 10137815,
+    "alpha": 1,
+    "borderColor": "#7a90b7",
+    "borderWidth": 3
+  },
+  "road": {
+    "color": 4342338,
+    "fillColor": 6381921,
+    "fillAlpha": 0.7,
+    "outerRadius": 80,
+    "innerRadius": 20,
+    "segmentsPerCorner": 16
+  },
+  "cars": [
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 4,
+      "gridCol": 0,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 8,
+      "gridCol": 1,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 10,
+      "gridCol": 9,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 6,
+      "gridCol": 8,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 5,
+      "gridCol": 5,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 10,
+      "gridCol": 3,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 10,
+      "gridCol": 6,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 1,
+      "gridCol": 2,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 2,
+      "gridCol": 3,
+      "orientation": "left",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 2,
+      "gridCol": 7,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 7,
+      "gridCol": 3,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 10,
+      "gridCol": 0,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 7,
+      "gridCol": 10,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 3,
+      "gridCol": 10,
+      "orientation": "up",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    },
+    {
+      "type": "motorbike_1x2",
+      "gridRow": 7,
+      "gridCol": 6,
+      "orientation": "right",
+      "width": 1,
+      "length": 2,
+      "chargeRequired": 5
+    }
+  ]
+},
     {
   "grid": {
     "cols": 12,

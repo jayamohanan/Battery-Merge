@@ -716,9 +716,9 @@ var CONFIG = {
         GRID_LINE_ALPHA: 0.5,          // Grid line transparency
         
         // Parking area (automatically calculated from grid)
-        PARKING_COLOR: "#FFD6FF",       // Soft pink/lavender for parking area
+        PARKING_COLOR: "#9ab0d7",       // Bluish color for parking area (matches game)
         PARKING_ALPHA: 1.0,            // Parking area transparency (0-1)
-        PARKING_BORDER_COLOR: "#9B7FFF", // Bright purple border
+        PARKING_BORDER_COLOR: "#7a90b7", // Darker blue border
         PARKING_BORDER_WIDTH: 3,       // Border thickness
         
         // Road (automatically calculated from cell size)
