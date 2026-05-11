@@ -1071,7 +1071,6 @@
                 }
                 
                 this.pizzaCounterWaypointIndex = closestIndex;
-                console.log(`🍕 Pizza counter waypoint: index ${closestIndex}, distance: ${closestDist.toFixed(1)}px`);
             }
             
             // Draw road using Rope with texture - simple approach
@@ -1185,7 +1184,6 @@
             if (d < minDist) { minDist = d; closestIndex = i; }
         }
         this.counterPathIndex = closestIndex;
-        console.log('🍕 Counter nearest path index:', closestIndex, '/ 500');
     }
         
         // Create exit gate at the end of the road (left edge going upward)
@@ -1383,8 +1381,6 @@
                 // Check if vehicle needs a full lap first
                 if (car.needsFullLap && !car.hasCompletedLap) {
                     // Don't stop yet - vehicle needs to complete full lap
-                    console.log('🍕 BLOCKED by needsFullLap, pathProgress:', 
-                        car.roadPathData ? (car.roadPathData.currentIndex / 500).toFixed(2) : 'no data');
                     continue;
                 }
                 
@@ -1395,8 +1391,6 @@
                 
                 // Check if vehicle is within detection range
                 if (distance < detectionRange) {
-                    console.log(`🍕 [PROXIMITY CHECK] Vehicle detected near counter! Distance: ${distance.toFixed(1)}px`);
-                    
                     // Mark as stopped at counter
                     car.stoppedAtCounter = true;
                     
@@ -1410,6 +1404,14 @@
                         
                         // Add to queue
                         this.pizzaQueue.push(car);
+                        
+                        // LOG: Level 2 tracking
+                        if (this.currentLevelIndex === 1) {
+                            const vNum = this.cars.indexOf(car) + 1;
+                            const qLen = this.pizzaQueue.length;
+                            const collectorNum = this.cars.indexOf(this.currentPizzaCollector) + 1;
+                            console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🍕 ADDED to pizza queue: Vehicle ${vNum} (Another vehicle ${collectorNum} is collecting, queue length: ${qLen})`);
+                        }
                         
                         // Store current position for resume (if available)
                         if (car.roadPathData) {
@@ -2605,6 +2607,12 @@
             const car = this.pizzaQueue.shift();
             this.currentPizzaCollector = car;
             
+            // LOG: Level 2 tracking
+            if (this.currentLevelIndex === 1) {
+                const vNum = this.cars.indexOf(car) + 1;
+                console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 📞 CALLED from pizza queue: Vehicle ${vNum}`);
+            }
+            
             // Resume the vehicle's journey to the counter
             if (car.resumePathData) {
                 const { spacedPoints, currentIndex } = car.resumePathData;
@@ -2623,9 +2631,15 @@
         }
         
         // Process next vehicle waiting in exit queue (after charging completes)
-        processNextInExitQueue() {
+        processNextInExitQueue(attemptsThisFrame = 0) {
             // Check if there are vehicles waiting to exit
             if (this.exitQueue.length === 0) {
+                return;
+            }
+            
+            // Prevent infinite recursion if all vehicles are blocked
+            // Stop after trying as many vehicles as were initially in queue
+            if (attemptsThisFrame >= this.exitQueue.length) {
                 return;
             }
             
@@ -2645,8 +2659,14 @@
             
             // Get the next vehicle from the exit queue
             const car = this.exitQueue.shift();
-            console.log('🚗 Processing next vehicle from exit queue');
-            this.moveOutCar(car);
+            
+            // LOG: Level 2 tracking
+            if (this.currentLevelIndex === 1) {
+                const vNum = this.cars.indexOf(car) + 1;
+                console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🚗 CALLED from exit queue: Vehicle ${vNum} (attempt ${attemptsThisFrame + 1})`);
+            }
+            
+            this.moveOutCar(car, attemptsThisFrame);
         }
 
         // Move car from parking lot to counter position
@@ -2774,9 +2794,6 @@
         finishPizzaCollection(car) {
             // Clear current collector
             this.currentPizzaCollector = null;
-            
-            // Process next vehicle in queue
-            this.processNextInPizzaQueue();
             
             // Now route this car to the parking exit and then to road
             // Since the car is now at the counter (top-right), we need to calculate
@@ -2949,7 +2966,6 @@
                 car.hasPizza = false;
                 car.goingToCounter = false;
                 this.currentPizzaCollector = null;
-                this.processNextInPizzaQueue();
                 this.continueOnRoadAfterCounter(car, spacedPoints, resumeIndex);
                 return;
             }
@@ -2977,7 +2993,7 @@
                     car.hasPizza = true;
                     car.goingToCounter = false;
                     
-                    // Clear current collector and process next vehicle in queue
+                    // Clear current collector and release next vehicle in queue
                     this.currentPizzaCollector = null;
                     this.processNextInPizzaQueue();
                     
@@ -3010,7 +3026,6 @@
                 car.hasPizza = false;
                 car.goingToCounter = false;
                 this.currentPizzaCollector = null;
-                this.processNextInPizzaQueue();
                 this.continueOnRoadAfterCounter(car, spacedPoints, currentIndex);
                 return;
             }
@@ -3037,7 +3052,7 @@
                         // Spawn coins at pizza counter and animate to coin display
                         this.spawnCoinsAtPizzaCounter(car);
                         
-                        // Clear current collector and process next vehicle in queue
+                        // Clear current collector and release next vehicle in queue
                         this.currentPizzaCollector = null;
                         this.processNextInPizzaQueue();
                         
@@ -3105,6 +3120,12 @@
                     }
                 },
                 onComplete: () => {
+                    // LOG: Level 2 tracking
+                    if (this.currentLevelIndex === 1) {
+                        const vNum = this.cars.indexOf(car) + 1;
+                        console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 👋 LEFT COUNTER: Vehicle ${vNum} - calling next vehicle from pizza queue`);
+                    }
+                    
                     this.removeCar(car);
                 }
             });
@@ -3253,11 +3274,24 @@
                         // NOW car can move out (connection is fully disconnected)
                         car.waitingForAnimationComplete = false;
                         
+                        // LOG: Level 2 tracking
+                        if (this.currentLevelIndex === 1) {
+                            const vNum = this.cars.indexOf(car) + 1;
+                            console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] ✅ FINISHED CHARGING: Vehicle ${vNum}`);
+                        }
+                        
                         // When pizza delivery is enabled, use exit queue to ensure vehicles don't overlap
                         if (CONFIG.PIZZA_DELIVERY.ENABLED) {
                             // Always add to queue to prevent race conditions
                             this.exitQueue.push(car);
-                            console.log('🚗 Vehicle added to exit queue');
+                            
+                            // LOG: Level 2 tracking
+                            if (this.currentLevelIndex === 1) {
+                                const vNum = this.cars.indexOf(car) + 1;
+                                const qLen = this.exitQueue.length;
+                                console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🅿️ ADDED to exit queue: Vehicle ${vNum} (queue length: ${qLen})`);
+                            }
+                            
                             // Try to process the queue immediately
                             this.processNextInExitQueue();
                         } else {
@@ -3287,8 +3321,6 @@
             const coinCount = CONFIG.COIN_REWARD_ANIMATION.COIN_COUNT;
             const stackOffset = CONFIG.COIN_REWARD_ANIMATION.INITIAL_STACK_OFFSET; // 0 for single coin (top-down view)
             
-            console.log('🪙 Creating', coinCount, 'reward coins for vehicle', car.type, 'worth', vehicleDef.reward);
-            
             // Create coins at car position, hidden (will be moved to counter when pizza is collected)
             car.rewardCoins = [];
             for (let i = 0; i < coinCount; i++) {
@@ -3302,17 +3334,10 @@
             car.rewardCoinsSpawned = true;
             car.coinReward = vehicleDef.reward; // Store reward amount
             car.coinsSpawnedAtGate = false; // Track if coins have been spawned at gate
-            
-            console.log('✅ Reward coins created:', car.rewardCoins.length);
         }
         
         // Spawn coins at pizza counter when pizza is collected
         spawnCoinsAtPizzaCounter(car) {
-            console.log('🪙 spawnCoinsAtPizzaCounter called', {
-                hasRewardCoins: !!car.rewardCoins,
-                coinCount: car.rewardCoins?.length || 0,
-                coinReward: car.coinReward
-            });
             
             if (!car.rewardCoins || car.rewardCoins.length === 0) {
                 console.warn('❌ No reward coins to spawn!', car.rewardCoins);
@@ -3325,8 +3350,6 @@
             // Calculate vehicle bottom position (below vehicle, above road)
             const vehicleBottomY = car.sprite.y + (car.sprite.displayHeight / 2) + 10; // 10px below vehicle
             
-            console.log('🪙 Spawning coins at vehicle position:', { x: car.sprite.x, y: vehicleBottomY });
-            
             // Move coins to vehicle bottom position and make them visible
             for (let i = 0; i < car.rewardCoins.length; i++) {
                 const coin = car.rewardCoins[i];
@@ -3336,11 +3359,8 @@
                 coin.setDepth(100 + i); // High depth to be visible above everything
             }
             
-            console.log('🪙 Waiting', spawnDelay, 'ms before starting animation');
-            
             // Wait for spawn delay, then animate coins to coin counter
             this.time.delayedCall(spawnDelay, () => {
-                console.log('🪙 Starting coin animation to coin counter');
                 this.animateExistingCoins(car.rewardCoins, car.coinReward);
                 car.rewardCoins = []; // Clear reference
             });
@@ -3617,10 +3637,16 @@
             }
         }
 
-        moveOutCar(car) {
+        moveOutCar(car, attemptsThisFrame = 0) {
             car.isCharging = false;
             car.isMovingOut = true;
             car.waitingToExit = false;  // Clear waiting flag since car is now moving
+            
+            // LOG: Level 2 tracking
+            if (this.currentLevelIndex === 1) {
+                const vNum = this.cars.indexOf(car) + 1;
+                console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🚀 STARTING EXIT: Vehicle ${vNum}`);
+            }
             
             // If pizza delivery is enabled, mark car as needing pizza IMMEDIATELY
             // This ensures the exit queue system knows this vehicle is en route
@@ -3657,16 +3683,16 @@
             if (car.orientation !== 'up') {
                 this.rotateCarInPlace(car, 'up', () => {
                     // After rotating, move to exit
-                    this.continueToExit(car);
+                    this.continueToExit(car, attemptsThisFrame);
                 });
             } else {
                 // Already facing up or down, proceed directly to exit
-                this.continueToExit(car);
+                this.continueToExit(car, attemptsThisFrame);
             }
         }
         
         // Continue to exit after any necessary rotation
-        continueToExit(car) {
+        continueToExit(car, attemptsThisFrame = 0) {
             // Car is now always facing up (rotated if needed)
             // Calculate steps to exit by moving forward
             const stepsToExit = this.calculateStepsToExit(car);
@@ -3680,6 +3706,22 @@
                 this.updateCarGridPosition(car);
                 this.updateMovableCars();
                 this.showBlockedFeedback(car);
+                
+                // Re-add blocked vehicle to END of exit queue so free vehicles can move first
+                if (CONFIG.PIZZA_DELIVERY.ENABLED) {
+                    this.exitQueue.push(car);
+                    
+                    // LOG: Level 2 tracking
+                    if (this.currentLevelIndex === 1) {
+                        const vNum = this.cars.indexOf(car) + 1;
+                        const qLen = this.exitQueue.length;
+                        console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🚧 BLOCKED & RE-QUEUED: Vehicle ${vNum} (added back to exit queue, queue length: ${qLen})`);
+                    }
+                    
+                    // Try next vehicle in queue (pass incremented attempt counter)
+                    this.processNextInExitQueue(attemptsThisFrame + 1);
+                }
+                
                 return;
             }
             
@@ -4128,7 +4170,6 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Correct needsFullLap based on actual road entry position vs counter position
             if (car.goingToCounter && this.counterPathIndex !== undefined) {
                 car.needsFullLap = startIndex > this.counterPathIndex;
-                console.log(`🍕 startIndex: ${startIndex}, counterIndex: ${this.counterPathIndex}, needsFullLap: ${car.needsFullLap}`);
             }
 
             const remainingPoints = spacedPoints.length - startIndex;
@@ -4200,6 +4241,15 @@ for (let t = 0; t <= 1; t += 0.002) {
                                     // Add to queue and stop moving
                                     tween.stop();
                                     this.pizzaQueue.push(car);
+                                    
+                                    // LOG: Level 2 tracking
+                                    if (this.currentLevelIndex === 1) {
+                                        const vNum = this.cars.indexOf(car) + 1;
+                                        const qLen = this.pizzaQueue.length;
+                                        const collectorNum = this.cars.indexOf(this.currentPizzaCollector) + 1;
+                                        console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🍕 ADDED to pizza queue: Vehicle ${vNum} (Another vehicle ${collectorNum} is collecting, queue length: ${qLen})`);
+                                    }
+                                    
                                     // Store current position data for resume
                                     car.resumePathData = {
                                         spacedPoints: spacedPoints,
@@ -4246,7 +4296,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                     // (coins were already animated when Bezier curve finished)
                     if (car.goingToCounter && !car.stoppedAtCounter) {
                         // Vehicle finished road without collecting pizza - force collect and remove
-                        console.log('🍕 Vehicle exited without pizza - forcing collection');
                         if (this.pizzas.length > 0) {
                             const pizza = this.pizzas.shift();
                             pizza.destroy();
@@ -4437,7 +4486,6 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Correct needsFullLap based on actual road entry position vs counter position
             if (car.goingToCounter && this.counterPathIndex !== undefined) {
                 car.needsFullLap = startIndex > this.counterPathIndex;
-                console.log(`🍕 startIndex: ${startIndex}, counterIndex: ${this.counterPathIndex}, needsFullLap: ${car.needsFullLap}`);
             }
 
             const remainingPoints = spacedPoints.length - startIndex;
@@ -4509,6 +4557,15 @@ for (let t = 0; t <= 1; t += 0.002) {
                                     // Add to queue and stop moving
                                     tween.stop();
                                     this.pizzaQueue.push(car);
+                                    
+                                    // LOG: Level 2 tracking
+                                    if (this.currentLevelIndex === 1) {
+                                        const vNum = this.cars.indexOf(car) + 1;
+                                        const qLen = this.pizzaQueue.length;
+                                        const collectorNum = this.cars.indexOf(this.currentPizzaCollector) + 1;
+                                        console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🍕 ADDED to pizza queue: Vehicle ${vNum} (Another vehicle ${collectorNum} is collecting, queue length: ${qLen})`);
+                                    }
+                                    
                                     // Store current position data for resume
                                     car.resumePathData = {
                                         spacedPoints: spacedPoints,
@@ -4555,7 +4612,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                     // (coins were already animated when Bezier curve finished)
                     if (car.goingToCounter && !car.stoppedAtCounter) {
                         // Vehicle finished road without collecting pizza - force collect and remove
-                        console.log('🍕 Vehicle exited without pizza - forcing collection');
                         if (this.pizzas.length > 0) {
                             const pizza = this.pizzas.shift();
                             pizza.destroy();
@@ -4716,10 +4772,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             if (car.chargeBarBg) car.chargeBarBg.destroy();
             if (car.batteryContainer) car.batteryContainer.destroy();
             
-            // PIZZA DELIVERY: If this car was the current collector, clear it and process queue
+            // PIZZA DELIVERY: If this car was the current collector, clear it
             if (CONFIG.PIZZA_DELIVERY.ENABLED && this.currentPizzaCollector === car) {
                 this.currentPizzaCollector = null;
-                this.processNextInPizzaQueue();
             }
             
             // Remove from array
