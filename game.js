@@ -1376,12 +1376,6 @@
                 // Skip if already stopped at counter
                 if (car.stoppedAtCounter) continue;
                 
-                // Check if vehicle needs a full lap first
-                if (car.needsFullLap && !car.hasCompletedLap) {
-                    // Don't stop yet - vehicle needs to complete full lap
-                    continue;
-                }
-                
                 // Calculate distance to counter
                 const dx = car.sprite.x - counterX;
                 const dy = car.sprite.y - counterY;
@@ -2672,8 +2666,6 @@
                     car.goingToCounter = false;
                     car.stoppedAtCounter = false;
                     car.needsPizza = false;
-                    car.needsFullLap = false;
-                    car.hasCompletedLap = false;
                     
                     // Re-add to exit queue
                     this.exitQueue.push(car);
@@ -2698,45 +2690,8 @@
             
             const stepsToExit = exitPath.steps;
             
-            // Calculate if this vehicle will miss the counter based on exit position
-            // Counter is at top-right area (< 45 degrees from top center)
-            // We need to check where the vehicle will join the road relative to counter
-            const counterX = this.pizzaCounterPosition.x;
-            const counterY = this.pizzaCounterPosition.y;
-            
-            // Get the vehicle's current position
-            const carX = car.sprite.x;
-            const carY = car.sprite.y;
-            
-            // Calculate the angle from parking center to counter (0 = top, 90 = right, clockwise)
-            const parkingCenterX = this.parkingLeft + (this.gridConfig.cols * this.gridConfig.cellSize) / 2;
-            const parkingCenterY = this.parkingTop + (this.gridConfig.rows * this.gridConfig.cellSize) / 2;
-            
-            const angleToCounter = Math.atan2(
-                counterX - parkingCenterX,
-                -(counterY - parkingCenterY)
-            ) * 180 / Math.PI;
-            
-            const angleToVehicle = Math.atan2(
-                carX - parkingCenterX,
-                -(carY - parkingCenterY)
-            ) * 180 / Math.PI;
-            
-            // Normalize angles to 0-360
-            const normalizedCounterAngle = (angleToCounter + 360) % 360;
-            const normalizedVehicleAngle = (angleToVehicle + 360) % 360;
-            
-            // If vehicle is exiting AFTER the counter in clockwise direction, it needs a full lap
-            // Check if vehicle angle is greater than counter angle (accounting for wrap-around)
-            let needsFullLap = false;
-            if (normalizedVehicleAngle > normalizedCounterAngle + CONFIG.PIZZA_DELIVERY.REQUIRE_FULL_LAP_AFTER_ANGLE) {
-                needsFullLap = true;
-            }
-            
             // Mark that this car needs to go to counter after exiting
             car.goingToCounter = true;
-            car.needsFullLap = needsFullLap;
-            car.hasCompletedLap = false; // Track if vehicle has done the full lap
             
             // Store the actual movement direction for use in moveCarToExitAndTransition
             car.exitMovementDirection = exitPath.direction;
@@ -3674,8 +3629,6 @@
                 car.needsPizza = true;
                 car.goingToCounter = true;
                 car.stoppedAtCounter = false;
-                car.needsFullLap = false;
-                car.hasCompletedLap = false;
             }
             
             // Start vehicle sound
@@ -3730,8 +3683,6 @@
                     car.goingToCounter = false;
                     car.stoppedAtCounter = false;
                     car.needsPizza = false;
-                    car.needsFullLap = false;
-                    car.hasCompletedLap = false;
                 }
                 
                 this.updateCarGridPosition(car);
@@ -4200,21 +4151,17 @@ for (let t = 0; t <= 1; t += 0.002) {
                 if (d < minD) { minD = d; startIndex = i; }
             }
 
-            // Correct needsFullLap based on actual road entry position vs counter position
-            if (car.goingToCounter && this.counterPathIndex !== undefined) {
-                car.needsFullLap = startIndex > this.counterPathIndex;
+            // CRITICAL FIX: If vehicle landed at or past the counter position after exit curve,
+            // immediately collect pizza from current position instead of continuing on road
+            // Check using X position (counter is on the right, so if car.x >= counter.x, it's past)
+            if (car.goingToCounter && this.pizzaCounterPosition) {
+                const carX = car.sprite.x;
+                const counterX = this.pizzaCounterPosition.x;
                 
-                // CRITICAL FIX: If vehicle landed at or past the counter position after exit curve,
-                // immediately collect pizza from current position instead of continuing on road
-                // Check using X position (counter is on the right, so if car.x >= counter.x, it's past)
-                if (car.goingToCounter && this.pizzaCounterPosition) {
-                    const carX = car.sprite.x;
-                    const counterX = this.pizzaCounterPosition.x;
-                    
-                    // If vehicle's x is at or to the right of counter x, it's past the collection point
-                    if (carX >= counterX && !car.needsFullLap) {
-                        const vNum = this.cars.indexOf(car) + 1;
-                        console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} landed past counter (x: ${carX.toFixed(1)} >= ${counterX.toFixed(1)}), collecting immediately`);
+                // If vehicle's x is at or to the right of counter x, it's past the collection point
+                if (carX >= counterX) {
+                    const vNum = this.cars.indexOf(car) + 1;
+                    console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} landed past counter (x: ${carX.toFixed(1)} >= ${counterX.toFixed(1)}), collecting immediately`);
                         
                         // Mark as stopped at counter
                         car.stoppedAtCounter = true;
@@ -4236,7 +4183,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                         
                         return; // Exit early, don't start road tween
                     }
-                }
             }
 
             const remainingPoints = spacedPoints.length - startIndex;
@@ -4287,46 +4233,36 @@ for (let t = 0; t <= 1; t += 0.002) {
                     // Check if car needs to stop at counter (for pizza collection)
                     // ONLY check when vehicle is on road path (not during parking, charging, or Bezier curve)
                     if (car.onRoadPath && car.goingToCounter && !car.stoppedAtCounter) {
-                        // Check if vehicle needs a full lap first
-                        if (car.needsFullLap && !car.hasCompletedLap) {
-                            // Check if vehicle has completed a full lap (near starting point)
-                            const pathProgress = idx / spacedPoints.length;
-                            if (pathProgress > 0.9) { // 90% through the path
-                                car.hasCompletedLap = true;
+                        // Stop when vehicle reaches the pizza counter waypoint OR passes the counter X position
+                        const waypointTolerance = 5; // Allow ±5 indices tolerance for waypoint detection
+                        const atWaypoint = Math.abs(idx - this.pizzaCounterWaypointIndex) <= waypointTolerance;
+                        
+                        // Additional check: if vehicle's X is at or past counter X (for far-right vehicles)
+                        const counterX = this.pizzaCounterPosition ? this.pizzaCounterPosition.x : CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_X;
+                        const pastCounterX = car.sprite.x >= counterX - 50; // 50px buffer before counter
+                        
+                        if (atWaypoint || pastCounterX) {
+                            const vNum = this.cars.indexOf(car) + 1;
+                            if (pastCounterX && !atWaypoint) {
+                                console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} detected past counter X during road movement (${car.sprite.x.toFixed(1)} >= ${(counterX - 50).toFixed(1)}), stopping for collection`);
                             }
-                        } else {
-                            // Either doesn't need full lap, or has already completed it
-                            // Stop when vehicle reaches the pizza counter waypoint OR passes the counter X position
-                            const waypointTolerance = 5; // Allow ±5 indices tolerance for waypoint detection
-                            const atWaypoint = Math.abs(idx - this.pizzaCounterWaypointIndex) <= waypointTolerance;
                             
-                            // Additional check: if vehicle's X is at or past counter X (for far-right vehicles)
-                            const counterX = this.pizzaCounterPosition ? this.pizzaCounterPosition.x : CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_X;
-                            const pastCounterX = car.sprite.x >= counterX - 50; // 50px buffer before counter
+                            car.stoppedAtCounter = true;
                             
-                            if (atWaypoint || pastCounterX) {
-                                const vNum = this.cars.indexOf(car) + 1;
-                                if (pastCounterX && !atWaypoint) {
-                                    console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} detected past counter X during road movement (${car.sprite.x.toFixed(1)} >= ${(counterX - 50).toFixed(1)}), stopping for collection`);
-                                }
-                                
-                                car.stoppedAtCounter = true;
-                                
-                                // Set as current collector (no queue check needed - single queue system ensures only one vehicle at a time)
-                                this.currentPizzaCollector = car;
-                                
-                                // Kill this tween
-                                tween.stop();
-                                
-                                if (CONFIG.PIZZA_DELIVERY.STAY_ON_ROAD) {
-                                    // Keep car on road and animate pizza to it
-                                    this.collectPizzaOnRoad(car, spacedPoints, idx);
-                                } else {
-                                    // Original behavior: route car off road to counter
-                                    this.routeCarFromRoadToCounter(car, spacedPoints, idx);
-                                }
-                                return;
+                            // Set as current collector (no queue check needed - single queue system ensures only one vehicle at a time)
+                            this.currentPizzaCollector = car;
+                            
+                            // Kill this tween
+                            tween.stop();
+                            
+                            if (CONFIG.PIZZA_DELIVERY.STAY_ON_ROAD) {
+                                // Keep car on road and animate pizza to it
+                                this.collectPizzaOnRoad(car, spacedPoints, idx);
+                            } else {
+                                // Original behavior: route car off road to counter
+                                this.routeCarFromRoadToCounter(car, spacedPoints, idx);
                             }
+                            return;
                         }
                     }
                     
@@ -4537,21 +4473,17 @@ for (let t = 0; t <= 1; t += 0.002) {
                 if (d < minD) { minD = d; startIndex = i; }
             }
 
-            // Correct needsFullLap based on actual road entry position vs counter position
-            if (car.goingToCounter && this.counterPathIndex !== undefined) {
-                car.needsFullLap = startIndex > this.counterPathIndex;
+            // CRITICAL FIX: If vehicle landed at or past the counter position after exit curve,
+            // immediately collect pizza from current position instead of continuing on road
+            // Check using X position (counter is on the right, so if car.x >= counter.x, it's past)
+            if (car.goingToCounter && this.pizzaCounterPosition) {
+                const carX = car.sprite.x;
+                const counterX = this.pizzaCounterPosition.x;
                 
-                // CRITICAL FIX: If vehicle landed at or past the counter position after exit curve,
-                // immediately collect pizza from current position instead of continuing on road
-                // Check using X position (counter is on the right, so if car.x >= counter.x, it's past)
-                if (car.goingToCounter && this.pizzaCounterPosition) {
-                    const carX = car.sprite.x;
-                    const counterX = this.pizzaCounterPosition.x;
-                    
-                    // If vehicle's x is at or to the right of counter x, it's past the collection point
-                    if (carX >= counterX && !car.needsFullLap) {
-                        const vNum = this.cars.indexOf(car) + 1;
-                        console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} (reverse exit) landed past counter (x: ${carX.toFixed(1)} >= ${counterX.toFixed(1)}), collecting immediately`);
+                // If vehicle's x is at or to the right of counter x, it's past the collection point
+                if (carX >= counterX) {
+                    const vNum = this.cars.indexOf(car) + 1;
+                    console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} (reverse exit) landed past counter (x: ${carX.toFixed(1)} >= ${counterX.toFixed(1)}), collecting immediately`);
                         
                         // Mark as stopped at counter
                         car.stoppedAtCounter = true;
@@ -4573,7 +4505,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                         
                         return; // Exit early, don't start road tween
                     }
-                }
             }
 
             const remainingPoints = spacedPoints.length - startIndex;
@@ -4624,46 +4555,36 @@ for (let t = 0; t <= 1; t += 0.002) {
                     // Check if car needs to stop at counter (for pizza collection)
                     // ONLY check when vehicle is on road path (not during parking, charging, or Bezier curve)
                     if (car.onRoadPath && car.goingToCounter && !car.stoppedAtCounter) {
-                        // Check if vehicle needs a full lap first
-                        if (car.needsFullLap && !car.hasCompletedLap) {
-                            // Check if vehicle has completed a full lap (near starting point)
-                            const pathProgress = idx / spacedPoints.length;
-                            if (pathProgress > 0.9) { // 90% through the path
-                                car.hasCompletedLap = true;
+                        // Stop when vehicle reaches the pizza counter waypoint OR passes the counter X position
+                        const waypointTolerance = 5; // Allow ±5 indices tolerance for waypoint detection
+                        const atWaypoint = Math.abs(idx - this.pizzaCounterWaypointIndex) <= waypointTolerance;
+                        
+                        // Additional check: if vehicle's X is at or past counter X (for far-right vehicles)
+                        const counterX = this.pizzaCounterPosition ? this.pizzaCounterPosition.x : CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_X;
+                        const pastCounterX = car.sprite.x >= counterX - 50; // 50px buffer before counter
+                        
+                        if (atWaypoint || pastCounterX) {
+                            const vNum = this.cars.indexOf(car) + 1;
+                            if (pastCounterX && !atWaypoint) {
+                                console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} (reverse) detected past counter X during road movement (${car.sprite.x.toFixed(1)} >= ${(counterX - 50).toFixed(1)}), stopping for collection`);
                             }
-                        } else {
-                            // Either doesn't need full lap, or has already completed it
-                            // Stop when vehicle reaches the pizza counter waypoint OR passes the counter X position
-                            const waypointTolerance = 5; // Allow ±5 indices tolerance for waypoint detection
-                            const atWaypoint = Math.abs(idx - this.pizzaCounterWaypointIndex) <= waypointTolerance;
                             
-                            // Additional check: if vehicle's X is at or past counter X (for far-right vehicles)
-                            const counterX = this.pizzaCounterPosition ? this.pizzaCounterPosition.x : CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_X;
-                            const pastCounterX = car.sprite.x >= counterX - 50; // 50px buffer before counter
+                            car.stoppedAtCounter = true;
                             
-                            if (atWaypoint || pastCounterX) {
-                                const vNum = this.cars.indexOf(car) + 1;
-                                if (pastCounterX && !atWaypoint) {
-                                    console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} (reverse) detected past counter X during road movement (${car.sprite.x.toFixed(1)} >= ${(counterX - 50).toFixed(1)}), stopping for collection`);
-                                }
-                                
-                                car.stoppedAtCounter = true;
-                                
-                                // Set as current collector (no queue check needed - single queue system ensures only one vehicle at a time)
-                                this.currentPizzaCollector = car;
-                                
-                                // Kill this tween
-                                tween.stop();
-                                
-                                if (CONFIG.PIZZA_DELIVERY.STAY_ON_ROAD) {
-                                    // Keep car on road and animate pizza to it
-                                    this.collectPizzaOnRoad(car, spacedPoints, idx);
-                                } else {
-                                    // Original behavior: route car off road to counter
-                                    this.routeCarFromRoadToCounter(car, spacedPoints, idx);
-                                }
-                                return;
+                            // Set as current collector (no queue check needed - single queue system ensures only one vehicle at a time)
+                            this.currentPizzaCollector = car;
+                            
+                            // Kill this tween
+                            tween.stop();
+                            
+                            if (CONFIG.PIZZA_DELIVERY.STAY_ON_ROAD) {
+                                // Keep car on road and animate pizza to it
+                                this.collectPizzaOnRoad(car, spacedPoints, idx);
+                            } else {
+                                // Original behavior: route car off road to counter
+                                this.routeCarFromRoadToCounter(car, spacedPoints, idx);
                             }
+                            return;
                         }
                     }
                     
