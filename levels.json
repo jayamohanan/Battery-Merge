@@ -1,1395 +1,1433 @@
 {
   "levels": [
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 10137815,
-    "alpha": 1,
-    "borderColor": "#7a90b7",
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 4342338,
-    "fillColor": 6381921,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
     {
-      "type": "motorbike_1x2",
-      "gridRow": 2,
-      "gridCol": 7,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 10137815,
+        "alpha": 1,
+        "borderColor": "#7a90b7",
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 4342338,
+        "fillColor": 6381921,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 2,
+          "gridCol": 7,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 11,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 3,
+          "gridCol": 2,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
     },
     {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 11,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 4,
+          "gridCol": 2,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 3,
+          "gridCol": 9,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 3,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
     },
     {
-      "type": "motorbike_1x2",
-      "gridRow": 3,
-      "gridCol": 2,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 10137815,
+        "alpha": 1,
+        "borderColor": "#7a90b7",
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 4342338,
+        "fillColor": 6381921,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 3,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 1,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 4,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 9,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 1,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 10137815,
+        "alpha": 1,
+        "borderColor": "#7a90b7",
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 4342338,
+        "fillColor": 6381921,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 0,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 9,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 2,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 0,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 11,
+          "gridCol": 5,
+          "orientation": "left",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 4,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 9,
+          "orientation": "left",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 7,
+          "orientation": "left",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 2,
+          "gridCol": 1,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 10137815,
+        "alpha": 1,
+        "borderColor": "#7a90b7",
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 4342338,
+        "fillColor": 6381921,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 2,
+          "gridCol": 1,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 6,
+          "gridCol": 0,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 8,
+          "gridCol": 2,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 7,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 8,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 1,
+          "gridCol": 4,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 9,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 4,
+          "gridCol": 7,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 4,
+          "gridCol": 5,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 10,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 10137815,
+        "alpha": 1,
+        "borderColor": "#7a90b7",
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 4342338,
+        "fillColor": 6381921,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 4,
+          "gridCol": 0,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 8,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 9,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 6,
+          "gridCol": 8,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 5,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 6,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 1,
+          "gridCol": 2,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 2,
+          "gridCol": 3,
+          "orientation": "left",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 2,
+          "gridCol": 7,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 0,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 10,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 3,
+          "gridCol": 10,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 6,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 5
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 2,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 1,
+          "gridCol": 1,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 1,
+          "gridCol": 9,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 6,
+          "gridCol": 9,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 2,
+          "gridCol": 5,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 7,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 2,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 2,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 2,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 9,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 11,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 11,
+          "gridCol": 2,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 11,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 10,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 6,
+          "gridCol": 3,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 7,
+          "gridCol": 5,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 8,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 8,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 4,
+          "gridCol": 5,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 5,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        },
+        {
+          "type": "motorbike_1x2",
+          "gridRow": 3,
+          "gridCol": 5,
+          "orientation": "left",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 200
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "car_1x2",
+          "gridRow": 8,
+          "gridCol": 5,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "car_1x2",
+          "gridRow": 5,
+          "gridCol": 2,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "car_1x2",
+          "gridRow": 4,
+          "gridCol": 5,
+          "orientation": "down",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "car_1x2",
+          "gridRow": 2,
+          "gridCol": 5,
+          "orientation": "right",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 2,
+          "gridCol": 10,
+          "orientation": "left",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 150
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 10,
+        "rows": 10,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "car_1x2",
+          "gridRow": 3,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 6,
+          "gridCol": 9,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 150
+        },
+        {
+          "type": "truck_1x4",
+          "gridRow": 8,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 2000
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 12,
+        "rows": 12,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "car_1x2",
+          "gridRow": 4,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "car_1x2",
+          "gridRow": 6,
+          "gridCol": 10,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "car_1x2",
+          "gridRow": 10,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "car_1x2",
+          "gridRow": 2,
+          "gridCol": 7,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 20,
+        "rows": 20,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "car_1x2",
+          "gridRow": 10,
+          "gridCol": 10,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 20,
+        "rows": 20,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "car_1x2",
+          "gridRow": 10,
+          "gridCol": 10,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 20,
+        "rows": 20,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "long_1x3",
+          "gridRow": 11,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 12,
+          "gridCol": 17,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "truck_1x3",
+          "gridRow": 17,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "truck_1x3",
+          "gridRow": 15,
+          "gridCol": 12,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 20,
+        "rows": 20,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "car_1x2",
+          "gridRow": 6,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "car_1x2",
+          "gridRow": 14,
+          "gridCol": 16,
+          "orientation": "up",
+          "width": 1,
+          "length": 2,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 15,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "truck_1x3",
+          "gridRow": 16,
+          "gridCol": 12,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 6,
+        "rows": 6,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "truck_1x3",
+          "gridRow": 2,
+          "gridCol": 0,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "truck_1x3",
+          "gridRow": 2,
+          "gridCol": 5,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 5,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 20,
+        "rows": 20,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "truck_1x3",
+          "gridRow": 9,
+          "gridCol": 3,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "truck_1x3",
+          "gridRow": 15,
+          "gridCol": 16,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 18,
+          "gridCol": 6,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 3,
+          "gridCol": 18,
+          "orientation": "down",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 10,
+          "gridCol": 10,
+          "orientation": "right",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
+    },
+    {
+      "grid": {
+        "cols": 6,
+        "rows": 6,
+        "size_factor": 1
+      },
+      "parking": {
+        "color": 15658734,
+        "alpha": 1,
+        "borderColor": 6710886,
+        "borderWidth": 3
+      },
+      "road": {
+        "color": 5592405,
+        "fillColor": 7829367,
+        "fillAlpha": 0.7,
+        "outerRadius": 80,
+        "innerRadius": 20,
+        "segmentsPerCorner": 16
+      },
+      "cars": [
+        {
+          "type": "long_1x3",
+          "gridRow": 2,
+          "gridCol": 1,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        },
+        {
+          "type": "long_1x3",
+          "gridRow": 3,
+          "gridCol": 4,
+          "orientation": "up",
+          "width": 1,
+          "length": 3,
+          "chargeRequired": 100
+        }
+      ],
+      "business": "pizza_shop",
+      "product": "pizza"
     }
   ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 4,
-      "gridCol": 2,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 3,
-      "gridCol": 9,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 3,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 10137815,
-    "alpha": 1,
-    "borderColor": "#7a90b7",
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 4342338,
-    "fillColor": 6381921,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 3,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 1,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 4,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 9,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 1,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 10137815,
-    "alpha": 1,
-    "borderColor": "#7a90b7",
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 4342338,
-    "fillColor": 6381921,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 0,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 9,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 2,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 0,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 11,
-      "gridCol": 5,
-      "orientation": "left",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 4,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 9,
-      "orientation": "left",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 7,
-      "orientation": "left",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 2,
-      "gridCol": 1,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 10137815,
-    "alpha": 1,
-    "borderColor": "#7a90b7",
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 4342338,
-    "fillColor": 6381921,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 2,
-      "gridCol": 1,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 6,
-      "gridCol": 0,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 8,
-      "gridCol": 2,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 7,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 8,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 1,
-      "gridCol": 4,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 9,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 4,
-      "gridCol": 7,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 4,
-      "gridCol": 5,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 10,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 10137815,
-    "alpha": 1,
-    "borderColor": "#7a90b7",
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 4342338,
-    "fillColor": 6381921,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 4,
-      "gridCol": 0,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 8,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 9,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 6,
-      "gridCol": 8,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 5,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 6,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 1,
-      "gridCol": 2,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 2,
-      "gridCol": 3,
-      "orientation": "left",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 2,
-      "gridCol": 7,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 0,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 10,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 3,
-      "gridCol": 10,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 6,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 5
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 2,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 1,
-      "gridCol": 1,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 1,
-      "gridCol": 9,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 6,
-      "gridCol": 9,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 2,
-      "gridCol": 5,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 7,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 2,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 2,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 2,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 9,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 11,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 11,
-      "gridCol": 2,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 11,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 10,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 6,
-      "gridCol": 3,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 7,
-      "gridCol": 5,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 8,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 8,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 4,
-      "gridCol": 5,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 5,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    },
-    {
-      "type": "motorbike_1x2",
-      "gridRow": 3,
-      "gridCol": 5,
-      "orientation": "left",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 200
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "car_1x2",
-      "gridRow": 8,
-      "gridCol": 5,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "car_1x2",
-      "gridRow": 5,
-      "gridCol": 2,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "car_1x2",
-      "gridRow": 4,
-      "gridCol": 5,
-      "orientation": "down",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "car_1x2",
-      "gridRow": 2,
-      "gridCol": 5,
-      "orientation": "right",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 2,
-      "gridCol": 10,
-      "orientation": "left",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 150
-    }
-  ]
-},  
-{
-  "grid": {
-    "cols": 10,
-    "rows": 10,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "car_1x2",
-      "gridRow": 3,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 6,
-      "gridCol": 9,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 150
-    },
-    {
-      "type": "truck_1x4",
-      "gridRow": 8,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 2000
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 12,
-    "rows": 12,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "car_1x2",
-      "gridRow": 4,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "car_1x2",
-      "gridRow": 6,
-      "gridCol": 10,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "car_1x2",
-      "gridRow": 10,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "car_1x2",
-      "gridRow": 2,
-      "gridCol": 7,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 20,
-    "rows": 20,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "car_1x2",
-      "gridRow": 10,
-      "gridCol": 10,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 20,
-    "rows": 20,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "car_1x2",
-      "gridRow": 10,
-      "gridCol": 10,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 20,
-    "rows": 20,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "long_1x3",
-      "gridRow": 11,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 12,
-      "gridCol": 17,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "truck_1x3",
-      "gridRow": 17,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "truck_1x3",
-      "gridRow": 15,
-      "gridCol": 12,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 20,
-    "rows": 20,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "car_1x2",
-      "gridRow": 6,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "car_1x2",
-      "gridRow": 14,
-      "gridCol": 16,
-      "orientation": "up",
-      "width": 1,
-      "length": 2,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 15,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "truck_1x3",
-      "gridRow": 16,
-      "gridCol": 12,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 6,
-    "rows": 6,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "truck_1x3",
-      "gridRow": 2,
-      "gridCol": 0,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "truck_1x3",
-      "gridRow": 2,
-      "gridCol": 5,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 5,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 20,
-    "rows": 20,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "truck_1x3",
-      "gridRow": 9,
-      "gridCol": 3,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "truck_1x3",
-      "gridRow": 15,
-      "gridCol": 16,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 18,
-      "gridCol": 6,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 3,
-      "gridCol": 18,
-      "orientation": "down",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 10,
-      "gridCol": 10,
-      "orientation": "right",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    }
-  ]
-},
-{
-  "grid": {
-    "cols": 6,
-    "rows": 6,
-    "size_factor": 1
-  },
-  "parking": {
-    "color": 15658734,
-    "alpha": 1,
-    "borderColor": 6710886,
-    "borderWidth": 3
-  },
-  "road": {
-    "color": 5592405,
-    "fillColor": 7829367,
-    "fillAlpha": 0.7,
-    "outerRadius": 80,
-    "innerRadius": 20,
-    "segmentsPerCorner": 16
-  },
-  "cars": [
-    {
-      "type": "long_1x3",
-      "gridRow": 2,
-      "gridCol": 1,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    },
-    {
-      "type": "long_1x3",
-      "gridRow": 3,
-      "gridCol": 4,
-      "orientation": "up",
-      "width": 1,
-      "length": 3,
-      "chargeRequired": 100
-    }
-  ]
-}
-]
 }

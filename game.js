@@ -48,6 +48,11 @@
                 y: CONFIG.PIZZA_DELIVERY.COUNTER_CENTER_Y
             };
             
+            // Business and product properties (per level)
+            this.businessSprite = null;         // Business building sprite (e.g., pizza shop, library)
+            this.productSprites = [];           // Array of collectible product sprites
+            this.currentProductSpriteKey = 'pizza'; // Current product sprite key for this level
+            
             // Merge Scene properties (bottom half)
             this.coins = 1000;
             this.grid = Array(3).fill(null).map(() => Array(3).fill(null)); // 3x3 grid
@@ -115,9 +120,15 @@
             this.load.image('grass3', 'graphics/grass/grass3.png');
             this.load.image('grass4', 'graphics/grass/grass4.png');
             
-            // Load special zone images
-            this.load.image('pizza_shop', 'graphics/library.png');
-            // this.load.image('pizza_shop', 'graphics/pizza_shop.png');
+            // Load business sprites dynamically from CONFIG (from graphics/businesses folder)
+            CONFIG.BUSINESSES.forEach(business => {
+                this.load.image(business.spriteKey, `graphics/businesses/${business.fileName}`);
+            });
+            
+            // Load product sprites dynamically from CONFIG (from graphics/products folder)
+            CONFIG.PRODUCTS.forEach(product => {
+                this.load.image(product.spriteKey, `graphics/products/${product.fileName}`);
+            });
             
             // Load grid panel background
             this.load.image('grid_panel', 'graphics/grid_panel.png');
@@ -262,32 +273,8 @@
                 });
             }
             
-            // Render special zone images
-            specialZones.forEach(zone => {
-                if (zone.tag === 'shop') {
-                    // Add pizza shop image at top of screen, contained within zone width
-                    const shopImage = this.add.image(0, 0, 'pizza_shop');
-                    shopImage.setOrigin(0.5, 0); // Origin at top center
-                    
-                    // Calculate zone boundaries
-                    const zoneLeft = zone.centerX - zone.width / 2;
-                    const zoneRight = zone.centerX + zone.width / 2;
-                    const zoneTop = 0; // Start from top of screen
-                    const zoneHeight = zone.height;
-                    
-                    // Calculate scale to fit within zone width while maintaining aspect ratio
-                    const scaleX = zone.width / shopImage.width;
-                    const scaleY = zoneHeight / shopImage.height;
-                    const scale = Math.min(scaleX, scaleY); // Use smaller scale to fit within zone
-                    
-                    // Apply scale
-                    shopImage.setScale(scale);
-                    
-                    // Position at zone center X and top of screen
-                    shopImage.setPosition(zone.centerX, zoneTop);
-                    shopImage.setDepth(1); // Below grass (2) but above background
-                }
-            });
+            // Note: Business sprites (like pizza_shop, library) are now rendered per-level
+            // in spawnBusinessAndProducts() method, not here in spawnGrassSprites()
             
             // Helper function to check if a point is inside any forbidden zone
             const isInForbiddenZone = (x, y) => {
@@ -945,6 +932,9 @@
                 this.spawnCar(carData);
             }
             
+            // Spawn business and product sprites for this level
+            this.spawnBusinessAndProducts(levelData);
+            
             // Create pizzas at counter (one for each vehicle)
             if (CONFIG.PIZZA_DELIVERY.ENABLED) {
                 this.createPizzasAtCounter();
@@ -962,6 +952,53 @@
             
             // Start charging system
             this.startCharging();
+        }
+        
+        spawnBusinessAndProducts(levelData) {
+            // Get business and product labels from level data (with defaults)
+            const businessLabel = levelData.business || 'pizza_shop';
+            const productLabel = levelData.product || 'pizza';
+            
+            // Find business configuration
+            const businessConfig = CONFIG.BUSINESSES.find(b => b.label === businessLabel);
+            if (!businessConfig) {
+                console.warn(`Business '${businessLabel}' not found in CONFIG.BUSINESSES`);
+                return;
+            }
+            
+            // Find product configuration
+            const productConfig = CONFIG.PRODUCTS.find(p => p.label === productLabel);
+            if (!productConfig) {
+                console.warn(`Product '${productLabel}' not found in CONFIG.PRODUCTS`);
+                return;
+            }
+            
+            // Store current product sprite key for use by createPizzasAtCounter
+            this.currentProductSpriteKey = productConfig.spriteKey;
+            
+            // Spawn business sprite (building/shop) at top of screen
+            // Use position from special zone in config
+            const shopZone = CONFIG.GRASS.SPECIAL_ZONES?.find(z => z.tag === 'shop');
+            if (shopZone) {
+                this.businessSprite = this.add.image(0, 0, businessConfig.spriteKey);
+                this.businessSprite.setOrigin(0.5, 0); // Origin at top center
+                
+                // Calculate zone boundaries
+                const zoneTop = 0; // Start from top of screen
+                const zoneHeight = shopZone.height;
+                
+                // Calculate scale to fit within zone width while maintaining aspect ratio
+                const scaleX = shopZone.width / this.businessSprite.width;
+                const scaleY = zoneHeight / this.businessSprite.height;
+                const scale = Math.min(scaleX, scaleY); // Use smaller scale to fit within zone
+                
+                // Apply scale
+                this.businessSprite.setScale(scale);
+                
+                // Position at zone center X and top of screen
+                this.businessSprite.setPosition(shopZone.centerX, zoneTop);
+                this.businessSprite.setDepth(1); // Below grass (2) but above background
+            }
         }
         
         drawParkingAndRoad(parkingData, roadData) {
@@ -2569,7 +2606,9 @@
                 // Keep depth below 99 so pizzas are behind tutorial mask (mask is at depth 99)
                 const depth = (numRows - row) * columns + (columns - col) + 10;
                 
-                const pizza = this.add.image(x, y, 'pizza')
+                // Use current product sprite key (set by spawnBusinessAndProducts)
+                const productSpriteKey = this.currentProductSpriteKey || 'pizza';
+                const pizza = this.add.image(x, y, productSpriteKey)
                     .setDisplaySize(pizzaSize, pizzaSize)
                     .setDepth(depth);
                 
@@ -4945,6 +4984,14 @@ for (let t = 0; t <= 1; t += 0.002) {
             this.pizzas = [];
             this.exitQueue = [];
             this.currentPizzaCollector = null;
+            
+            // Clear business and product sprites
+            if (this.businessSprite) {
+                this.businessSprite.destroy();
+                this.businessSprite = null;
+            }
+            this.productSprites.forEach(product => product.destroy());
+            this.productSprites = [];
             
             // Destroy parking lot graphics
             if (this.roadRope) this.roadRope.destroy();
