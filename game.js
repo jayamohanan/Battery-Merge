@@ -3237,6 +3237,41 @@
                 // Mark this slot as pulsing (for connection line flash)
                 this.chargingPulseTimestamps[i] = this.time.now;
                 
+                // Rotate vehicle sprite on charge pulse
+                if (CONFIG.CHARGING_CONNECTION.ROTATE_ON_CHARGE && car.sprite) {
+                    // Store the initial rotation angle
+                    const initialRotation = car.sprite.rotation;
+                    
+                    // Rotate 360 degrees (2 * Math.PI) clockwise and return to initial orientation
+                    this.tweens.add({
+                        targets: car.sprite,
+                        rotation: initialRotation + (Math.PI * 2), // Full 360-degree rotation
+                        duration: CONFIG.CHARGING_CONNECTION.ROTATION_DURATION,
+                        ease: 'Linear',
+                        onComplete: () => {
+                            // Ensure we're back to the exact initial rotation (prevent floating point drift)
+                            car.sprite.rotation = initialRotation;
+                        }
+                    });
+                }
+                
+                // Flash vehicle sprite on charge pulse (alternative/complement to rotation)
+                if (CONFIG.CHARGING_CONNECTION.FLASH_ON_CHARGE && car.sprite) {
+                    // Flash effect: rapidly reduce and restore alpha (transparency)
+                    this.tweens.add({
+                        targets: car.sprite,
+                        alpha: CONFIG.CHARGING_CONNECTION.FLASH_MIN_ALPHA, // Fade to minimum alpha
+                        duration: CONFIG.CHARGING_CONNECTION.FLASH_DURATION / 2, // Half duration for fade out
+                        ease: 'Linear',
+                        yoyo: true, // Return to original alpha
+                        repeat: CONFIG.CHARGING_CONNECTION.FLASH_COUNT - 1, // Repeat for multiple flashes
+                        onComplete: () => {
+                            // Ensure sprite is fully visible after flash
+                            car.sprite.alpha = 1;
+                        }
+                    });
+                }
+                
                 // Check if car is fully charged
                 if (car.currentCharge >= car.chargeRequired) {
                     // Mark car as waiting for animation to complete

@@ -32,7 +32,7 @@
           "orientation": "up",
           "width": 1,
           "length": 2,
-          "chargeRequired": 5
+          "chargeRequired": 25
         },
         {
           "type": "motorbike_1x2",
@@ -41,7 +41,7 @@
           "orientation": "up",
           "width": 1,
           "length": 2,
-          "chargeRequired": 5
+          "chargeRequired": 30
         },
         {
           "type": "motorbike_1x2",
@@ -50,7 +50,7 @@
           "orientation": "up",
           "width": 1,
           "length": 2,
-          "chargeRequired": 5
+          "chargeRequired": 35
         }
       ]
     },

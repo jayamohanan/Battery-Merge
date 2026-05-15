@@ -13,7 +13,7 @@ var CONFIG = {
     TEXT_COLOR: '#1A237E',
     
     RESET_PROGRESS: false,         // Set to true to clear saved progress on load
-    BATTERY_START_LEVEL: 16,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
+    BATTERY_START_LEVEL: 1,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
     BATTERY_IMAGE_EXTENSIONS: ['svg', 'png', 'jpg', 'webp'],  // Priority order for battery image extensions
     
     // Game Area Background Colors
@@ -511,6 +511,16 @@ var CONFIG = {
         PULSE_DURATION: 200,            // Duration of pulse flash in milliseconds
         PULSE_ALPHA_MAX: 1.0,           // Maximum alpha during pulse (1.0 = fully opaque)
         PULSE_BATTERY_SCALE: 0.15,      // Battery scale pulse amount (0.15 = 15% larger at peak)
+        
+        // Vehicle rotation on charge pulse
+        ROTATE_ON_CHARGE: false,        // Enable vehicle rotation during charging pulse
+        ROTATION_DURATION: 50,          // Duration for full 360-degree rotation in milliseconds (lower = faster)
+        
+        // Vehicle flash on charge pulse (alternative/complement to rotation)
+        FLASH_ON_CHARGE: true,          // Enable vehicle flash during charging pulse
+        FLASH_DURATION: 50,            // Duration for one complete flash cycle in milliseconds (lower = faster)
+        FLASH_MIN_ALPHA: 0.3,           // Minimum alpha (transparency) during flash (0 = invisible, 1 = opaque)
+        FLASH_COUNT: 2,                 // Number of flash cycles per charge pulse (1 = one blink, 2 = two blinks)
     },
     
     // EV Charger Unit settings
