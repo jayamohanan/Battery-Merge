@@ -433,6 +433,10 @@
       ]
     },
     {
+      "level": 6,
+       "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -588,11 +592,13 @@
           "length": 2,
           "chargeRequired": 5
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "level":7,
+        "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -667,9 +673,7 @@
           "length": 2,
           "chargeRequired": 200
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
       "grid": {
