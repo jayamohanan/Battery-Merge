@@ -559,33 +559,10 @@ var CONFIG = {
     },
     
     // Business and Product Configuration
-    // Business sprites appear on top of parking area (e.g., pizza shop, library, bookstore)
-    // Product sprites are collectible items that correspond to each business
-    BUSINESSES: [
-        {
-            label: "pizza_shop",
-            spriteKey: "pizza_shop",           // Sprite key loaded in preload
-            fileName: "pizza_shop.png"         // File in graphics/businesses/ folder
-        },
-        {
-            label: "library",
-            spriteKey: "library",
-            fileName: "library.png"
-        }
-    ],
-    
-    PRODUCTS: [
-        {
-            label: "pizza",
-            spriteKey: "pizza",                // Sprite key loaded in preload
-            fileName: "pizza.png"              // File in graphics/products/ folder
-        },
-        {
-            label: "book",
-            spriteKey: "book",
-            fileName: "book.png"
-        }
-    ],
+    // Loaded from catalogData.js - maintains businesses and products separately for easier management
+    // With 50+ businesses and products, keeping them in a separate file reduces clutter
+    BUSINESSES: CATALOG.BUSINESSES,
+    PRODUCTS: CATALOG.PRODUCTS,
     
     // Pizza Delivery System settings
     PIZZA_DELIVERY: {

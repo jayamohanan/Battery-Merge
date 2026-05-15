@@ -103,7 +103,6 @@
             loadBatteryImagesFromCache(this);
             
             this.load.image('coin', 'graphics/coin.png');
-            this.load.image('pizza', 'graphics/pizza.png');
             this.load.image('point', 'graphics/point.png');
             this.load.image('button', 'graphics/spawn_button3.png');
             this.load.image('plug', 'graphics/plug.png');
