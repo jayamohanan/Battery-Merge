@@ -1,6 +1,10 @@
 {
   "levels": [
     {
+      "number": 1,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -48,11 +52,13 @@
           "length": 2,
           "chargeRequired": 5
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number":2,
+       "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -100,11 +106,13 @@
           "length": 2,
           "chargeRequired": 5
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "level": 3,
+       "business": "pizza_shop", 
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -188,11 +196,13 @@
           "length": 2,
           "chargeRequired": 5
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "level": 4,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -303,11 +313,13 @@
           "length": 2,
           "chargeRequired": 5
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "level": 5,
+       "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -418,9 +430,7 @@
           "length": 2,
           "chargeRequired": 5
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
       "grid": {
