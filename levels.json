@@ -58,7 +58,7 @@
       "number":2,
        "business": "pizza_shop",
       "product": "pizza",
-      "deliveryTarget": "Neighbourhood Delivery",
+      "deliveryTarget": "District Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -109,10 +109,10 @@
       ]
     },
     {
-      "level": 3,
-       "business": "pizza_shop", 
+      "number": 3,
+      "business": "pizza_shop",
       "product": "pizza",
-      "deliveryTarget": "Neighbourhood Delivery",
+      "deliveryTarget": "Express Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -199,10 +199,10 @@
       ]
     },
     {
-      "level": 4,
+      "number": 4,
       "business": "pizza_shop",
       "product": "pizza",
-      "deliveryTarget": "Neighbourhood Delivery",
+      "deliveryTarget": "Citywide Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -316,10 +316,10 @@
       ]
     },
     {
-      "level": 5,
-       "business": "pizza_shop",
+      "number": 5,
+      "business": "pizza_shop",
       "product": "pizza",
-      "deliveryTarget": "Neighbourhood Delivery",
+      "deliveryTarget": "Corporate Catering",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -433,8 +433,8 @@
       ]
     },
     {
-      "level": 6,
-       "business": "pizza_shop",
+      "number": 6,
+      "business": "pizza_shop",
       "product": "pizza",
       "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
@@ -595,8 +595,8 @@
       ]
     },
     {
-      "level":7,
-        "business": "pizza_shop",
+      "number": 7,
+      "business": "pizza_shop",
       "product": "pizza",
       "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
@@ -676,6 +676,10 @@
       ]
     },
     {
+      "number": 8,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -813,11 +817,13 @@
           "length": 2,
           "chargeRequired": 200
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 9,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -901,11 +907,13 @@
           "length": 2,
           "chargeRequired": 200
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 10,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -971,11 +979,13 @@
           "length": 3,
           "chargeRequired": 150
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 11,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 10,
         "rows": 10,
@@ -1023,11 +1033,13 @@
           "length": 3,
           "chargeRequired": 2000
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 12,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 12,
         "rows": 12,
@@ -1084,11 +1096,13 @@
           "length": 2,
           "chargeRequired": 100
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 13,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 20,
         "rows": 20,
@@ -1118,11 +1132,13 @@
           "length": 2,
           "chargeRequired": 100
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 14,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 20,
         "rows": 20,
@@ -1152,11 +1168,13 @@
           "length": 2,
           "chargeRequired": 100
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 15,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 20,
         "rows": 20,
@@ -1213,11 +1231,13 @@
           "length": 3,
           "chargeRequired": 100
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 16,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 20,
         "rows": 20,
@@ -1274,11 +1294,13 @@
           "length": 3,
           "chargeRequired": 100
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 17,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 6,
         "rows": 6,
@@ -1326,11 +1348,13 @@
           "length": 3,
           "chargeRequired": 100
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 18,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 20,
         "rows": 20,
@@ -1396,11 +1420,13 @@
           "length": 3,
           "chargeRequired": 100
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     },
     {
+      "number": 19,
+      "business": "pizza_shop",
+      "product": "pizza",
+      "deliveryTarget": "Neighbourhood Delivery",
       "grid": {
         "cols": 6,
         "rows": 6,
@@ -1439,9 +1465,7 @@
           "length": 3,
           "chargeRequired": 100
         }
-      ],
-      "business": "pizza_shop",
-      "product": "pizza"
+      ]
     }
   ]
 }
