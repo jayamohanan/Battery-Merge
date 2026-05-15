@@ -238,6 +238,32 @@ var CONFIG = {
                                         // Decrease this to pull grid UP (closer to button)
     },
     
+    // Battery Unlock Display (permanent display showing highest unlocked battery above merge grid)
+    BATTERY_UNLOCK_DISPLAY: {
+        // Master toggle - controls entire panel visibility
+        DISPLAY_CROWN_PANEL: true,     // Master toggle for entire crown panel (true = show, false = hide everything)
+        
+        // Element toggles - control which elements are shown (only applies if DISPLAY_CROWN_PANEL is true)
+        SHOW_CROWN_ICON: true,         // Toggle crown icon visibility (true = show, false = hide)
+        SHOW_BATTERY_ICON: false,       // Toggle battery icon visibility (true = show, false = hide)
+        
+        // Icon configuration
+        CROWN_ICON_SIZE: 32,           // Width and height of crown icon (pixels)
+        BATTERY_ICON_SIZE: 32,         // Width and height of battery icon (pixels)
+        
+        // Text configuration
+        TEXT_SIZE: '24px',             // Font size for battery display name
+        TEXT_COLOR: '#FFD700',         // Gold color for text
+        TEXT_STROKE_COLOR: '#8B4513',  // Brown outline color for text
+        TEXT_STROKE_THICKNESS: 4,      // Outline thickness (pixels)
+        
+        // Layout configuration - ADJUST THESE TO REPOSITION THE DISPLAY
+        CROWN_BATTERY_SPACING: 8,      // Spacing between crown icon and battery icon (pixels)
+        BATTERY_TEXT_SPACING: 5,       // Spacing between battery icon and text (pixels)
+        VERTICAL_OFFSET: 20,           // Distance from grid panel top edge (pixels) - increase to move UP, decrease to move DOWN
+        PADDING_FROM_LEFT: 30,         // Distance from grid panel left edge (pixels) - increase to move RIGHT, decrease to move LEFT
+    },
+    
     // Coin Counter Display (right side, aligned with middle row of grid)
     COIN_COUNTER: {
         ALIGN_WITH_GRID_ROW: 1,        // Which row to align with (0=top, 1=middle, 2=bottom for 3x3 grid)

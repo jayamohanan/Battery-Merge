@@ -70,6 +70,12 @@
             this.mergeTutorialShown = false;
             this.mergePointer = null;  // Hand animation for merge tutorial
             
+            // Battery unlock display properties (permanent display)
+            this.unlockDisplayContainer = null;    // Container for unlock display (crown icon + battery icon + text)
+            this.unlockDisplayText = null;         // Text element for battery name
+            this.unlockDisplayBatteryIcon = null;  // Battery icon sprite element
+            this.highestUnlockedBatteryLevel = 0;  // Highest battery level ever unlocked
+            
             // Grid layout constants (can be overridden by CONFIG.CELL)
             this.CELL_SIZE = CONFIG.CELL.SIZE;
             this.CELL_GAP = CONFIG.CELL.GAP;
@@ -132,6 +138,9 @@
             // Load grid panel background
             this.load.image('grid_panel', 'graphics/grid_panel.png');
             
+            // Load battery unlock display assets
+            this.load.image('battery_crown', 'graphics/battery_crown.png');
+            
             // Load parking jam assets - dynamically load all vehicles from CONFIG.VEHICLES
             CONFIG.VEHICLES.forEach(vehicle => {
                 this.load.image(vehicle.key, `graphics/vehicles/${vehicle.key}.png`);
@@ -186,6 +195,9 @@
             
             // Create coin display (positioned relative to grid)
             this.createCoinDisplay();
+            
+            // Create permanent battery unlock display (positioned relative to grid)
+            this.createBatteryUnlockDisplay();
             
             // Spawn initial battery in grid
             this.spawnBatteryInGrid(0, 0, CONFIG.BATTERY_START_LEVEL);
@@ -5445,12 +5457,20 @@ for (let t = 0; t <= 1; t += 0.002) {
             const gridCenterY = this.gridStartY - this.CELL_SIZE / 2 + (this.GRID_ROWS * this.CELL_SIZE + (this.GRID_ROWS - 1) * this.CELL_GAP) / 2;
             const gridHeight = this.GRID_ROWS * this.CELL_SIZE + (this.GRID_ROWS - 1) * this.CELL_GAP;
             const panelHeight = gridHeight + 2 * panelPadding;
+            const panelWidth = gridWidth + 2 * panelPadding;
             
-            // Position above grid panel (centered horizontally, above panel top edge)
+            // Position above grid panel on the RIGHT side
             const coinY = gridCenterY - panelHeight / 2 - 40; // 40px above panel top
-            const coinX = gridCenterX; // Horizontally centered with grid
+            const gridRightEdge = gridCenterX + panelWidth / 2;
             
-            // Coin text (centered)
+            // Coin icon on the right edge
+            const coinIconX = gridRightEdge - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2 - CONFIG.COIN_COUNTER.PADDING_FROM_SCREEN_RIGHT;
+            this.coinIcon = this.add.image(coinIconX, coinY, 'coin');
+            this.coinIcon.setDisplaySize(CONFIG.COIN_COUNTER.COIN_ICON_WIDTH, CONFIG.COIN_COUNTER.COIN_ICON_HEIGHT);
+            this.coinIcon.setDepth(10); // Below tutorial overlay (so it gets masked)
+            
+            // Coin text to the left of the icon
+            const coinX = coinIconX - CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2 - CONFIG.COIN_COUNTER.TEXT_ICON_SPACING;
             this.coinText = this.add.text(coinX, coinY, `${this.coins}`, {
                 fontSize: CONFIG.COIN_COUNTER.TEXT_SIZE,
                 fontFamily: CONFIG.FONT_FAMILY,
@@ -5458,14 +5478,115 @@ for (let t = 0; t <= 1; t += 0.002) {
                 fontStyle: 'bold',
                 stroke: CONFIG.COIN_COUNTER.TEXT_STROKE_COLOR,
                 strokeThickness: CONFIG.COIN_COUNTER.TEXT_STROKE_THICKNESS
-            }).setOrigin(0.5);  // Center-aligned
+            }).setOrigin(1, 0.5);  // Right-aligned so it grows to the left
             this.coinText.setDepth(10); // Below tutorial overlay (so it gets masked)
+        }
+        
+        createBatteryUnlockDisplay() {
+            // Check master toggle - don't create panel if disabled
+            if (!CONFIG.BATTERY_UNLOCK_DISPLAY.DISPLAY_CROWN_PANEL) {
+                this.unlockDisplayContainer = null;
+                this.unlockDisplayText = null;
+                this.unlockDisplayBatteryIcon = null;
+                return; // Master toggle is off, skip creating the panel
+            }
             
-            // Position coin icon to the right of the text
-            const coinIconX = coinX + this.coinText.width / 2 + CONFIG.COIN_COUNTER.TEXT_ICON_SPACING + CONFIG.COIN_COUNTER.COIN_ICON_WIDTH / 2;
-            this.coinIcon = this.add.image(coinIconX, coinY, 'coin');
-            this.coinIcon.setDisplaySize(CONFIG.COIN_COUNTER.COIN_ICON_WIDTH, CONFIG.COIN_COUNTER.COIN_ICON_HEIGHT);
-            this.coinIcon.setDepth(10); // Below tutorial overlay (so it gets masked)
+            // Calculate position above the grid panel (same as coin display but below it)
+            const gridWidth = this.GRID_COLS * this.CELL_SIZE + (this.GRID_COLS - 1) * this.CELL_GAP;
+            const panelPadding = CONFIG.CELL.GRID_PANEL_PADDING;
+            const gridCenterX = this.gridStartX - this.CELL_SIZE / 2 + gridWidth / 2;
+            const gridCenterY = this.gridStartY - this.CELL_SIZE / 2 + (this.GRID_ROWS * this.CELL_SIZE + (this.GRID_ROWS - 1) * this.CELL_GAP) / 2;
+            const gridHeight = this.GRID_ROWS * this.CELL_SIZE + (this.GRID_ROWS - 1) * this.CELL_GAP;
+            const panelHeight = gridHeight + 2 * panelPadding;
+            const panelWidth = gridWidth + 2 * panelPadding;
+            
+            // Position above grid panel on the LEFT side
+            const displayY = gridCenterY - panelHeight / 2 - CONFIG.BATTERY_UNLOCK_DISPLAY.VERTICAL_OFFSET;
+            const gridLeftEdge = gridCenterX - panelWidth / 2;
+            
+            // Create container for permanent unlock display
+            this.unlockDisplayContainer = this.add.container(0, displayY);
+            this.unlockDisplayContainer.setDepth(10); // Below tutorial overlay (so it gets masked at start)
+            
+            // Track elements to add to container
+            const elementsToAdd = [];
+            
+            // Dynamic positioning - no empty space for hidden elements
+            let currentX = gridLeftEdge + CONFIG.BATTERY_UNLOCK_DISPLAY.PADDING_FROM_LEFT;
+            
+            // Conditionally create crown icon
+            let crownIcon = null;
+            if (CONFIG.BATTERY_UNLOCK_DISPLAY.SHOW_CROWN_ICON) {
+                crownIcon = this.add.image(0, 0, 'battery_crown');
+                crownIcon.setDisplaySize(
+                    CONFIG.BATTERY_UNLOCK_DISPLAY.CROWN_ICON_SIZE,
+                    CONFIG.BATTERY_UNLOCK_DISPLAY.CROWN_ICON_SIZE
+                );
+                crownIcon.setPosition(currentX + CONFIG.BATTERY_UNLOCK_DISPLAY.CROWN_ICON_SIZE / 2, 0);
+                elementsToAdd.push(crownIcon);
+                currentX += CONFIG.BATTERY_UNLOCK_DISPLAY.CROWN_ICON_SIZE + CONFIG.BATTERY_UNLOCK_DISPLAY.CROWN_BATTERY_SPACING;
+            }
+            
+            // Conditionally create battery icon (will be updated with actual battery texture)
+            if (CONFIG.BATTERY_UNLOCK_DISPLAY.SHOW_BATTERY_ICON) {
+                const batteryIconLevel = getBatteryIconLevel(CONFIG.BATTERY_START_LEVEL);
+                this.unlockDisplayBatteryIcon = this.add.image(0, 0, `battery${batteryIconLevel}`);
+                this.unlockDisplayBatteryIcon.setDisplaySize(
+                    CONFIG.BATTERY_UNLOCK_DISPLAY.BATTERY_ICON_SIZE,
+                    CONFIG.BATTERY_UNLOCK_DISPLAY.BATTERY_ICON_SIZE
+                );
+                this.unlockDisplayBatteryIcon.setPosition(currentX + CONFIG.BATTERY_UNLOCK_DISPLAY.BATTERY_ICON_SIZE / 2, 0);
+                elementsToAdd.push(this.unlockDisplayBatteryIcon);
+                currentX += CONFIG.BATTERY_UNLOCK_DISPLAY.BATTERY_ICON_SIZE + CONFIG.BATTERY_UNLOCK_DISPLAY.BATTERY_TEXT_SPACING;
+            } else {
+                this.unlockDisplayBatteryIcon = null; // No battery icon
+            }
+            
+            // Create display name text (always shown)
+            this.unlockDisplayText = this.add.text(0, 0, '', {
+                fontFamily: CONFIG.FONT_FAMILY,
+                fontSize: CONFIG.BATTERY_UNLOCK_DISPLAY.TEXT_SIZE,
+                color: CONFIG.BATTERY_UNLOCK_DISPLAY.TEXT_COLOR,
+                stroke: CONFIG.BATTERY_UNLOCK_DISPLAY.TEXT_STROKE_COLOR,
+                strokeThickness: CONFIG.BATTERY_UNLOCK_DISPLAY.TEXT_STROKE_THICKNESS
+            });
+            this.unlockDisplayText.setOrigin(0, 0.5); // Left-aligned
+            this.unlockDisplayText.setPosition(currentX, 0);
+            elementsToAdd.push(this.unlockDisplayText);
+            
+            // Add all elements to container
+            this.unlockDisplayContainer.add(elementsToAdd);
+            
+            // Set initial battery level from config
+            this.updateBatteryUnlockDisplay(CONFIG.BATTERY_START_LEVEL);
+        }
+        
+        updateBatteryUnlockDisplay(batteryLevel) {
+            // Check if panel exists (master toggle might be off)
+            if (!this.unlockDisplayContainer || !this.unlockDisplayText) {
+                return; // Panel doesn't exist, skip update
+            }
+            
+            // Find battery data for this level
+            const batteryData = BATTERY_DATA.find(b => b.level === batteryLevel);
+            if (!batteryData || !batteryData.displayName) {
+                return; // No display name, skip
+            }
+            
+            // Create display text with "Battery" suffix
+            const displayTextWithSuffix = `${batteryData.displayName} Battery`;
+            
+            // Update text (position remains the same since it's already set in createBatteryUnlockDisplay)
+            this.unlockDisplayText.setText(displayTextWithSuffix);
+            
+            // Update battery icon texture if battery icon is enabled
+            if (CONFIG.BATTERY_UNLOCK_DISPLAY.SHOW_BATTERY_ICON && this.unlockDisplayBatteryIcon) {
+                const batteryIconLevel = getBatteryIconLevel(batteryLevel);
+                this.unlockDisplayBatteryIcon.setTexture(`battery${batteryIconLevel}`);
+            }
+            
+            // Update highest unlocked level
+            this.highestUnlockedBatteryLevel = batteryLevel;
         }
         
         // Animate coin reward when car is fully charged and moves out
@@ -6363,6 +6484,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                 this.updateSpawnButton();
             }
             
+            // Show battery unlock display for every new battery level
+            this.showBatteryUnlockDisplay(newLevel);
+            
             // Merge animation effect
             this.createMergeEffect(this.gridCells[targetRow][targetCol].x, this.gridCells[targetRow][targetCol].y);
         }
@@ -6571,6 +6695,9 @@ for (let t = 0; t <= 1; t += 0.002) {
                 this.updateSpawnButton();
             }
             
+            // Show battery unlock display for every new battery level
+            this.showBatteryUnlockDisplay(newLevel);
+            
             // Merge animation effect
             this.createMergeEffect(targetSlot.x, targetSlot.y);
             
@@ -6717,6 +6844,18 @@ for (let t = 0; t <= 1; t += 0.002) {
             });
         }
 
+        showBatteryUnlockDisplay(batteryLevel) {
+            // Check if panel exists (master toggle might be off)
+            if (!this.unlockDisplayContainer) {
+                return; // Panel doesn't exist, skip update
+            }
+            
+            // Only update if this is a NEW highest level battery
+            if (batteryLevel > this.highestUnlockedBatteryLevel) {
+                this.updateBatteryUnlockDisplay(batteryLevel);
+            }
+        }
+
         updateSpawnButton() {
             // Update spawn button based on highest level
             if (this.highestBatteryLevel >= 9) {
@@ -6837,6 +6976,11 @@ for (let t = 0; t <= 1; t += 0.002) {
             
             // Update spawn button
             this.updateSpawnButton();
+            
+            // Update crown panel display (check for new highest battery level)
+            if (this.highestBatteryLevel > this.highestUnlockedBatteryLevel) {
+                this.showBatteryUnlockDisplay(this.highestBatteryLevel);
+            }
             
             // Hide button and reset timer
             // Stop pulse animation
