@@ -1172,6 +1172,43 @@
             // Create exit gate at the end of the road
             this.createExitGate(centerX, centerY, halfW, halfH, offset, roadWidth);
             
+            // Find waypoint on path where gate should open (waypoint-based gate trigger)
+            // MUST be done AFTER createExitGate so this.gatePosition is set
+            if (this.gatePosition) {
+                const pathPoints = this.roadPath.getSpacedPoints(500); // Same 500 points used for vehicle movement
+                const triggerDistance = CONFIG.GATE.GATE_TRIGGER_DISTANCE;
+                let closestDist = Infinity;
+                let gateWaypointIndex = 0;
+                
+                console.log(`[GATE-INIT] Calculating gate waypoint. Gate position: (${this.gatePosition.x.toFixed(1)}, ${this.gatePosition.y.toFixed(1)}), trigger distance: ${triggerDistance}px`);
+                
+                // Find the waypoint that is approximately GATE_TRIGGER_DISTANCE before the gate
+                // We look for a point that is close to the gate but approaches from below (before reaching it)
+                for (let i = 0; i < pathPoints.length; i++) {
+                    const dist = Phaser.Math.Distance.Between(
+                        pathPoints[i].x, pathPoints[i].y,
+                        this.gatePosition.x, this.gatePosition.y
+                    );
+                    
+                    // Find point approximately at trigger distance, approaching from below (higher Y = below)
+                    const isApproachingFromBelow = pathPoints[i].y > this.gatePosition.y;
+                    const targetDistance = Math.abs(dist - triggerDistance);
+                    
+                    if (isApproachingFromBelow && targetDistance < closestDist) {
+                        closestDist = targetDistance;
+                        gateWaypointIndex = i;
+                    }
+                }
+                
+                this.gateWaypointIndex = gateWaypointIndex;
+                const waypointPos = pathPoints[gateWaypointIndex];
+                const actualDist = Phaser.Math.Distance.Between(
+                    waypointPos.x, waypointPos.y,
+                    this.gatePosition.x, this.gatePosition.y
+                );
+                console.log(`[GATE-INIT] Gate waypoint index: ${gateWaypointIndex}/${pathPoints.length-1}, position: (${waypointPos.x.toFixed(1)}, ${waypointPos.y.toFixed(1)}), actual distance from gate: ${actualDist.toFixed(1)}px (target: ${triggerDistance}px)`);
+            }
+            
             // Draw parking area with solid color from CONFIG
             this.parkingFloor = this.add.rectangle(
                 centerX,
@@ -1395,6 +1432,45 @@
             });
         }
         
+        // Check if gate should auto-close after vehicle passes through
+        checkGateAutoClose() {
+            if (!this.gateOpen || this.gateAnimating || !this.gatePosition || this.gateWaypointIndex === undefined) return;
+            
+            // Find the vehicle that is furthest along on the road AND has passed through the gate
+            // This will be the "last vehicle" that went through
+            let furthestVehiclePastGate = null;
+            let furthestIndex = -1;
+            
+            for (let car of this.cars) {
+                // Only check vehicles that are moving out and on the road path
+                if (!car.isMovingOut || !car.onRoadPath) continue;
+                
+                // Check if vehicle has path data with current index
+                if (!car.roadPathData || car.roadPathData.currentIndex === undefined) continue;
+                
+                const currentIdx = car.roadPathData.currentIndex;
+                
+                // Only consider vehicles that have PASSED the gate waypoint (are beyond it)
+                if (currentIdx > this.gateWaypointIndex && currentIdx > furthestIndex) {
+                    furthestIndex = currentIdx;
+                    furthestVehiclePastGate = car;
+                }
+            }
+            
+            // If we found a vehicle past the gate, check if it has cleared the safe distance
+            if (furthestVehiclePastGate) {
+                const closeDistance = CONFIG.GATE.GATE_CLOSE_DISTANCE || 100; // Distance after gate before closing
+                const pathLength = this.roadPath.getLength();
+                const closeWaypoints = Math.floor((closeDistance / pathLength) * 500);
+                
+                // Close the gate if the furthest vehicle has traveled far enough past the gate
+                if (furthestIndex >= this.gateWaypointIndex + closeWaypoints) {
+                    console.log(`[GATE] Auto-closing gate - vehicle cleared safe distance (${closeDistance}px / ${closeWaypoints} waypoints)`);
+                    this.closeGate();
+                }
+            }
+        }
+        
         // Update gate state based on vehicle proximity
         updateGate() {
             if (!this.gateLeftDoor || !this.gateRightDoor) return;
@@ -1450,7 +1526,6 @@
                         }
                         
                         this.exitQueue.push(car);
-                        console.log(`[EXIT-QUEUE] 🚫 RE-QUEUED Vehicle ${thisCarNum} due to collision (queue length: ${this.exitQueue.length})`);
                         continue;
                     }
                     
@@ -2650,8 +2725,6 @@
             if (CONFIG.PIZZA_DELIVERY.ENABLED) {
                 // Don't call next car if current collector is still collecting
                 if (this.currentPizzaCollector) {
-                    const collectorNum = this.cars.indexOf(this.currentPizzaCollector) + 1;
-                    console.log(`[EXIT-QUEUE] Cannot call next car - Vehicle ${collectorNum} is collecting pizza`);
                     return;
                 }
                 
@@ -2663,22 +2736,12 @@
                 );
                 
                 if (carHeadingToCounter) {
-                    const headingNum = this.cars.indexOf(carHeadingToCounter) + 1;
-                    console.log(`[EXIT-QUEUE] Cannot call next car - Vehicle ${headingNum} is heading to counter`);
                     return;
                 }
             }
             
             // Get the next vehicle from the exit queue
             const car = this.exitQueue.shift();
-            
-            const vNum = this.cars.indexOf(car) + 1;
-            console.log(`[EXIT-QUEUE] ✅ CALLING Vehicle ${vNum} from queue (remaining in queue: ${this.exitQueue.length}, attempt ${attemptsThisFrame + 1})`);
-            
-            // LOG: Level 2 tracking
-            if (this.currentLevelIndex === 1) {
-                console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🚗 CALLED from exit queue: Vehicle ${vNum} (attempt ${attemptsThisFrame + 1})`);
-            }
             
             this.moveOutCar(car, attemptsThisFrame);
         }
@@ -2719,8 +2782,6 @@
                     
                     // Re-add to exit queue
                     this.exitQueue.push(car);
-                    const vNum = this.cars.indexOf(car) + 1;
-                    console.log(`[EXIT-QUEUE] 🚫 RE-QUEUED Blocked Vehicle ${vNum} (blocked at moveCarToCounter, queue length: ${this.exitQueue.length})`);
                     
                     // Try next vehicle in queue
                     this.processNextInExitQueue();
@@ -2962,7 +3023,6 @@
                 car.goingToCounter = false;
                 car.stoppedAtCounter = false;
                 this.currentPizzaCollector = null;
-                console.log(`[EXIT-QUEUE] No pizza available, calling next from queue (queue length: ${this.exitQueue.length})`);
                 this.processNextInExitQueue();
                 this.continueOnRoadAfterCounter(car, spacedPoints, resumeIndex);
                 return;
@@ -2994,8 +3054,6 @@
                     
                     // Clear current collector and call next vehicle from exit queue
                     this.currentPizzaCollector = null;
-                    
-                    console.log(`[EXIT-QUEUE] Vehicle ${this.cars.indexOf(car) + 1} finished collecting, calling next from queue (queue length: ${this.exitQueue.length})`);
                     this.processNextInExitQueue();
                     
                     // Continue on road
@@ -3028,7 +3086,6 @@
                 car.goingToCounter = false;
                 car.stoppedAtCounter = false;
                 this.currentPizzaCollector = null;
-                console.log(`[EXIT-QUEUE] No pizza available, calling next from queue (queue length: ${this.exitQueue.length})`);
                 this.processNextInExitQueue();
                 this.continueOnRoadAfterCounter(car, spacedPoints, currentIndex);
                 return;
@@ -3059,8 +3116,6 @@
                         
                         // Clear current collector and call next vehicle from exit queue
                         this.currentPizzaCollector = null;
-                        
-                        console.log(`[EXIT-QUEUE] Vehicle ${this.cars.indexOf(car) + 1} finished collecting, calling next from queue (queue length: ${this.exitQueue.length})`);
                         this.processNextInExitQueue();
                         
                         // Continue on road
@@ -3098,6 +3153,20 @@
             
             const roadFollower = { index: continueIndex };
             
+            // Ensure onRoadPath is set for gate detection
+            car.onRoadPath = true;
+            
+            // Store/update path data in car for gate closing check
+            if (!car.roadPathData) {
+                car.roadPathData = {
+                    spacedPoints: spacedPoints,
+                    currentIndex: continueIndex
+                };
+            } else {
+                car.roadPathData.spacedPoints = spacedPoints;
+                car.roadPathData.currentIndex = continueIndex;
+            }
+            
             this.tweens.add({
                 targets: roadFollower,
                 index: spacedPoints.length - 1,
@@ -3114,10 +3183,32 @@
                     car.sprite.x = point1.x + (point2.x - point1.x) * fraction;
                     car.sprite.y = point1.y + (point2.y - point1.y) * fraction;
                     
+                    // Update current path index for gate closing check
+                    car.roadPathData.currentIndex = idx;
+                    
                     const dx = point2.x - point1.x;
                     const dy = point2.y - point1.y;
                     if (dx !== 0 || dy !== 0) {
                         car.sprite.rotation = Math.atan2(dy, dx) + Math.PI / 2;
+                    }
+                    
+                    // Check if gate should open (waypoint-based detection)
+                    // ONLY check when vehicle is on road path
+                    if (car.onRoadPath && this.gateWaypointIndex !== undefined) {
+                        const waypointTolerance = CONFIG.GATE.WAYPOINT_TOLERANCE;
+                        const atGateWaypoint = Math.abs(idx - this.gateWaypointIndex) <= waypointTolerance;
+                        
+                        // Debug logging
+                        if (idx % 50 === 0) { // Log every 50 waypoints to avoid spam
+                            const vNum = this.cars.indexOf(car) + 1;
+                            console.log(`[GATE-DEBUG] Vehicle ${vNum} (continue-after-counter) at waypoint ${idx}/${spacedPoints.length-1}, gate waypoint: ${this.gateWaypointIndex}, diff: ${Math.abs(idx - this.gateWaypointIndex)}, tolerance: ${waypointTolerance}, atGateWaypoint: ${atGateWaypoint}, gateOpen: ${this.gateOpen}, onRoadPath: ${car.onRoadPath}`);
+                        }
+                        
+                        if (atGateWaypoint && !this.gateOpen && !this.gateAnimating) {
+                            const vNum = this.cars.indexOf(car) + 1;
+                            console.log(`[GATE] Vehicle ${vNum} triggered gate opening at waypoint ${idx}!`);
+                            this.openGate();
+                        }
                     }
                     
                     if (car.shadow && CONFIG.VEHICLE_SHADOW.ENABLED) {
@@ -3127,12 +3218,7 @@
                     }
                 },
                 onComplete: () => {
-                    // LOG: Level 2 tracking
-                    if (this.currentLevelIndex === 1) {
-                        const vNum = this.cars.indexOf(car) + 1;
-                        console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 👋 LEFT COUNTER: Vehicle ${vNum} - calling next vehicle from pizza queue`);
-                    }
-                    
+                    car.onRoadPath = false;
                     this.removeCar(car);
                 }
             });
@@ -3316,25 +3402,10 @@
                         // NOW car can move out (connection is fully disconnected)
                         car.waitingForAnimationComplete = false;
                         
-                        // LOG: Level 2 tracking
-                        if (this.currentLevelIndex === 1) {
-                            const vNum = this.cars.indexOf(car) + 1;
-                            console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] ✅ FINISHED CHARGING: Vehicle ${vNum}`);
-                        }
-                        
                         // When pizza delivery is enabled, use exit queue to ensure vehicles don't overlap
                         if (CONFIG.PIZZA_DELIVERY.ENABLED) {
                             // Always add to queue to prevent race conditions
                             this.exitQueue.push(car);
-                            
-                            const vNum = this.cars.indexOf(car) + 1;
-                            const qLen = this.exitQueue.length;
-                            console.log(`[EXIT-QUEUE] ➕ ADDED Vehicle ${vNum} to queue (queue length: ${qLen})`);
-                            
-                            // LOG: Level 2 tracking
-                            if (this.currentLevelIndex === 1) {
-                                console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🅿️ ADDED to exit queue: Vehicle ${vNum} (queue length: ${qLen})`);
-                            }
                             
                             // Try to process the queue immediately
                             this.processNextInExitQueue();
@@ -3678,7 +3749,6 @@
                     // Just clear the waitingToExit flag - they're already in the queue
                     // and will be called one at a time
                     if (waitingCars.length > 0) {
-                        console.log(`[EXIT-QUEUE] 🔓 ${waitingCars.length} blocked car(s) now unblocked`);
                         for (let car of waitingCars) {
                             car.waitingToExit = false;
                         }
@@ -3701,12 +3771,6 @@
             car.isCharging = false;
             car.isMovingOut = true;
             car.waitingToExit = false;  // Clear waiting flag since car is now moving
-            
-            // LOG: Level 2 tracking
-            if (this.currentLevelIndex === 1) {
-                const vNum = this.cars.indexOf(car) + 1;
-                console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🚀 STARTING EXIT: Vehicle ${vNum}`);
-            }
             
             // If pizza delivery is enabled, mark car as needing pizza IMMEDIATELY
             // This ensures the exit queue system knows this vehicle is en route
@@ -3777,15 +3841,6 @@
                 // Re-add blocked vehicle to END of exit queue so free vehicles can move first
                 if (CONFIG.PIZZA_DELIVERY.ENABLED) {
                     this.exitQueue.push(car);
-                    
-                    const vNum = this.cars.indexOf(car) + 1;
-                    const qLen = this.exitQueue.length;
-                    console.log(`[EXIT-QUEUE] 🚫 RE-QUEUED Blocked Vehicle ${vNum} (queue length: ${qLen})`);
-                    
-                    // LOG: Level 2 tracking
-                    if (this.currentLevelIndex === 1) {
-                        console.log(`[V2TRACK] [Frame ${this.game.loop.frame}] 🚧 BLOCKED & RE-QUEUED: Vehicle ${vNum} (added back to exit queue, queue length: ${qLen})`);
-                    }
                     
                     // Try next vehicle in queue (pass incremented attempt counter)
                     this.processNextInExitQueue(attemptsThisFrame + 1);
@@ -4245,9 +4300,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                 
                 // If vehicle's x is at or to the right of counter x, it's past the collection point
                 if (carX >= counterX) {
-                    const vNum = this.cars.indexOf(car) + 1;
-                    console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} landed past counter (x: ${carX.toFixed(1)} >= ${counterX.toFixed(1)}), collecting immediately`);
-                        
                         // Mark as stopped at counter
                         car.stoppedAtCounter = true;
                         car.onRoadPath = true; // Set this so collection works
@@ -4315,6 +4367,25 @@ for (let t = 0; t <= 1; t += 0.002) {
                         car.sprite.rotation = Math.atan2(dy, dx) + Math.PI / 2;
                     }
                     
+                    // Check if gate should open (waypoint-based detection)
+                    // ONLY check when vehicle is on road path
+                    if (car.onRoadPath && this.gateWaypointIndex !== undefined) {
+                        const waypointTolerance = CONFIG.GATE.WAYPOINT_TOLERANCE;
+                        const atGateWaypoint = Math.abs(idx - this.gateWaypointIndex) <= waypointTolerance;
+                        
+                        // Debug logging
+                        if (idx % 50 === 0) { // Log every 50 waypoints to avoid spam
+                            const vNum = this.cars.indexOf(car) + 1;
+                            console.log(`[GATE-DEBUG] Vehicle ${vNum} (forward) at waypoint ${idx}/${spacedPoints.length-1}, gate waypoint: ${this.gateWaypointIndex}, diff: ${Math.abs(idx - this.gateWaypointIndex)}, tolerance: ${waypointTolerance}, atGateWaypoint: ${atGateWaypoint}, gateOpen: ${this.gateOpen}, onRoadPath: ${car.onRoadPath}`);
+                        }
+                        
+                        if (atGateWaypoint && !this.gateOpen && !this.gateAnimating) {
+                            const vNum = this.cars.indexOf(car) + 1;
+                            console.log(`[GATE] Vehicle ${vNum} triggered gate opening at waypoint ${idx}!`);
+                            this.openGate();
+                        }
+                    }
+                    
                     // Check if car needs to stop at counter (for pizza collection)
                     // ONLY check when vehicle is on road path (not during parking, charging, or Bezier curve)
                     if (car.onRoadPath && car.goingToCounter && !car.stoppedAtCounter) {
@@ -4327,11 +4398,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                         const pastCounterX = car.sprite.x >= counterX - 50; // 50px buffer before counter
                         
                         if (atWaypoint || pastCounterX) {
-                            const vNum = this.cars.indexOf(car) + 1;
-                            if (pastCounterX && !atWaypoint) {
-                                console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} detected past counter X during road movement (${car.sprite.x.toFixed(1)} >= ${(counterX - 50).toFixed(1)}), stopping for collection`);
-                            }
-                            
                             car.stoppedAtCounter = true;
                             
                             // Set as current collector (no queue check needed - single queue system ensures only one vehicle at a time)
@@ -4567,9 +4633,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                 
                 // If vehicle's x is at or to the right of counter x, it's past the collection point
                 if (carX >= counterX) {
-                    const vNum = this.cars.indexOf(car) + 1;
-                    console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} (reverse exit) landed past counter (x: ${carX.toFixed(1)} >= ${counterX.toFixed(1)}), collecting immediately`);
-                        
                         // Mark as stopped at counter
                         car.stoppedAtCounter = true;
                         car.onRoadPath = true; // Set this so collection works
@@ -4637,6 +4700,25 @@ for (let t = 0; t <= 1; t += 0.002) {
                         car.sprite.rotation = Math.atan2(dy, dx) + Math.PI / 2;
                     }
                     
+                    // Check if gate should open (waypoint-based detection)
+                    // ONLY check when vehicle is on road path
+                    if (car.onRoadPath && this.gateWaypointIndex !== undefined) {
+                        const waypointTolerance = CONFIG.GATE.WAYPOINT_TOLERANCE;
+                        const atGateWaypoint = Math.abs(idx - this.gateWaypointIndex) <= waypointTolerance;
+                        
+                        // Debug logging
+                        if (idx % 50 === 0) { // Log every 50 waypoints to avoid spam
+                            const vNum = this.cars.indexOf(car) + 1;
+                            console.log(`[GATE-DEBUG] Vehicle ${vNum} (reverse) at waypoint ${idx}/${spacedPoints.length-1}, gate waypoint: ${this.gateWaypointIndex}, diff: ${Math.abs(idx - this.gateWaypointIndex)}, tolerance: ${waypointTolerance}, atGateWaypoint: ${atGateWaypoint}, gateOpen: ${this.gateOpen}, onRoadPath: ${car.onRoadPath}`);
+                        }
+                        
+                        if (atGateWaypoint && !this.gateOpen && !this.gateAnimating) {
+                            const vNum = this.cars.indexOf(car) + 1;
+                            console.log(`[GATE] Vehicle ${vNum} triggered gate opening at waypoint ${idx}!`);
+                            this.openGate();
+                        }
+                    }
+                    
                     // Check if car needs to stop at counter (for pizza collection)
                     // ONLY check when vehicle is on road path (not during parking, charging, or Bezier curve)
                     if (car.onRoadPath && car.goingToCounter && !car.stoppedAtCounter) {
@@ -4649,11 +4731,6 @@ for (let t = 0; t <= 1; t += 0.002) {
                         const pastCounterX = car.sprite.x >= counterX - 50; // 50px buffer before counter
                         
                         if (atWaypoint || pastCounterX) {
-                            const vNum = this.cars.indexOf(car) + 1;
-                            if (pastCounterX && !atWaypoint) {
-                                console.log(`[PIZZA-COLLECTION] Vehicle ${vNum} (reverse) detected past counter X during road movement (${car.sprite.x.toFixed(1)} >= ${(counterX - 50).toFixed(1)}), stopping for collection`);
-                            }
-                            
                             car.stoppedAtCounter = true;
                             
                             // Set as current collector (no queue check needed - single queue system ensures only one vehicle at a time)
@@ -5284,14 +5361,8 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Smoothly animate charge display for all cars
             this.updateChargeAnimations(delta);
             
-            // Update gate state based on vehicle proximity
-            this.updateGate();
-            
-            // Update pizza counter - DISABLED: now using waypoint-based detection in road traversal loop
-            // this.updatePizzaCounter();
-            
-            // Draw charging connections (DISABLED - using color coding instead)
-            // this.drawChargingConnections();
+            // Check if gate should auto-close after vehicles pass through
+            this.checkGateAutoClose();
             
             // Check level-up timer
             this.checkLevelUpTimer();

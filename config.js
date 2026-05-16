@@ -736,7 +736,22 @@ var CONFIG = {
         POLE_BORDER_COLOR: "#212121",    // Nearly black border for pole
         POLE_BORDER_WIDTH: 2,           // Pole border width (pixels)
         OPEN_DURATION: 400,             // Animation duration for opening/closing (milliseconds)
-        PROXIMITY_RADIUS: 150,          // Distance to detect vehicles approaching gate (pixels)
+        
+        // Waypoint-based gate trigger (replaces proximity-based detection)
+        GATE_TRIGGER_DISTANCE: 75,     // Distance before gate where vehicle triggers opening (pixels) - adjust this to change when gate opens
+        WAYPOINT_TOLERANCE: 10,         // Tolerance for waypoint detection (±waypoints)
+        
+        // Gate auto-close settings - CONTROLS WHEN GATE CLOSES AFTER VEHICLE PASSES
+        GATE_AUTO_CLOSE_ENABLED: true,  // Whether gate should automatically close after vehicle passes
+        GATE_CLOSE_DISTANCE: 125,       // Distance (in pixels) vehicle must travel PAST the gate before gate closes
+                                        // ** TWEAK THIS VALUE TO CONTROL GATE CLOSING **
+                                        // INCREASE (e.g., 250-300) if gate closes too early (vehicle still under gate)
+                                        // DECREASE (e.g., 150-180) if gate stays open too long
+                                        // Default: 200 pixels = about 1.3x the gate trigger distance
+        
+        // Deprecated (kept for backward compatibility, use waypoint-based detection instead)
+        PROXIMITY_RADIUS: 150,          // DEPRECATED: Distance to detect vehicles approaching gate (pixels)
+        
         COLOR: "#FF6B9D",                // Bright pink gate color
         BORDER_COLOR: "#E91E63",         // Deep pink border
         BORDER_WIDTH: 3,                // Gate border width (pixels)
