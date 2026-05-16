@@ -16,6 +16,12 @@ var CONFIG = {
     BATTERY_START_LEVEL: 1,        // Starting level for spawned batteries (1-7). Set higher to test high-level sprites without merging
     BATTERY_IMAGE_EXTENSIONS: ['svg', 'png', 'jpg', 'webp'],  // Priority order for battery image extensions
     
+    // Level Group Progress UI Settings
+    LEVEL_GROUP_UI: {
+        DISPLAY_DURATION: 4000,      // Duration to show the level group progress UI (in milliseconds)
+        ANIMATION_DURATION: 800,     // Duration for progress bar fill animation (in milliseconds)
+    },
+    
     // Game Area Background Colors
     BACKGROUND: {
         // Ground to sea gradient - parking area (top) blends to merge area (bottom)

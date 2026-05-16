@@ -1467,5 +1467,10 @@
         }
       ]
     }
+  ],
+  "levelGroups": [
+    { "id": "A", "start": 1, "end": 5, "theme": "pizza" },
+    { "id": "B", "start": 6, "end": 10, "theme": "library" },
+    { "id": "C", "start": 11, "end": 15, "theme": "coal_mine" }
   ]
 }

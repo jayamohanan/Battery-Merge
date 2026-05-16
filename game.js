@@ -12,6 +12,7 @@
             this.levelData = null;              // Current level data
             this.currentLevelIndex = 0;         // Track which level we're on
             this.allLevelsData = null;          // Store all levels data
+            this.levelGroups = null;            // Store level groups data
             this.totalChargeRequired = 0;       // Total charge needed for all cars in level
             this.remainingCharge = 0;           // Remaining charge to complete level
             this.levelChargeText = null;        // Text display for remaining charge
@@ -217,6 +218,7 @@
             const levelsData = this.cache.json.get('levels');
             if (levelsData && levelsData.levels && levelsData.levels.length > 0) {
                 this.allLevelsData = levelsData.levels;
+                this.levelGroups = levelsData.levelGroups || []; // Load level groups data
                 this.currentLevelIndex = 0;
                 this.levelData = this.allLevelsData[this.currentLevelIndex];
                 this.loadLevel(this.levelData);
@@ -5041,6 +5043,9 @@ for (let t = 0; t <= 1; t += 0.002) {
             const sceneWidth = this.cameras.main.width;
             const sceneHeight = this.cameras.main.height;
             
+            // Get the level number that was just completed
+            const completedLevelNumber = this.allLevelsData[this.currentLevelIndex].number;
+            
             // Create white overlay for the entire game area
             const whiteOverlay = this.add.rectangle(
                 sceneWidth / 2, 
@@ -5068,8 +5073,14 @@ for (let t = 0; t <= 1; t += 0.002) {
                         onComplete: () => {
                             whiteOverlay.destroy();
                             
-                            // Load next level
-                            this.loadNextLevel();
+                            // Show level group progress UI with just completed level animating
+                            // Show for all levels including level 1 (user wants to see level 1 completion)
+                            this.showLevelGroupProgressUI(completedLevelNumber);
+                            
+                            // Wait for animation to complete, then load next level behind the UI
+                            this.time.delayedCall(CONFIG.LEVEL_GROUP_UI.ANIMATION_DURATION + 300, () => {
+                                this.loadNextLevel();
+                            });
                         }
                     });
                 }
@@ -5089,6 +5100,168 @@ for (let t = 0; t <= 1; t += 0.002) {
             // Load new level
             this.levelData = this.allLevelsData[this.currentLevelIndex];
             this.loadLevel(this.levelData);
+        }
+        
+        showLevelGroupProgressUI(justCompletedLevel = null) {
+            const currentLevelNumber = this.allLevelsData[this.currentLevelIndex].number;
+            
+            // Find the level group for the display (use completed level if provided, otherwise current)
+            const displayLevelNumber = justCompletedLevel || currentLevelNumber;
+            
+            console.log('[LEVEL GROUP UI] Showing UI - Just completed:', justCompletedLevel, 'Current level:', currentLevelNumber);
+            
+            // Check if levelGroups exists
+            if (!this.levelGroups || this.levelGroups.length === 0) {
+                console.warn('[LEVEL GROUP UI] No level groups data found!');
+                return;
+            }
+            
+            const currentGroup = this.levelGroups.find(group => 
+                displayLevelNumber >= group.start && displayLevelNumber <= group.end
+            );
+            
+            if (!currentGroup) {
+                console.warn('[LEVEL GROUP UI] No level group found for level', displayLevelNumber);
+                return;
+            }
+            
+            console.log('[LEVEL GROUP UI] Group found:', currentGroup.theme, `(${currentGroup.start}-${currentGroup.end})`)
+            
+            // Determine which level to highlight (the next one to play)
+            const nextLevelNumber = justCompletedLevel ? justCompletedLevel + 1 : currentLevelNumber;
+            
+            // Get scene dimensions and parking area dimensions
+            const sceneWidth = this.cameras.main.width;
+            const sceneHeight = this.cameras.main.height;
+            const parkingAreaHeight = sceneHeight * 0.5;
+            
+            // Calculate parking area center (same logic as drawParkingAndRoad)
+            const horizontalShift = sceneWidth * (CONFIG.GRID.PARKING_HORIZONTAL_OFFSET || 0);
+            let centerX = sceneWidth / 2 + horizontalShift;
+            let centerY = parkingAreaHeight / 2 + 30;
+            
+            if (CONFIG.GRID.CONSTRAINT_SQUARE_ENABLED) {
+                const offsetX = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_X || 0;
+                const offsetY = CONFIG.GRID.CONSTRAINT_SQUARE_OFFSET_Y || 0;
+                centerX += offsetX;
+                centerY += offsetY;
+            }
+            
+            // Create container for the entire UI overlay
+            const uiContainer = this.add.container(centerX, centerY);
+            uiContainer.setDepth(999); // Above everything else
+            
+            // Calculate UI dimensions
+            const cardWidth = 400;
+            const cardHeight = 60 + (currentGroup.end - currentGroup.start + 1) * 80; // Header + levels
+            
+            // Semi-transparent background panel
+            const bgPanel = this.add.rectangle(0, 0, cardWidth, cardHeight, 0x000000, 0.85);
+            bgPanel.setStrokeStyle(4, 0xFFFFFF);
+            uiContainer.add(bgPanel);
+            
+            // Header - Group theme title
+            const themeTitle = currentGroup.theme.replace(/_/g, ' ').toUpperCase();
+            const headerText = this.add.text(0, -cardHeight/2 + 30, themeTitle, {
+                fontFamily: CONFIG.FONT_FAMILY,
+                fontSize: '28px',
+                color: '#FFFFFF',
+                fontStyle: 'bold',
+                align: 'center'
+            }).setOrigin(0.5);
+            uiContainer.add(headerText);
+            
+            // Create level items with progress bars
+            const startY = -cardHeight/2 + 70;
+            const levelItemHeight = 70;
+            const levelItemSpacing = 10;
+            
+            for (let i = currentGroup.start; i <= currentGroup.end; i++) {
+                const levelIndex = i - 1; // Convert to 0-based index
+                const levelData = this.allLevelsData[levelIndex];
+                const yPos = startY + (i - currentGroup.start) * (levelItemHeight + levelItemSpacing);
+                
+                // Determine level state
+                const isCompleted = i < nextLevelNumber || (justCompletedLevel && i === justCompletedLevel);
+                const isHighlighted = i === nextLevelNumber; // Highlight the next level to play
+                const shouldAnimate = justCompletedLevel && i === justCompletedLevel;
+                
+                // Level item background
+                const itemBg = this.add.rectangle(0, yPos, cardWidth - 40, levelItemHeight, 
+                    isHighlighted ? 0x4CAF50 : 0x333333, 
+                    isHighlighted ? 0.9 : 0.5
+                );
+                uiContainer.add(itemBg);
+                
+                // Level text
+                const levelText = this.add.text(-cardWidth/2 + 30, yPos - 15, `Level ${i}`, {
+                    fontFamily: CONFIG.FONT_FAMILY,
+                    fontSize: '18px',
+                    color: isHighlighted ? '#FFFFFF' : '#AAAAAA',
+                    fontStyle: isHighlighted ? 'bold' : 'normal'
+                }).setOrigin(0, 0.5);
+                uiContainer.add(levelText);
+                
+                // Delivery target text
+                const targetText = this.add.text(-cardWidth/2 + 30, yPos + 5, levelData.deliveryTarget, {
+                    fontFamily: CONFIG.FONT_FAMILY,
+                    fontSize: '14px',
+                    color: isHighlighted ? '#E0E0E0' : '#888888'
+                }).setOrigin(0, 0.5);
+                uiContainer.add(targetText);
+                
+                // Progress bar background
+                const barWidth = 100;
+                const barHeight = 10;
+                const barX = cardWidth/2 - 120;
+                const barBg = this.add.rectangle(barX, yPos, barWidth, barHeight, 0x555555);
+                uiContainer.add(barBg);
+                
+                // Progress bar fill
+                const initialProgress = (isCompleted && !shouldAnimate) ? 1 : 0;
+                const barFill = this.add.rectangle(
+                    barX - barWidth/2, 
+                    yPos, 
+                    barWidth * initialProgress, 
+                    barHeight, 
+                    0x4CAF50
+                );
+                barFill.setOrigin(0, 0.5);
+                uiContainer.add(barFill);
+                
+                // Animate progress bar fill for just completed level
+                if (shouldAnimate) {
+                    this.tweens.add({
+                        targets: barFill,
+                        width: barWidth,
+                        duration: CONFIG.LEVEL_GROUP_UI.ANIMATION_DURATION,
+                        ease: 'Cubic.easeOut',
+                        delay: 200 // Small delay before animation starts
+                    });
+                }
+            }
+            
+            // Fade in the UI
+            uiContainer.setAlpha(0);
+            this.tweens.add({
+                targets: uiContainer,
+                alpha: 1,
+                duration: 300,
+                ease: 'Cubic.easeOut'
+            });
+            
+            // Auto-hide after configured duration
+            this.time.delayedCall(CONFIG.LEVEL_GROUP_UI.DISPLAY_DURATION, () => {
+                this.tweens.add({
+                    targets: uiContainer,
+                    alpha: 0,
+                    duration: 300,
+                    ease: 'Cubic.easeIn',
+                    onComplete: () => {
+                        uiContainer.destroy();
+                    }
+                });
+            });
         }
         
         clearParkingArea() {
